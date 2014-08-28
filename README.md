@@ -10,6 +10,7 @@ Computer Architecture CSCI 6461 Group Project
 - Evanna Reynoso
  
  -----
+
  ## Objective
 
  Create a small classical CISC computer simulated in java.
@@ -31,8 +32,9 @@ Computer Architecture CSCI 6461 Group Project
 	 - Make sure all instructions ( as specified below) execute on the simulator
 	  - Demonstrate 2nd program running on the simulator
 
-	  -----
-	  ##Using Git
+----
+
+##Using Git
 
 	  Git is version control service that enables users to track progress and changes to a project. Different versions of a project reside in different **branches**. Files must be added to a commit log and then committed to a branch before the changes are visible to all users. If a branch provides functionality useful to the primary branch then it can be **merged** back into the primary branch.
 
