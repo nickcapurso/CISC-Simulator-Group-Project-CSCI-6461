@@ -8,12 +8,15 @@ package csci_6461_group_project;
  * <ul>
  * 	<li>Halt instruction (page 6)</li>
  * 	<li>Trap instruction (page 6)</li>
- * 	<li>Standard/arithmetic/jump instructions (page 6)</li>
- * 	<li>Special arithmetic/logical instructions (page 10)</li>
+ * 	<li>Load/store instructions (page 6) (also used for some arithmetic & jumps)</li>
+ * 	<li>Special arithmetic/logical instructions (page 10) (used for register
+ * to register operations, X & Y)</li>
  * 	<li>Shift/rotate instructions (page 11)</li>
  * 	<li>I/O instructions (page 12)</li>
  * 	<li>Floating point/vector instructions (page 13)</li>
  * </ul>
+ * See InstructionBitFormats.java for bit breakdowns.
+ * <p>
  * 
  * @author Nick Capurso
  *
