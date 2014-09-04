@@ -5,7 +5,6 @@ import javax.swing.JFrame;
 /**
  * Initializes system resources and runs programs.
  * 
- * @author Nicholas Capurso
  */
 public class Computer {
 

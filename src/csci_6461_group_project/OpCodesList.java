@@ -9,8 +9,7 @@ package csci_6461_group_project;
  * 	<li>Halt instruction (page 6)</li>
  * 	<li>Trap instruction (page 6)</li>
  * 	<li>Load/store instructions (page 6) (also used for some arithmetic & jumps)</li>
- * 	<li>Special arithmetic/logical instructions (page 10) (used for register
- * to register operations, X & Y)</li>
+ * 	<li>Register to register (X&Y) arithmetic/logic instructions (page 10)</li>
  * 	<li>Shift/rotate instructions (page 11)</li>
  * 	<li>I/O instructions (page 12)</li>
  * 	<li>Floating point/vector instructions (page 13)</li>
@@ -25,262 +24,299 @@ public class OpCodesList {
 	/**
 	 * Halt - stops the machine. 
 	 * <p>
-	 * Format: HLT
+	 * Usage: HLT <br>
+	 * Instruction format type: Special halt instruction
 	 */
-	public static final byte HLT = 0;
+	public static final byte HLT = 00;
 
 	/**
 	 * Load register from memory.
 	 * <p>
-	 * Format: LDR r, x, address[, i]
+	 * Usage: LDR r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte LDR = 1;
+	public static final byte LDR = 01;
 	
 	/**
 	 * Store register to memory.
 	 * <p>
-	 * Format: STR r, x, address[, i]
+	 * Usage: STR r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte STR = 2;
+	public static final byte STR = 02;
 	
 	/**
 	 * Load register with address.
 	 * <p>
-	 * Format: LDA r, x, address[, i]
+	 * Usage: LDA r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte LDA = 3;
+	public static final byte LDA = 03;
 	
 	/**
 	 * Add memory to register.
 	 * <p>
-	 * Format: AMR r, x, address[, i]
+	 * Usage: AMR r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte AMR = 4;
+	public static final byte AMR = 04;
 	
 	/**
 	 * Subtract memory from register.
 	 * <p>
-	 * Format: SMR r, x, address[, i]
+	 * Usage: SMR r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte SMR = 5;
+	public static final byte SMR = 05;
 	
 	/**
-	 * Add immediate to register. IX and I are ignored.
+	 * Add immediate to register (immediate is specified in ADDR). IX and I are ignored.
 	 * <p>
-	 * Format: AIR r, immed
+	 * Usage: AIR r, immed <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte AIR = 6;
+	public static final byte AIR = 06;
 	
 	/**
-	 * Subtract immediate from register. IX and I are ignored.
+	 * Subtract immediate from register (immediate is specified in ADDR). IX and I are ignored.
 	 * <p>
-	 * Format: SIR r, immed
+	 * Usage: SIR r, immed <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte SIR = 7;
+	public static final byte SIR = 07;
 	
 	/**
 	 * Jump if zero.
 	 * <p>
-	 * Format: JZ r, x, address[, i]
+	 * Usage: JZ r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JZ = 10;
+	public static final byte JZ = 010;
 	
 	/**
 	 * Jump if not equal.
 	 * <p>
-	 * Format: JNE r, x, address[, i]
+	 * Usage: JNE r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JNE = 11;
+	public static final byte JNE = 011;
 	
 	/**
 	 * Jump if condition code - specified in first argument (replaces r) and
 	 * specifies which bit of the CC to check against.
 	 * <p>
-	 * Format: JCC cc, x, address[, i]
+	 * Usage: JCC cc, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JCC = 12;
+	public static final byte JCC = 012;
 	
 	/**
 	 * Unconditional jump. R is ignored.
 	 * <p>
-	 * Format: JMP x, address[, i]
+	 * Usage: JMP x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JMP = 13;
+	public static final byte JMP = 013;
 	
 	/**
 	 * Jump subroutine (or jump and save return address). R is ignored.
 	 * <p>
-	 * Format: JSR x, address[, i]
+	 * Usage: JSR x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JSR = 14;
+	public static final byte JSR = 014;
 	
 	/**
 	 * Return from subroutine - return code specified in ADDR field (optional). 
 	 * IX and I are ignored.
 	 * <p>
-	 * Format: RFS Immed
+	 * Usage: RFS Immed <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte RFS = 15;
+	public static final byte RFS = 015;
 	
 	/**
 	 * Subtract one and branch.
 	 * <p>
-	 * Format: SOB r, x, address[, i]
+	 * Usage: SOB r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte SOB = 16;
+	public static final byte SOB = 016;
 	
 	/**
 	 * Jump if greater than or equal to.
 	 * <p>
-	 * Format: JGE r, x, address[, i]
+	 * Usage: JGE r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte JGE = 17;
+	public static final byte JGE = 017;
 	
 	/**
-	 * Multiply register by register.
+	 * Multiply register by register. Result stored in RX (high order bits) and RX+1 (low order bits)
 	 * <p>
-	 * Format: MLT rx, ry
+	 * Usage: MLT rx, ry <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte MLT = 20;
+	public static final byte MLT = 020;
 	
 	/**
-	 * Divide register by register.
+	 * Divide register by register. RX contains the quotient, RX+1 contains the remainder.
 	 * <p>
-	 * Format: DVD rx, ry
+	 * Usage: DVD rx, ry  <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte DVD = 21;
+	public static final byte DVD = 021;
 	
 	/**
 	 * Test if the contents of two registers are equal.
 	 * <p>
-	 * Format: TRR rx, ry
+	 * Usage: TRR rx, ry  <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte TRR = 22;
+	public static final byte TRR = 022;
 	
 	/**
 	 * Logical AND of two registers.
 	 * <p>
-	 * Format: AND rx, ry
+	 * Usage: AND rx, ry  <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte AND = 23;
+	public static final byte AND = 023;
 	
 	/**
 	 * Logical OR of two registers.
 	 * <p>
-	 * Format: ORR rx, ry
+	 * Usage: ORR rx, ry  <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte ORR = 24;
+	public static final byte ORR = 024;
 	
 	/**
 	 * Logical NOT of two registers.
 	 * <p>
-	 * Format: NOT rx, ry
+	 * Usage: NOT rx, ry  <br>
+	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
-	public static final byte NOT = 25;
+	public static final byte NOT = 025;
 
 	/**
 	 * Traps to memory address 0 - a trap table containing addresses of a maximum of
 	 * 16 user-specified routines. The index into the table is specified in the ADDR field.
 	 * <p>
-	 * Format: TRAP code
+	 * Usage: TRAP code <br>
+	 * Instruction format type: Special trap instruction
 	 */
-	public static final byte TRAP  = 30;
+	public static final byte TRAP  = 030;
 	
 	/**
 	 * Shift register by count. 
 	 * <p>
-	 * Format: SRC r, count, L/R, A/L
+	 * Usage: SRC r, count, L/R, A/L <br>
+	 * Instruction format type: Shift/Rotate
 	 */
-	public static final byte SRC = 31;
+	public static final byte SRC = 031;
 	
 	/**
 	 * Rotate register by count.
 	 * <p>
-	 * Format: RRC r, count, L/R/ A/L
+	 * Usage: RRC r, count, L/R/ A/L <br>
+	 * Instruction format type: Shift/Rotate
 	 */
-	public static final byte RRC = 32;
+	public static final byte RRC = 032;
 	
 	/**
 	 * Floating add memory to register.
 	 * <p>
-	 * Format: FADD fr, x, address[, i]
+	 * Usage: FADD fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte FADD = 33;
+	public static final byte FADD = 033;
 	
 	/**
 	 * Floating subtract from register.
 	 * <p>
-	 * Format: FSUB fr, x, address[, i]
+	 * Usage: FSUB fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte FSUB = 34;
+	public static final byte FSUB = 034;
 	
 	/**
 	 * Vector add.
 	 * <p>
-	 * Format: VADD fr, x, address[, i]
+	 * Usage: VADD fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte VADD = 35;
+	public static final byte VADD = 035;
 	
 	/**
 	 * Vector subtract.
 	 * <p>
-	 * Format: VSUB fr, x, address[, i]
+	 * Usage: VSUB fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte VSUB = 36;
+	public static final byte VSUB = 036;
 	
 	/**
 	 * Convert to fixed/floating point
 	 * <p>
-	 * Format: CNVRT r, x, address[, i]
+	 * Usage: CNVRT r, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte CNVRT = 37;
+	public static final byte CNVRT = 037;
 	
 	/**
 	 * Load index register from memory.
 	 * <p>
-	 * Format: LDX x, address[, i]
+	 * Usage: LDX x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte LDX = 41;
+	public static final byte LDX = 041;
 	
 	/**
 	 * Store index register to memory.
 	 * <p>
-	 * Format: STX x, address[, i]
+	 * Usage: STX x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte STX = 42;
+	public static final byte STX = 042;
 	
 	/**
 	 * Load floating register from memory.
 	 * <p>
-	 * Format: LDRF fr, x, address[, i]
+	 * Usage: LDRF fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte LDFR = 50;
+	public static final byte LDFR = 050;
 	
 	/**
 	 * Store floating register to memory.
 	 * <p>
-	 * Format: STFR fr, x, address[, i]
+	 * Usage: STFR fr, x, address[, i] <br>
+	 * Instruction format type: Load/Store
 	 */
-	public static final byte STFR = 51;
+	public static final byte STFR = 051;
 	
 	/**
 	 * Input character to register from device.
 	 * <p>
-	 * Format: IN r, devid
+	 * Usage: IN r, devid <br>
+	 * Instruction format type: I/O
 	 */
-	public static final byte IN	= 61;
+	public static final byte IN	= 061;
 	
 	/**
 	 * Output character to device from register.
 	 * <p>
-	 * Format: OUT r, devid
+	 * Usage: OUT r, devid <br>
+	 * Instruction format type: I/O
 	 */
-	public static final byte OUT = 62;
+	public static final byte OUT = 062;
 	
 	/**
 	 * Check device status to register.
 	 * <p>
-	 * Format: CHK r, devid
+	 * Usage: CHK r, devid <br>
+	 * Instruction format type: I/O
 	 */
-	public static final byte CHK = 63;
+	public static final byte CHK = 063;
 }
