@@ -5,7 +5,7 @@ import java.util.*;
 /*CPU class registers placed into a map. I think this implementation is hard to use...i'd prefer to use
  * the more verbose CPU class with many getters and setters.  */
 
-public class CPU2 {
+public class CPU {
 	//Public constants for register names
 	public static final String R0 = "R0";
 	public static final String R1 = "R1";	
@@ -32,7 +32,7 @@ public class CPU2 {
 	private Map<String, BitSet> regMap = new HashMap<String, BitSet>();
 	
 	//Constructor
-	public CPU2() {
+	public CPU() {
 			
 		//4 General Purpose Registers(GPRs)		
 		regMap.put(R0, new BitSet(18));

@@ -3,6 +3,8 @@
  */
 package edu.gwu.seas.csci;
 
+import java.util.BitSet;
+
 /**
  * Provides the memory for the {@link Computer} class. Leverages the Singleton
  * pattern to initialize and maintain exactly one set of system memory per
@@ -44,7 +46,10 @@ public class Memory {
      * @param address
      *            The memory address to place the contents.
      */
-    public void put(Word word, int address) {
+    public void put(Word word, int address) throws IndexOutOfBoundsException {
+	// TODO: Need to work out Fault and Trap Logic
+	if (address > memory.length)
+	    throw new IndexOutOfBoundsException();
 	memory[address] = word;
     }
 
@@ -55,7 +60,20 @@ public class Memory {
      *            The memory address of the contents to retrieve.
      * @return The contents of the specified memory address.
      */
-    public Word get(int address) {
+    public Word get(int address) throws IndexOutOfBoundsException {
+	// TODO: Need to work out Fault and Trap Logic
+	if (address > memory.length)
+	    throw new IndexOutOfBoundsException();
 	return memory[address];
+    }
+
+    /**
+     * @param address
+     * @return
+     * @throws IndexOutOfBoundsException
+     */
+    public Word get(BitSet address) throws IndexOutOfBoundsException {
+	// TODO: Implement me.
+	return null;
     }
 }

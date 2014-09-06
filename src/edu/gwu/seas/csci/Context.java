@@ -46,25 +46,9 @@ public class Context {
     }
 
     /**
-     * @param opcodeClasses
-     *            the opcodeClasses to set
-     */
-    public void setOpcodeClasses(Map<String, InstructionClass> opcodeClasses) {
-	this.opcodeClasses = opcodeClasses;
-    }
-
-    /**
      * @return the opCodesMap
      */
     public Map<String, Byte> getOpCodesMap() {
 	return opCodesMap;
-    }
-
-    /**
-     * @param opCodesMap
-     *            the opCodesMap to set
-     */
-    public void setOpCodesMap(Map<String, Byte> opCodesMap) {
-	this.opCodesMap = opCodesMap;
     }
 }

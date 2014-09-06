@@ -80,7 +80,7 @@ public class FileLoader implements Loader {
 		    byte indirection = Byte.parseByte(temp.substring(5, 6));
 		    byte address = Byte.parseByte(temp.substring(6, 13));
 		    byte opcode = context.getOpCodesMap().get(opcodeKeyString);
-		    word.setLoadStoreInstruction(opcode, generalRegister,
+		    setLoadStoreInstruction(word, opcode, generalRegister,
 			    indexRegister, indirection, address);
 		    break;
 		case LOGICAL:
@@ -96,5 +96,38 @@ public class FileLoader implements Loader {
 	} catch (IOException e) {
 	    throw new ParseException(e.getMessage(), 0);
 	}
+    }
+
+    /**
+     * @param opcode
+     * @param generalRegister
+     * @param indexRegister
+     * @param indirection
+     * @param address
+     */
+    public void setLoadStoreInstruction(Word word, byte opcode,
+	    byte generalRegister, byte indexRegister, byte indirection,
+	    byte address) {
+	//Take a word and put the set the appropriate bits based on the arguments.
+
+    }
+
+    /**
+     * Sets the instruction opcode to bit positions 0-5.
+     * 
+     * @param word
+     * @param opcode
+     */
+    public void setOpcode(Word word, byte opcode) {
+	
+    }
+
+    /**
+     * @param b
+     * @param bit
+     * @return
+     */
+    private static boolean isBitSet(byte b, int bit) {
+	return (b & (1 << bit)) != 0;
     }
 }

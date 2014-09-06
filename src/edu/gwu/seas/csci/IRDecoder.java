@@ -20,13 +20,13 @@ public class IRDecoder {
 	/**
 	 * Keeps a reference to the CPU object in order to call the instance's public methods (getters & setters).
 	 */
-	private final CPU2 CPU;
+	private final CPU CPU;
 	
 	/**
 	 * Single constructor. Takes an instance to the working CPU object.
 	 * @param cpu The CPU object previously instantiated.
 	 */
-	public IRDecoder(CPU2 cpu){
+	public IRDecoder(CPU cpu){
 		CPU = cpu;
 	}
 	
@@ -40,7 +40,7 @@ public class IRDecoder {
 		final byte instructionFormat = determineInstructionFormat(OPCODE);
 		
 		//All instructions formats have the opcode in the first 6 bits
-		CPU.setReg(CPU2.OPCODE,
+		CPU.setReg(CPU.OPCODE,
 			IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END+1));
 		
 		/**
@@ -58,13 +58,13 @@ public class IRDecoder {
 			//IR.get(InstructionBitFormats.TRAP_CODE_START, InstructionBitFormats.TRAP_CODE_END+1);
 			break;
 		case INSTRUCTION_FORMAT_LD_STR:
-			CPU.setReg(CPU2.IX, 
+			CPU.setReg(CPU.IX, 
 					IR.get(InstructionBitFormats.LD_STR_IX_START, InstructionBitFormats.LD_STR_IX_END+1));
-			CPU.setReg(CPU2.R, 
+			CPU.setReg(CPU.R, 
 					IR.get(InstructionBitFormats.LD_STR_R_START, InstructionBitFormats.LD_STR_R_END+1));	
-			CPU.setReg(CPU2.I, 
+			CPU.setReg(CPU.I, 
 					IR.get(InstructionBitFormats.LD_STR_I_START, InstructionBitFormats.LD_STR_I_END+1));
-			CPU.setReg(CPU2.ADDR,
+			CPU.setReg(CPU.ADDR,
 					IR.get(InstructionBitFormats.LD_STR_ADDR_START, InstructionBitFormats.LD_STR_ADDR_END+1));
 			break;
 		case INSTRUCTION_FORMAT_XY_ARITH:
