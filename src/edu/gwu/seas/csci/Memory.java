@@ -68,12 +68,15 @@ public class Memory {
     }
 
     /**
-     * @param address
-     * @return
+     * @param register The BitSet containing the value to convert.
+     * @return The numeric (base 10) representation of what is stored in the BitSet.
      * @throws IndexOutOfBoundsException
      */
-    public Word get(BitSet address) throws IndexOutOfBoundsException {
-	// TODO: Implement me.
-	return null;
+    public Word get(BitSet register, int numBits) throws IndexOutOfBoundsException {
+    	byte address = Utils.convertToByte(register, numBits);
+    	
+    	if(address > memory.length)
+    		throw new IndexOutOfBoundsException();
+    	return memory[address];
     }
 }

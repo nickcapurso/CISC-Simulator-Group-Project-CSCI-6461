@@ -94,7 +94,7 @@ public class IRDecoder {
 		byte instructionFormat = 0;
 		
 		//Need to convert the BitSet to a value that can be compared to constants defined in OpCodesList.java
-		final byte value = convertToByte(OPCODE, InstructionBitFormats.OPCODE_END - InstructionBitFormats.OPCODE_START + 1);
+		final byte value = Utils.convertToByte(OPCODE, InstructionBitFormats.OPCODE_END - InstructionBitFormats.OPCODE_START + 1);
 		
 		if(value == OpCodesList.HLT){
 			//Halt instruction
@@ -126,23 +126,5 @@ public class IRDecoder {
 		}
 		
 		return instructionFormat;
-	}
-	
-	/**
-	 * Converts a BitSet to its numeric equivalent, stored in a byte. The return value can be
-	 * used for numeric based comparisons.
-	 * 
-	 * @param set The BitSet to be converted.
-	 * @param numBits The number of bits in the BitSet (BitSet.length method is not sufficient due to its implementation).
-	 * @return The numeric value represented by the BitSet.
-	 */
-	private static byte convertToByte(final BitSet set, final int numBits){
-		byte value = 0;
-
-		for(int i = numBits-1; i >= 0; i --)
-			value += set.get(i) ? (byte)(1 << (numBits-1-i)) : 0;		
-		
-		//System.out.println("Value: " + value);
-		return value;
 	}
 }
