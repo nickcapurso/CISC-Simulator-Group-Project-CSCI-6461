@@ -1,7 +1,7 @@
 /**
  * 
  */
-package csci_6461_group_project;
+package edu.gwu.seas.csci;
 
 import static org.junit.Assert.*;
 
@@ -21,7 +21,7 @@ public class FileLoaderTest {
     }
 
     /**
-     * Test method for {@link csci_6461_group_project.FileLoader#load(java.lang.Object)}.
+     * Test method for {@link edu.gwu.seas.csci.FileLoader#load(java.lang.Object)}.
      */
     @Test
     public void testLoad() {
