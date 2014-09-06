@@ -29,9 +29,9 @@ public class Context {
 	opcodeClasses.put("SIR", InstructionClass.LOADSTORE);
 
 	opCodesMap.put("AMR", OpCodesList.AMR);
-	opCodesMap.put("SMR", OpCodesList.AMR);
-	opCodesMap.put("AIR", OpCodesList.AMR);
-	opCodesMap.put("SIR", OpCodesList.AMR);
+	opCodesMap.put("SMR", OpCodesList.SMR);
+	opCodesMap.put("AIR", OpCodesList.AIR);
+	opCodesMap.put("SIR", OpCodesList.SIR);
     }
 
     public static Context getInstance() {

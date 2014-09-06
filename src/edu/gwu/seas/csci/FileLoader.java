@@ -64,11 +64,11 @@ public class FileLoader implements Loader {
 	    Word word = new Word();
 	    while ((temp = reader.readLine()) != null) {
 		// Read the opcode from the input line.
-		String opcode = temp.substring(0, 2);
+		String opcodeKeyString = temp.substring(0, 2);
 		// Determine the class of the opcode from the Computer's
 		// context.
 		Context.InstructionClass instructionClass = context
-			.getOpcodeClasses().get(opcode);
+			.getOpcodeClasses().get(opcodeKeyString);
 		// Switch on the class of opcode.
 		switch (instructionClass) {
 		case ARITHMETIC:
@@ -79,6 +79,9 @@ public class FileLoader implements Loader {
 		    byte indexRegister = Byte.parseByte(temp.substring(4, 5));
 		    byte indirection = Byte.parseByte(temp.substring(5, 6));
 		    byte address = Byte.parseByte(temp.substring(6, 13));
+		    byte opcode = context.getOpCodesMap().get(opcodeKeyString);
+		    word.setLoadStoreInstruction(opcode, generalRegister,
+			    indexRegister, indirection, address);
 		    break;
 		case LOGICAL:
 		    break;

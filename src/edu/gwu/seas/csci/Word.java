@@ -24,19 +24,24 @@ public class Word extends BitSet {
 	super(18);
     }
 
+    /**
+     * @param opcode
+     * @param generalRegister
+     * @param indexRegister
+     * @param indirection
+     * @param address
+     */
+    public void setLoadStoreInstruction(byte opcode, byte generalRegister,
+	    byte indexRegister, byte indirection, byte address) {
+
+    }
+
+    /**
+     * Sets the instruction opcode to bit positions 0-5.
+     * 
+     * @param opcode
+     */
     public void setOpcode(byte opcode) {
-
-    }
-
-    public void setGeneralRegister(byte register) {
-
-    }
-
-    public void setIndexRegister(byte register) {
-
-    }
-
-    public void setAddress(byte address) {
 
     }
 }
