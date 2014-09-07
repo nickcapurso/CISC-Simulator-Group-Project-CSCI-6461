@@ -69,6 +69,8 @@ public class FileLoader implements Loader {
 		// context.
 		Context.InstructionClass instructionClass = context
 			.getOpcodeClasses().get(opcodeKeyString);
+		if (instructionClass == null)
+		    continue;
 		// Switch on the class of opcode.
 		switch (instructionClass) {
 		case ARITHMETIC:
@@ -108,8 +110,9 @@ public class FileLoader implements Loader {
     public void setLoadStoreInstruction(Word word, byte opcode,
 	    byte generalRegister, byte indexRegister, byte indirection,
 	    byte address) {
-	//Take a word and put the set the appropriate bits based on the arguments.
-
+	// Take a word and put the set the appropriate bits based on the
+	// arguments.
+	setOpcode(word, opcode);
     }
 
     /**
@@ -119,7 +122,54 @@ public class FileLoader implements Loader {
      * @param opcode
      */
     public void setOpcode(Word word, byte opcode) {
-	
+	for (byte i = 1; i < 6; i++) {
+	    if (isBitSet(opcode, i))
+		word.set(i - 1);
+	}
+    }
+
+    /**
+     * @param word
+     * @param generalRegister
+     */
+    public void setGeneralRegister(Word word, byte generalRegister) {
+	for (byte i = 1; i < 3; i++) {
+	    if (isBitSet(generalRegister, i))
+		word.set(i - 1 + 5);
+	}
+    }
+
+    /**
+     * @param word
+     * @param indexRegister
+     */
+    public void setIndexRegister(Word word, byte indexRegister) {
+	for (byte i = 1; i < 3; i++) {
+	    if (isBitSet(indexRegister, i))
+		word.set(i - 1 + 7);
+	}
+    }
+
+    /**
+     * @param word
+     * @param indirection
+     */
+    public void setIndirection(Word word, byte indirection) {
+	for (byte i = 1; i < 2; i++) {
+	    if (isBitSet(indirection, i))
+		word.set(i - 1 + 9);
+	}
+    }
+
+    /**
+     * @param word
+     * @param address
+     */
+    public void setAddress(Word word, byte address) {
+	for (byte i = 1; i < 8; i++) {
+	    if (isBitSet(address, i))
+		word.set(i - 1 + 10);
+	}
     }
 
     /**
@@ -127,7 +177,7 @@ public class FileLoader implements Loader {
      * @param bit
      * @return
      */
-    private static boolean isBitSet(byte b, int bit) {
+    private static boolean isBitSet(byte b, byte bit) {
 	return (b & (1 << bit)) != 0;
     }
 }
