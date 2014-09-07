@@ -152,9 +152,9 @@ public class FileLoader implements Loader {
      * @param opcode
      */
     public void setOpcode(Word word, byte opcode) {
-	for (byte i = 1; i < 6; i++) {
+	for (byte i = 0; i < 6; i++) {
 	    if (isBitSet(opcode, i))
-		word.set(i - 1);
+		word.set(5 - i);
 	}
     }
 
@@ -163,9 +163,9 @@ public class FileLoader implements Loader {
      * @param general_register
      */
     public void setGeneralRegister(Word word, byte general_register) {
-	for (byte i = 1; i < 3; i++) {
+	for (byte i = 0; i < 2; i++) {
 	    if (isBitSet(general_register, i))
-		word.set(i - 1 + 5);
+		word.set(7 - i);
 	}
     }
 
@@ -174,9 +174,9 @@ public class FileLoader implements Loader {
      * @param index_register
      */
     public void setIndexRegister(Word word, byte index_register) {
-	for (byte i = 1; i < 3; i++) {
+	for (byte i = 0; i < 2; i++) {
 	    if (isBitSet(index_register, i))
-		word.set(i - 1 + 7);
+		word.set(9 - i);
 	}
     }
 
@@ -185,9 +185,9 @@ public class FileLoader implements Loader {
      * @param indirection
      */
     public void setIndirection(Word word, byte indirection) {
-	for (byte i = 1; i < 2; i++) {
+	for (byte i = 0; i < 1; i++) {
 	    if (isBitSet(indirection, i))
-		word.set(i - 1 + 9);
+		word.set(10);
 	}
     }
 
@@ -196,9 +196,9 @@ public class FileLoader implements Loader {
      * @param address
      */
     public void setAddress(Word word, byte address) {
-	for (byte i = 1; i < 8; i++) {
+	for (byte i = 0; i < 8; i++) {
 	    if (isBitSet(address, i))
-		word.set(i - 1 + 10);
+		word.set(17 - i);
 	}
     }
 
