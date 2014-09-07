@@ -6,6 +6,7 @@ package edu.gwu.seas.csci;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.net.URL;
 import java.text.ParseException;
 
 import org.junit.Before;
@@ -16,7 +17,6 @@ import org.junit.Test;
  */
 public class FileLoaderTest {
 
-    private String base_directory = null;
     private File input_file = null;
     private Loader loader = null;
     private Memory memory = null;
@@ -27,9 +27,8 @@ public class FileLoaderTest {
     @Before
     public void setUp() throws Exception {
 	memory = Memory.getInstance();
-	base_directory = getClass().getResource("").toURI().getPath();
-	input_file = new File(base_directory + File.separator + "resources",
-		"input.txt");
+	URL url = getClass().getResource("/input.txt");
+	input_file = new File(url.toURI());
 	loader = new FileLoader();
     }
 
@@ -44,10 +43,13 @@ public class FileLoaderTest {
 	} catch (IllegalArgumentException | ParseException e) {
 	    fail(e.getMessage());
 	}
-	assertTrue(memory.get(6) != null);
-	assertTrue(memory.get(7) != null);
-	assertTrue(memory.get(8) != null);
-	assertTrue(memory.get(9) != null);
+	Word one = memory.get(6);
+	Word two = memory.get(7);
+	Word three = memory.get(8);
+	Word four = memory.get(6);
+	assertTrue(one != null);
+	assertTrue(two != null);
+	assertTrue(three != null);
+	assertTrue(four != null);
     }
-
 }
