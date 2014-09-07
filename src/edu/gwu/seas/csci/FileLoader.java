@@ -61,29 +61,41 @@ public class FileLoader implements Loader {
 	}
 	try {
 	    String temp = null;
-	    Word word = new Word();
+	    short memory_location = 6; // Locations 0-5 are reserved.
 	    while ((temp = reader.readLine()) != null) {
+		Word word = new Word();
 		// Read the opcode from the input line.
-		String opcodeKeyString = temp.substring(0, 2);
+		String opcodeKeyString = temp.substring(0, 3);
 		// Determine the class of the opcode from the Computer's
 		// context.
-		Context.InstructionClass instructionClass = context
+		Context.InstructionClass instruction_class = context
 			.getOpcodeClasses().get(opcodeKeyString);
-		if (instructionClass == null)
+		// Ensure the key returned a valid InstructionClass object.
+		if (instruction_class == null)
 		    continue;
+		byte general_register = Byte.parseByte(temp.substring(4, 5));
+		String instruction_elements[] = temp.split(",");
+		byte index_register = 0;
+		byte address = 0;
+		byte indirection = 0;
+		byte opcode = 0;
 		// Switch on the class of opcode.
-		switch (instructionClass) {
+		switch (instruction_class) {
 		case ARITHMETIC:
 		    break;
 		case LOADSTORE:
-		    // Read remaining characters in line
-		    byte generalRegister = Byte.parseByte(temp.substring(3, 4));
-		    byte indexRegister = Byte.parseByte(temp.substring(4, 5));
-		    byte indirection = Byte.parseByte(temp.substring(5, 6));
-		    byte address = Byte.parseByte(temp.substring(6, 13));
-		    byte opcode = context.getOpCodesMap().get(opcodeKeyString);
-		    setLoadStoreInstruction(word, opcode, generalRegister,
-			    indexRegister, indirection, address);
+		    index_register = Byte.parseByte(instruction_elements[1]);
+		    address = Byte.parseByte(instruction_elements[2]);
+		    indirection = Byte.parseByte(instruction_elements[3]);
+		    opcode = context.getOpCodesMap().get(opcodeKeyString);
+		    setLoadStoreInstruction(word, opcode, general_register,
+			    index_register, indirection, address);
+		    break;
+		case LOADSTOREIMMED:
+		    address = Byte.parseByte(instruction_elements[1]);
+		    opcode = context.getOpCodesMap().get(opcodeKeyString);
+		    setLoadStoreImmedInstruction(word, opcode,
+			    general_register, address);
 		    break;
 		case LOGICAL:
 		    break;
@@ -92,7 +104,7 @@ public class FileLoader implements Loader {
 		default:
 		    break;
 		}
-		memory.put(word, 0);
+		memory.put(word, memory_location++);
 	    }
 	    reader.close();
 	} catch (IOException e) {
@@ -101,18 +113,36 @@ public class FileLoader implements Loader {
     }
 
     /**
+     * @param word
      * @param opcode
-     * @param generalRegister
-     * @param indexRegister
+     * @param general_register
+     * @param address
+     */
+    public void setLoadStoreImmedInstruction(Word word, byte opcode,
+	    byte general_register, byte address) {
+	setOpcode(word, opcode);
+	setGeneralRegister(word, general_register);
+	setAddress(word, address);
+
+    }
+
+    /**
+     * @param opcode
+     * @param general_register
+     * @param index_register
      * @param indirection
      * @param address
      */
     public void setLoadStoreInstruction(Word word, byte opcode,
-	    byte generalRegister, byte indexRegister, byte indirection,
+	    byte general_register, byte index_register, byte indirection,
 	    byte address) {
 	// Take a word and put the set the appropriate bits based on the
 	// arguments.
 	setOpcode(word, opcode);
+	setGeneralRegister(word, general_register);
+	setIndexRegister(word, index_register);
+	setIndirection(word, indirection);
+	setAddress(word, address);
     }
 
     /**
@@ -130,22 +160,22 @@ public class FileLoader implements Loader {
 
     /**
      * @param word
-     * @param generalRegister
+     * @param general_register
      */
-    public void setGeneralRegister(Word word, byte generalRegister) {
+    public void setGeneralRegister(Word word, byte general_register) {
 	for (byte i = 1; i < 3; i++) {
-	    if (isBitSet(generalRegister, i))
+	    if (isBitSet(general_register, i))
 		word.set(i - 1 + 5);
 	}
     }
 
     /**
      * @param word
-     * @param indexRegister
+     * @param index_register
      */
-    public void setIndexRegister(Word word, byte indexRegister) {
+    public void setIndexRegister(Word word, byte index_register) {
 	for (byte i = 1; i < 3; i++) {
-	    if (isBitSet(indexRegister, i))
+	    if (isBitSet(index_register, i))
 		word.set(i - 1 + 7);
 	}
     }

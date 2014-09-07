@@ -17,17 +17,19 @@ import org.junit.Test;
 public class FileLoaderTest {
 
     private String base_directory = null;
-    private File sample_spn_input_file = null;
+    private File input_file = null;
     private Loader loader = null;
+    private Memory memory = null;
 
     /**
      * @throws java.lang.Exception
      */
     @Before
     public void setUp() throws Exception {
+	memory = Memory.getInstance();
 	base_directory = getClass().getResource("").toURI().getPath();
-	sample_spn_input_file = new File(base_directory + File.separator
-		+ "resources", "input.txt");
+	input_file = new File(base_directory + File.separator + "resources",
+		"input.txt");
 	loader = new FileLoader();
     }
 
@@ -38,12 +40,14 @@ public class FileLoaderTest {
     @Test
     public void testLoad() {
 	try {
-	    loader.load(sample_spn_input_file);
+	    loader.load(input_file);
 	} catch (IllegalArgumentException | ParseException e) {
 	    fail(e.getMessage());
-	    e.printStackTrace();
 	}
-	assertTrue(true);
+	assertTrue(memory.get(6) != null);
+	assertTrue(memory.get(7) != null);
+	assertTrue(memory.get(8) != null);
+	assertTrue(memory.get(9) != null);
     }
 
 }

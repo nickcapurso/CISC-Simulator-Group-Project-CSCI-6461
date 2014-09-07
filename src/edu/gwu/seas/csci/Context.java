@@ -16,7 +16,7 @@ public class Context {
     private static final Context CONTEXT = new Context();
 
     public enum InstructionClass {
-	LOADSTORE, ARITHMETIC, TRANSFER, LOGICAL
+	LOADSTORE, LOADSTOREIMMED, ARITHMETIC, TRANSFER, LOGICAL
     }
 
     private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
@@ -25,8 +25,8 @@ public class Context {
     private Context() {
 	opcodeClasses.put("AMR", InstructionClass.LOADSTORE);
 	opcodeClasses.put("SMR", InstructionClass.LOADSTORE);
-	opcodeClasses.put("AIR", InstructionClass.LOADSTORE);
-	opcodeClasses.put("SIR", InstructionClass.LOADSTORE);
+	opcodeClasses.put("AIR", InstructionClass.LOADSTOREIMMED);
+	opcodeClasses.put("SIR", InstructionClass.LOADSTOREIMMED);
 
 	opCodesMap.put("AMR", OpCodesList.AMR);
 	opCodesMap.put("SMR", OpCodesList.SMR);
