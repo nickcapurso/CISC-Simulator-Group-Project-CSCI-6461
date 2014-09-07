@@ -153,7 +153,7 @@ public class FileLoader implements Loader {
      */
     public void setOpcode(Word word, byte opcode) {
 	for (byte i = 0; i < 6; i++) {
-	    if (isBitSet(opcode, i))
+	    if (Utils.isBitSet(opcode, i))
 		word.set(5 - i);
 	}
     }
@@ -164,7 +164,7 @@ public class FileLoader implements Loader {
      */
     public void setGeneralRegister(Word word, byte general_register) {
 	for (byte i = 0; i < 2; i++) {
-	    if (isBitSet(general_register, i))
+	    if (Utils.isBitSet(general_register, i))
 		word.set(7 - i);
 	}
     }
@@ -175,7 +175,7 @@ public class FileLoader implements Loader {
      */
     public void setIndexRegister(Word word, byte index_register) {
 	for (byte i = 0; i < 2; i++) {
-	    if (isBitSet(index_register, i))
+	    if (Utils.isBitSet(index_register, i))
 		word.set(9 - i);
 	}
     }
@@ -186,7 +186,7 @@ public class FileLoader implements Loader {
      */
     public void setIndirection(Word word, byte indirection) {
 	for (byte i = 0; i < 1; i++) {
-	    if (isBitSet(indirection, i))
+	    if (Utils.isBitSet(indirection, i))
 		word.set(10);
 	}
     }
@@ -197,17 +197,8 @@ public class FileLoader implements Loader {
      */
     public void setAddress(Word word, byte address) {
 	for (byte i = 0; i < 8; i++) {
-	    if (isBitSet(address, i))
+	    if (Utils.isBitSet(address, i))
 		word.set(17 - i);
 	}
-    }
-
-    /**
-     * @param b
-     * @param bit
-     * @return
-     */
-    private static boolean isBitSet(byte b, byte bit) {
-	return (b & (1 << bit)) != 0;
     }
 }

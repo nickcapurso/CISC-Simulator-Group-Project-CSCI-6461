@@ -5,3 +5,4 @@
 /.metadata/*
 /pom.xml
 /.DS_Store
+/target/
