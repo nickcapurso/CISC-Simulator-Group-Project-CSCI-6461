@@ -1,28 +1,19 @@
 package edu.gwu.seas.csci;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-
-import javax.swing.BoxLayout;
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.JButton;
-import javax.swing.SwingConstants;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -125,6 +116,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 		
 	}
 	
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == start) {
 			//cpu.start();

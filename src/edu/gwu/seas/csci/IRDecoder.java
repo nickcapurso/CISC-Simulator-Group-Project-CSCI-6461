@@ -40,7 +40,7 @@ public class IRDecoder {
 		final byte instructionFormat = determineInstructionFormat(OPCODE);
 		
 		//All instructions formats have the opcode in the first 6 bits
-		CPU.setReg(CPU.OPCODE,
+		CPU.setReg(edu.gwu.seas.csci.CPU.OPCODE,
 			IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END+1));
 		
 		/**
@@ -58,13 +58,13 @@ public class IRDecoder {
 			//IR.get(InstructionBitFormats.TRAP_CODE_START, InstructionBitFormats.TRAP_CODE_END+1);
 			break;
 		case INSTRUCTION_FORMAT_LD_STR:
-			CPU.setReg(CPU.IX, 
+			CPU.setReg(edu.gwu.seas.csci.CPU.IX, 
 					IR.get(InstructionBitFormats.LD_STR_IX_START, InstructionBitFormats.LD_STR_IX_END+1));
-			CPU.setReg(CPU.R, 
+			CPU.setReg(edu.gwu.seas.csci.CPU.R, 
 					IR.get(InstructionBitFormats.LD_STR_R_START, InstructionBitFormats.LD_STR_R_END+1));	
-			CPU.setReg(CPU.I, 
+			CPU.setReg(edu.gwu.seas.csci.CPU.I, 
 					IR.get(InstructionBitFormats.LD_STR_I_START, InstructionBitFormats.LD_STR_I_END+1));
-			CPU.setReg(CPU.ADDR,
+			CPU.setReg(edu.gwu.seas.csci.CPU.ADDR,
 					IR.get(InstructionBitFormats.LD_STR_ADDR_START, InstructionBitFormats.LD_STR_ADDR_END+1));
 			break;
 		case INSTRUCTION_FORMAT_XY_ARITH:
