@@ -81,9 +81,9 @@ public class FileLoader implements Loader {
 		byte opcode = 0;
 		// Switch on the class of opcode.
 		switch (instruction_class) {
-		case ARITHMETIC:
+		case ARITH:
 		    break;
-		case LOADSTORE:
+		case LD_STR:
 		    index_register = Byte.parseByte(instruction_elements[1]);
 		    address = Byte.parseByte(instruction_elements[2]);
 		    indirection = Byte.parseByte(instruction_elements[3]);
@@ -91,15 +91,15 @@ public class FileLoader implements Loader {
 		    setLoadStoreInstruction(word, opcode, general_register,
 			    index_register, indirection, address);
 		    break;
-		case LOADSTOREIMMED:
+		case LD_STR_IMD:
 		    address = Byte.parseByte(instruction_elements[1]);
 		    opcode = context.getOpCodesMap().get(opcodeKeyString);
 		    setLoadStoreImmedInstruction(word, opcode,
 			    general_register, address);
 		    break;
-		case LOGICAL:
+		case LOGIC:
 		    break;
-		case TRANSFER:
+		case TRANS:
 		    break;
 		default:
 		    break;
@@ -136,8 +136,6 @@ public class FileLoader implements Loader {
     public void setLoadStoreInstruction(Word word, byte opcode,
 	    byte general_register, byte index_register, byte indirection,
 	    byte address) {
-	// Take a word and put the set the appropriate bits based on the
-	// arguments.
 	setOpcode(word, opcode);
 	setGeneralRegister(word, general_register);
 	setIndexRegister(word, index_register);
