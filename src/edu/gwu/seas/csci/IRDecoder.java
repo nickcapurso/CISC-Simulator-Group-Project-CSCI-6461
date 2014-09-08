@@ -48,8 +48,6 @@ public class IRDecoder {
      *            Register.
      */
     public void parseIR(final BitSet IR) {
-	final BitSet OPCODE = IR.get(InstructionBitFormats.OPCODE_START,
-		InstructionBitFormats.OPCODE_END + 1);
 	// Take the first 8 bits in the BitSet
 	byte opcode = Utils.convertToByte(IR, 8);
 	String instruction_string = context.getOpCodeStrings().get(opcode);
