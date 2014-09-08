@@ -17,6 +17,9 @@ import javax.swing.JTextPane;
 import javax.swing.JTextField;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.SwingConstants;
@@ -24,7 +27,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 
-public class Computer_GUI extends JFrame {
+public class Computer_GUI extends JFrame implements ActionListener{
 
 	/**
 	 * This class defines the UI used for the simulator
@@ -36,29 +39,19 @@ public class Computer_GUI extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField textField;
+	private JRadioButton processing_rbtn;
 	private JLabel r0, r1, r2, r3;
 	private JTextPane terminal;
-
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Computer_GUI frame = new Computer_GUI();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	private JButton start, load;
+	private FileLoader fileloader;
+	private CPU cpu;
 
 	/**
 	 * Create the frame.
 	 */
-	public Computer_GUI() {
+	public Computer_GUI(FileLoader fl, CPU cpu1){
+		fileloader = fl;
+		cpu = cpu1;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 530, 381);
 		contentPane = new JPanel();
@@ -79,14 +72,10 @@ public class Computer_GUI extends JFrame {
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
-		JButton btnNewButton = new JButton("Submit Command");
-		btnNewButton.setBounds(199, 225, 136, 23);
-		contentPane.add(btnNewButton);
-		
-		JRadioButton radioButton = new JRadioButton("");
-		radioButton.setEnabled(false);
-		radioButton.setBounds(341, 11, 20, 20);
-		contentPane.add(radioButton);
+		processing_rbtn = new JRadioButton("");
+		processing_rbtn.setEnabled(false);
+		processing_rbtn.setBounds(341, 11, 20, 20);
+		contentPane.add(processing_rbtn);
 		
 		JLabel lblProcessing = new JLabel("Processing");
 		lblProcessing.setBounds(365, 15, 80, 14);
@@ -124,6 +113,30 @@ public class Computer_GUI extends JFrame {
 		r3.setBounds(375, 104, 86, 50);
 		contentPane.add(r3);
 		
+		start = new JButton("Start");
+		start.setBounds(310, 225, 97, 25);
+		contentPane.add(start);
+		start.addActionListener(this);
+		
+		load = new JButton("Load");
+		load.setBounds(201, 225, 97, 25);
+		contentPane.add(load);
+		load.addActionListener(this);
+		
+	}
+	
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == start) {
+			//cpu.start();
+		} else if (e.getSource() == load) {
+			String filepath = textField.getText();
+			try {
+			    File load_file = new File(filepath);
+			    fileloader.load(load_file);
+			} catch (Exception ex) { //Catch exception if any
+			      System.err.println("Error: " + ex.getMessage());
+			}
+		}
 	}
 	
 	//By giving a string value for register, and a value, registers can be monitored
@@ -146,9 +159,7 @@ public class Computer_GUI extends JFrame {
 				try {
 					document.insertString(document.getLength(), "Error Updating Board", null);
 				} catch (BadLocationException e) {
-					
 				}
-				
 		}
 	}
 	
@@ -159,6 +170,14 @@ public class Computer_GUI extends JFrame {
 		} catch (BadLocationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	public void processing() {
+		if (processing_rbtn.isSelected()) {
+			processing_rbtn.setSelected(false);
+		} else {
+			processing_rbtn.setSelected(true);
 		}
 	}
 }

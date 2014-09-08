@@ -1,5 +1,9 @@
 package edu.gwu.seas.csci;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 /**
@@ -13,7 +17,9 @@ public class Computer {
     	//Should the GUI exist within the Computer class or exist on its own?
     	
     	//Define the GUI
-    	Computer_GUI frontpanel = new Computer_GUI();
+    	FileLoader fileloader = new FileLoader();
+    	CPU cpu = new CPU();
+    	Computer_GUI frontpanel = new Computer_GUI(fileloader, cpu);
     	frontpanel.setSize(500,300);
     	frontpanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frontpanel.setVisible(true);
@@ -22,7 +28,6 @@ public class Computer {
     	//added method to log processes to terminal
 		for (int i=0; i<100; i++) {
 			frontpanel.append_to_terminal("This is line " + i + "\n");
-		}
-    	
+		}    	
     }
 }
