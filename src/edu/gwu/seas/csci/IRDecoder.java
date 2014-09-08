@@ -6,6 +6,7 @@ import java.util.BitSet;
  * Provides for a method to parse the IR according to the format of the current
  * opcode.
  * <p>
+ * TODO: Test this class.
  * 
  * @author Nick Capurso
  *
@@ -49,8 +50,9 @@ public class IRDecoder {
     public void parseIR(final BitSet IR) {
 	final BitSet OPCODE = IR.get(InstructionBitFormats.OPCODE_START,
 		InstructionBitFormats.OPCODE_END + 1);
-	byte[] opcode = OPCODE.toByteArray();
-	String instruction_string = context.getOpCodeStrings().get(opcode[0]);
+	// Take the first 8 bits in the BitSet
+	byte opcode = Utils.convertToByte(IR, 8);
+	String instruction_string = context.getOpCodeStrings().get(opcode);
 	Context.InstructionClass instruction_class = context.getOpcodeClasses()
 		.get(instruction_string);
 

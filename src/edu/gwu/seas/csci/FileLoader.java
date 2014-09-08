@@ -87,13 +87,13 @@ public class FileLoader implements Loader {
 		    index_register = Byte.parseByte(instruction_elements[1]);
 		    address = Byte.parseByte(instruction_elements[2]);
 		    indirection = Byte.parseByte(instruction_elements[3]);
-		    opcode = context.getOpCodesMap().get(opcodeKeyString);
+		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
 		    setLoadStoreInstruction(word, opcode, general_register,
 			    index_register, indirection, address);
 		    break;
 		case LD_STR_IMD:
 		    address = Byte.parseByte(instruction_elements[1]);
-		    opcode = context.getOpCodesMap().get(opcodeKeyString);
+		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
 		    setLoadStoreImmedInstruction(word, opcode,
 			    general_register, address);
 		    break;
@@ -113,10 +113,17 @@ public class FileLoader implements Loader {
     }
 
     /**
+     * Inserts the internal components of a {@link Word} in an
+     * {@link Context.InstructionClass} LD_STR_IMD internal format.
+     * 
      * @param word
+     *            The word into which the elements will be inserted.
      * @param opcode
+     *            The opcode value to insert into the word.
      * @param general_register
+     *            The general register value to insert into the word.
      * @param address
+     *            The address value to insert into the word.
      */
     public void setLoadStoreImmedInstruction(Word word, byte opcode,
 	    byte general_register, byte address) {

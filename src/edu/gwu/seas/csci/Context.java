@@ -15,6 +15,11 @@ public class Context {
 
     private static final Context CONTEXT = new Context();
 
+    /**
+     * Enumerates the classes of OPCODE supported by the Computer.
+     * 
+     * @author Alex Remily
+     */
     public enum InstructionClass {
 	LD_STR, LD_STR_IMD, TRANS, LOGIC, HALT, TRAP, ARITH, SHIFT, IO
     }
@@ -52,16 +57,16 @@ public class Context {
     }
 
     /**
-     * @return the opCodeBytes
-     */
-    public Map<String, Byte> getOpCodesMap() {
-	return opCodeBytes;
-    }
-
-    /**
      * @return the opCodeStrings
      */
     public Map<Byte, String> getOpCodeStrings() {
 	return opCodeStrings;
+    }
+
+    /**
+     * @return the opCodeBytes
+     */
+    public Map<String, Byte> getOpCodeBytes() {
+	return opCodeBytes;
     }
 }

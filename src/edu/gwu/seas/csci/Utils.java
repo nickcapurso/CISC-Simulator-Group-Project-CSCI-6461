@@ -28,8 +28,6 @@ public class Utils {
 
 	for (int i = numBits - 1; i >= 0; i--)
 	    value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
-
-	// System.out.println("Value: " + value);
 	return value;
     }
 
