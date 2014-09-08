@@ -20,7 +20,7 @@ public class Context {
     }
 
     private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
-    private Map<String, Byte> opCodesMap = new HashMap<String, Byte>();
+    private Map<String, Byte> opCodeBytes = new HashMap<String, Byte>();
     private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
 
     private Context() {
@@ -29,10 +29,10 @@ public class Context {
 	opcodeClasses.put("AIR", InstructionClass.LD_STR_IMD);
 	opcodeClasses.put("SIR", InstructionClass.LD_STR_IMD);
 
-	opCodesMap.put("AMR", OpCodesList.AMR);
-	opCodesMap.put("SMR", OpCodesList.SMR);
-	opCodesMap.put("AIR", OpCodesList.AIR);
-	opCodesMap.put("SIR", OpCodesList.SIR);
+	opCodeBytes.put("AMR", OpCodesList.AMR);
+	opCodeBytes.put("SMR", OpCodesList.SMR);
+	opCodeBytes.put("AIR", OpCodesList.AIR);
+	opCodeBytes.put("SIR", OpCodesList.SIR);
 
 	opCodeStrings.put(OpCodesList.AMR, "AMR");
 	opCodeStrings.put(OpCodesList.SMR, "SMR");
@@ -52,10 +52,10 @@ public class Context {
     }
 
     /**
-     * @return the opCodesMap
+     * @return the opCodeBytes
      */
     public Map<String, Byte> getOpCodesMap() {
-	return opCodesMap;
+	return opCodeBytes;
     }
 
     /**
