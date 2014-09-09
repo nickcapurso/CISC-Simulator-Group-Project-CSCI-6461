@@ -52,6 +52,25 @@ public class Memory {
 	    throw new IndexOutOfBoundsException();
 	memory[address] = word;
     }
+    
+    /**
+     * Puts a {@link Word} in the address specified by the passed register.
+     * 
+     * @param word 
+     * 				The contents to place in memory.
+     * @param register 
+     * 				The BitSet containing the address.
+     * @param numBits 
+     * 				The size of the BitSet in bits.
+     * @throws IndexOutOfBoundsException
+     */
+    public void put(Word word, BitSet register, int numBits) throws IndexOutOfBoundsException {
+    	int address = Utils.convertToInt(register, numBits);
+    	
+    	if(address > memory.length)
+    		throw new IndexOutOfBoundsException();
+    	memory[address] = word;
+    }
 
     /**
      * Retrieves the {@link Word} at the specified memory address.
@@ -68,12 +87,15 @@ public class Memory {
     }
 
     /**
+     * Retrieves the {@link Word} at the address specified in the passed register.
+     * 
      * @param register The BitSet containing the value to convert.
+     * @param numBits The size of the BitSet in bits.
      * @return The numeric (base 10) representation of what is stored in the BitSet.
      * @throws IndexOutOfBoundsException
      */
     public Word get(BitSet register, int numBits) throws IndexOutOfBoundsException {
-    	byte address = Utils.convertToByte(register, numBits);
+    	int address = Utils.convertToInt(register, numBits);
     	
     	if(address > memory.length)
     		throw new IndexOutOfBoundsException();

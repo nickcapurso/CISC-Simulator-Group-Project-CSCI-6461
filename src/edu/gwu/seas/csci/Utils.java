@@ -24,12 +24,33 @@ public class Utils {
      * @return The numeric value represented by the BitSet.
      */
     public static byte convertToByte(final BitSet set, final int numBits) {
-	byte value = 0;
-
-	for (int i = numBits - 1; i >= 0; i--)
-	    value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
-	return value;
+		byte value = 0;
+	
+		for (int i = numBits - 1; i >= 0; i--)
+		    value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
+		return value;
     }
+    
+	/**
+	 * Converts a BitSet to its numeric equivalent, stored in a int. Can be used
+	 * for values expected to be greater than a byte (i.e. addresses).
+	 * 
+	 * @param set 
+	 * 			The BitSet to be converted.
+	 * @param numBits 
+	 * 			The number of bits in the BitSet (BitSet.length method is not 
+	 * 			sufficient due to its implementation). You can get 
+	 * 			special-register lengths in InstructionBitFormats.java.
+	 * @return The numeric value represented by the BitSet.
+	 */
+	public static int convertToInt(final BitSet set, final int numBits){
+		int value = 0;
+
+		for(int i = numBits-1; i >= 0; i --)
+			value += set.get(i) ? (1 << (numBits-1-i)) : 0;		
+		
+		return value;
+	}
 
     /**
      * Determines whether the n<sup>th</sup> bit in a byte is set, with zero
