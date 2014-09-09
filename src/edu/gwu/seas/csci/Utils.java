@@ -65,4 +65,22 @@ public class Utils {
     public static boolean isBitSet(byte b, byte bit) {
 	return (b & (1 << bit)) != 0;
     }
+    
+    
+    /**
+     * Prints the binary representation of a BitSet.
+     * 
+     * @param name
+     * 			  The name of the BitSet (i.e. "OPCODE", "ADDR", etc.)
+     * @param set 
+     * 			  The BitSet to print.			
+     * @param numBits
+     * 			  The number of bits in the BitSet.
+     */
+    public static void BitSetToString(final String name, final BitSet set, final int numBits){
+    	System.out.println(name + " contains: ");
+    	for(int i = 0; i < numBits; i++)
+    		System.out.print(set.get(i) == false? "0" : "1");
+    	System.out.println();
+    }
 }

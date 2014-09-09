@@ -31,6 +31,7 @@ public class CPU {
 	
 	private Map<String, BitSet> regMap = new HashMap<String, BitSet>();
 	private Memory memory;
+	private IRDecoder irdecoder;
 	
 	//Constructor
 	public CPU() {
@@ -66,6 +67,7 @@ public class CPU {
 		regMap.put(EA, new BitSet(InstructionBitFormats.LD_STR_ADDR_SIZE));
 				
 		memory = Memory.getInstance();
+		irdecoder = new IRDecoder(this);
 	}
 	
 	//Sets a register with a BitSet value
@@ -85,13 +87,14 @@ public class CPU {
 	 * according to the instruction and its arguments.
 	 */
 	private void executeInstruction(){
-		//TODO Figure out where to move this code which fetches memory at EA
+		//TODO Figure out where to move code which fetches memory at EA
 		//Not all instructions need to get memory at an effective address
 		
 		
 		switch(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE)){
 		
 		case OpCodesList.LDR:
+			System.out.println("LDR");
 			//EA -> MAR
 			setReg(MAR, regMap.get(EA));
 			
@@ -156,6 +159,8 @@ public class CPU {
 			
 			break;
 		}
+		System.out.println("After eI -----------");
+		printAllRegisters();
 	}
 	
 	/**
@@ -175,7 +180,6 @@ public class CPU {
 		case 3:
 			return R3;
 		}
-		
 		return null;
 	}
 
@@ -197,5 +201,31 @@ public class CPU {
 		
 		return null;
 	}
-
+	
+	/**
+	 * Prints the contents of all the registers to the console.
+	 * (Eventually will become obsolete when GUI is done)
+	 */
+	private void printAllRegisters(){
+		Utils.BitSetToString(R0, getReg(R0), 18);
+		Utils.BitSetToString(R1, getReg(R1), 18);
+		Utils.BitSetToString(R2, getReg(R2), 18);
+		Utils.BitSetToString(R3, getReg(R3), 18);
+		Utils.BitSetToString(X1, getReg(X1), 12);
+		Utils.BitSetToString(X2, getReg(X2), 12);
+		Utils.BitSetToString(X3, getReg(X3), 12);
+		Utils.BitSetToString(PC, getReg(PC), 12);
+		Utils.BitSetToString(IR, getReg(IR), 18);
+		Utils.BitSetToString(CC, getReg(CC), 4);
+		Utils.BitSetToString(MAR, getReg(MAR), 12);
+		Utils.BitSetToString(MDR, getReg(MDR), 18);
+		Utils.BitSetToString(MSR, getReg(MSR), 18);
+		Utils.BitSetToString(MFR, getReg(MFR), 4);
+		Utils.BitSetToString(OPCODE, getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE);
+		Utils.BitSetToString(IX, getReg(IX), InstructionBitFormats.LD_STR_IX_SIZE);
+		Utils.BitSetToString(R, getReg(R), InstructionBitFormats.LD_STR_R_SIZE);
+		Utils.BitSetToString(I, getReg(I), InstructionBitFormats.LD_STR_I_SIZE);
+		Utils.BitSetToString(ADDR, getReg(ADDR), InstructionBitFormats.LD_STR_ADDR_SIZE);
+		Utils.BitSetToString(EA, getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE);
+	}
 }
