@@ -29,7 +29,7 @@ public class CPU {
 	public static final String EA = "EA";
 	
 	
-	private Map<String, BitSet> regMap = new HashMap<String, BitSet>();
+	private Map<String, Register> regMap = new HashMap<String, Register>();
 	private Memory memory;
 	private IRDecoder irdecoder;
 	
@@ -37,48 +37,97 @@ public class CPU {
 	public CPU() {
 			
 		//4 General Purpose Registers(GPRs)		
-		regMap.put(R0, new BitSet(18));
-		regMap.put(R1, new BitSet(18));
-		regMap.put(R2, new BitSet(18));
-		regMap.put(R3, new BitSet(18));
+		regMap.put(R0, new Register());
+		regMap.put(R1, new Register());
+		regMap.put(R2, new Register());
+		regMap.put(R3, new Register());
 		
 		//3 Index Registers		
-		regMap.put(X1, new BitSet(12));
-		regMap.put(X2, new BitSet(12));
-		regMap.put(X3, new BitSet(12));
+		regMap.put(X1, new Register(12));
+		regMap.put(X2, new Register(12));
+		regMap.put(X3, new Register(12));
 		
 		//Special registers
-		regMap.put(PC, new BitSet(12));
-		regMap.put(IR, new BitSet(18));
-		regMap.put(CC, new BitSet(4));
-		regMap.put(MAR, new BitSet(12));
-		regMap.put(MDR, new BitSet(18));
-		regMap.put(MSR, new BitSet(18));
-		regMap.put(MFR, new BitSet(4));
+		regMap.put(PC, new Register(12));
+		regMap.put(IR, new Register());
+		regMap.put(CC, new Register(4));
+		regMap.put(MAR, new Register(12));
+		regMap.put(MDR, new Register());
+		regMap.put(MSR, new Register());
+		regMap.put(MFR, new Register(4));
 		
 		//Registers for Load and Store instructions
-		regMap.put(OPCODE, new BitSet(InstructionBitFormats.OPCODE_SIZE));
-		regMap.put(IX, new BitSet(InstructionBitFormats.LD_STR_IX_SIZE));
-		regMap.put(R, new BitSet(InstructionBitFormats.LD_STR_R_SIZE));
-		regMap.put(I, new BitSet(InstructionBitFormats.LD_STR_I_SIZE));
-		regMap.put(ADDR, new BitSet(InstructionBitFormats.LD_STR_ADDR_SIZE));
+		regMap.put(OPCODE, new Register(InstructionBitFormats.OPCODE_SIZE));
+		regMap.put(IX, new Register(InstructionBitFormats.LD_STR_IX_SIZE));
+		regMap.put(R, new Register(InstructionBitFormats.LD_STR_R_SIZE));
+		regMap.put(I, new Register(InstructionBitFormats.LD_STR_I_SIZE));
+		regMap.put(ADDR, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 		
 		//Assuming EA should be as large as the ADDR register?
-		regMap.put(EA, new BitSet(InstructionBitFormats.LD_STR_ADDR_SIZE));
+		regMap.put(EA, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 				
 		memory = Memory.getInstance();
 		irdecoder = new IRDecoder(this);
+
 	}
 	
-	//Sets a register with a BitSet value
-	public void setReg(String regName, BitSet bitValue) {
-		if (regMap.containsKey(regName)) {
-			regMap.put(regName, bitValue);
+	/**
+	 * Sets a register with a BitSet value.
+	 * 
+	 * @param destName
+	 * 				Key into the register map.
+	 * @param sourceSet
+	 * 				BitSet to set the register equal to.
+	 * @param sourceBits
+	 * 				Number of bits in the BitSet.
+	 */
+	public void setReg(String destName, BitSet sourceSet, int sourceBits) {
+		if (regMap.containsKey(destName)) {
+			//regMap.put(regName, bitValue);
+			
+			Register destination = regMap.get(destName);
+			Utils.bitsetDeepCopy(sourceSet, sourceBits, 
+					destination, destination.getNumBits());
 		}
 	}
 	
-	//Gets a specified register's value
-	public BitSet getReg(String regName) {
+	/**
+	 * Set a register with the contents of another register (given it's key in the
+	 * register map).
+	 * 
+	 * @param destName
+	 * 				Key into the register map (the destination register).
+	 * @param source
+	 */
+	public void setReg(String destName, Register source){
+		if (regMap.containsKey(destName)){
+			Register destination = regMap.get(destName);
+			Utils.bitsetDeepCopy(source, source.getNumBits(), 
+					destination, destination.getNumBits());
+		}
+	}
+	
+	/**
+	 * Set a register with the contents of a word gotten from memory.
+	 * @param destName
+	 * @param sourceMemory
+	 */
+	public void setReg(String destName, Word sourceMemory){
+		if (regMap.containsKey(destName)){
+			Register destination = regMap.get(destName);
+			System.out.println("Source: " + destName + " size: " + destination.getNumBits());
+			Utils.bitsetDeepCopy(sourceMemory, 18, 
+					destination, destination.getNumBits());
+		}
+	}
+	
+	/**
+	 * Gets a register from the map.
+	 * @param regName
+	 * 			Key into the register map.
+	 * @return The register associated with the key.
+	 */
+	public Register getReg(String regName) {
 		return regMap.get(regName);
 	}
 	
@@ -94,7 +143,6 @@ public class CPU {
 		switch(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE)){
 		
 		case OpCodesList.LDR:
-			System.out.println("LDR");
 			//EA -> MAR
 			setReg(MAR, regMap.get(EA));
 			
@@ -114,7 +162,7 @@ public class CPU {
 			
 			//TODO fix MDR to be a word, add a constant "word size" to the Word class
 			//MDR -> Mem(MAR)
-			memory.put((Word)getReg(MDR), getReg(MAR), 18);
+			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
 			break;
 			
 		case OpCodesList.LDA:
@@ -155,12 +203,10 @@ public class CPU {
 			
 			//TODO fix MDR to be a word, add a constant "word size" to the Word class
 			//MDR -> Mem(MAR)
-			memory.put((Word)getReg(MDR), getReg(MAR), 18);
+			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
 			
 			break;
 		}
-		System.out.println("After eI -----------");
-		printAllRegisters();
 	}
 	
 	/**

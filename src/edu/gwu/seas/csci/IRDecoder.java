@@ -47,14 +47,14 @@ public class IRDecoder {
 	 *            The BitSet representing the contents of the Instruction
 	 *            Register.
 	 */
-	public void parseIR(final BitSet IR) {
+	public void parseIR(final Register IR) {
 		String instruction_string;
 		Context.InstructionClass instruction_class;
 		BitSet opcode;
 		
 		// All instructions formats have the opcode in the first 6 bits
 		opcode = IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END + 1);
-		cpu.setReg(CPU.OPCODE, opcode);
+		cpu.setReg(CPU.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
 		
 		// Print IR and OPCODE to console
 		Utils.BitSetToString(CPU.IR, IR, 18);
@@ -86,25 +86,29 @@ public class IRDecoder {
 		case LD_STR:
 			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
-					InstructionBitFormats.LD_STR_IX_END + 1));
+					InstructionBitFormats.LD_STR_IX_END + 1),
+					InstructionBitFormats.LD_STR_IX_SIZE);
 			
 			Utils.BitSetToString(CPU.IX, cpu.getReg(CPU.IX), InstructionBitFormats.LD_STR_IX_SIZE);
 			
 			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.LD_STR_R_START,
-					InstructionBitFormats.LD_STR_R_END + 1));
+					InstructionBitFormats.LD_STR_R_END + 1),
+					InstructionBitFormats.LD_STR_R_SIZE);
 			
 			Utils.BitSetToString(CPU.R, cpu.getReg(CPU.R), InstructionBitFormats.LD_STR_R_SIZE);
 			
 			cpu.setReg(CPU.I, IR.get(
 					InstructionBitFormats.LD_STR_I_START,
-					InstructionBitFormats.LD_STR_I_END + 1));
+					InstructionBitFormats.LD_STR_I_END + 1),
+					InstructionBitFormats.LD_STR_I_SIZE);
 			
 			Utils.BitSetToString(CPU.I, cpu.getReg(CPU.I), InstructionBitFormats.LD_STR_I_SIZE);
 			
 			cpu.setReg(CPU.ADDR, IR.get(
 					InstructionBitFormats.LD_STR_ADDR_START,
-					InstructionBitFormats.LD_STR_ADDR_END + 1));
+					InstructionBitFormats.LD_STR_ADDR_END + 1),
+					InstructionBitFormats.LD_STR_ADDR_SIZE);
 			
 			Utils.BitSetToString(CPU.ADDR, cpu.getReg(CPU.ADDR), InstructionBitFormats.LD_STR_ADDR_SIZE);
 			

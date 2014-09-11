@@ -66,6 +66,32 @@ public class Utils {
 	return (b & (1 << bit)) != 0;
     }
     
+    /**
+     * Copies the contents of one BitSet to another.
+     * 
+     * @param source 
+     * 				The source BitSet.
+     * @param sourceBits 
+     * 				The number of bits represented by the source.
+     * @param destination 
+     * 				The destination BitSet.
+     * @param destinationBits 
+     * 				The number of bits represented by the destination.
+     */
+	public static void bitsetDeepCopy(BitSet source, int sourceBits, 
+			BitSet destination, int destinationBits){
+		
+		if(sourceBits <= destinationBits){
+			destination.clear();
+			for(int i = destinationBits - sourceBits; i < destinationBits; i++)
+				destination.set(i, source.get(i));
+		}else{
+			//Truncate
+			for(int i = sourceBits - destinationBits, j = 0; i < sourceBits; i++, j++)
+				destination.set(j, source.get(i));
+		}
+	}
+    
     
     /**
      * Prints the binary representation of a BitSet.

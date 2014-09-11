@@ -27,51 +27,9 @@ public class Register extends BitSet{
 	}
 	
 	/**
-	 * Copies the value of the passed BitSet into this register. If the size of
-	 * the passed BitSet is larger than the register's size, the value
-	 * is truncated. If it is smaller, then the register gets padded with 0's.
-	 * 
-	 * @param set 
-	 * 			BitSet to set the register equal to.
-	 * @param setNumBits 
-	 * 			The number of bits represented by the bitset.
-	 */
-	public void set(BitSet set, int setNumBits){
-		if(setNumBits <= numBits){
-			this.clear();
-			for(int i = numBits - setNumBits; i < numBits; i++)
-				this.set(i, set.get(i));
-		}else{
-			//Truncate
-			for(int i = setNumBits - numBits, j = 0; i < setNumBits; i++, j++)
-				this.set(j, set.get(i));
-		}
-	}
-	
-	/**
-	 * Copies the value of another register into this register. Same function
-	 * as set(BitSet set, int setNumBits)
-	 * 
-	 * @param register 
-	 * 			Register to set this register equal to.
-	 */
-	public void set(Register register){
-		int registerNumBits = register.getNumBits();
-		if(registerNumBits <= numBits){
-			this.clear();
-			for(int i = numBits - registerNumBits; i < numBits; i++)
-				this.set(i, register.get(i));
-		}else{
-			//Truncate
-			for(int i = registerNumBits - numBits, j = 0; i < registerNumBits; i++, j++)
-				this.set(j, register.get(i));
-		}
-	}
-	
-	/**
 	 * @return The BitSet representing the value in this register.
 	 */
-	public BitSet get(){
+	public BitSet getValue(){
 		return this;
 	}
 	
