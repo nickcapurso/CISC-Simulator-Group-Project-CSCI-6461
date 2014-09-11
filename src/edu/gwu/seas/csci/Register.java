@@ -3,7 +3,8 @@ package edu.gwu.seas.csci;
 import java.util.BitSet;
 
 /**
- * Example abstract register class - maybe discuss this on Wednesday.
+ * A Register is essentially a BitSet that also keeps track of its intended
+ * size that was specified in the Constructor.
  */
 public class Register extends BitSet{
 	private int numBits;
