@@ -5,16 +5,15 @@ import java.util.BitSet;
 /**
  * Example abstract register class - maybe discuss this on Wednesday.
  */
-public abstract class Register extends BitSet{
+public class Register extends BitSet{
 	private int numBits;
-	private BitSet bitset;
 	
 	/**
 	 * Default constructor sets size to 18.
 	 */
 	public Register(){
+		super(18);
 		numBits = 18;
-		bitset = new BitSet(numBits);
 	}
 	
 	/**
@@ -23,8 +22,8 @@ public abstract class Register extends BitSet{
 	 * 			Number of bits to be held in this register.
 	 */
 	public Register(int numBits){
+		super(numBits);
 		this.numBits = numBits;
-		bitset = new BitSet(numBits);
 	}
 	
 	/**
@@ -39,13 +38,13 @@ public abstract class Register extends BitSet{
 	 */
 	public void set(BitSet set, int setNumBits){
 		if(setNumBits <= numBits){
-			bitset.clear();
+			this.clear();
 			for(int i = numBits - setNumBits; i < numBits; i++)
-				bitset.set(i, set.get(i));
+				this.set(i, set.get(i));
 		}else{
 			//Truncate
 			for(int i = setNumBits - numBits, j = 0; i < setNumBits; i++, j++)
-				bitset.set(j, set.get(i));
+				this.set(j, set.get(i));
 		}
 	}
 	
@@ -59,13 +58,13 @@ public abstract class Register extends BitSet{
 	public void set(Register register){
 		int registerNumBits = register.getNumBits();
 		if(registerNumBits <= numBits){
-			bitset.clear();
+			this.clear();
 			for(int i = numBits - registerNumBits; i < numBits; i++)
-				bitset.set(i, register.get(i));
+				this.set(i, register.get(i));
 		}else{
 			//Truncate
 			for(int i = registerNumBits - numBits, j = 0; i < registerNumBits; i++, j++)
-				bitset.set(j, register.get(i));
+				this.set(j, register.get(i));
 		}
 	}
 	
@@ -73,7 +72,7 @@ public abstract class Register extends BitSet{
 	 * @return The BitSet representing the value in this register.
 	 */
 	public BitSet get(){
-		return bitset;
+		return this;
 	}
 	
 	/**
