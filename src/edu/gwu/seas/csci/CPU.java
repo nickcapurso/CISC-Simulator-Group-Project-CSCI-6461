@@ -139,7 +139,6 @@ public class CPU {
 		//TODO Figure out where to move code which fetches memory at EA
 		//Not all instructions need to get memory at an effective address
 		
-		
 		switch(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE)){
 		
 		case OpCodesList.LDR:
@@ -160,7 +159,6 @@ public class CPU {
 			//regFile(R) -> MDR
 			setReg(MDR, getReg(registerFile(getReg(R))));
 			
-			//TODO fix MDR to be a word, add a constant "word size" to the Word class
 			//MDR -> Mem(MAR)
 			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
 			break;
@@ -201,7 +199,6 @@ public class CPU {
 			//indexRegFile(R) -> MDR
 			setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
 			
-			//TODO fix MDR to be a word, add a constant "word size" to the Word class
 			//MDR -> Mem(MAR)
 			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
 			
