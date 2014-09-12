@@ -185,8 +185,17 @@ public class CPU {
 		}
 	}
 	
+	
+	/*
+	 * Branch Logic for individual opcodes
+	 *  - at end of any opcode logic it should reset prog_step counter
+	 *    - This will make singleInstruction restart, thus reaching the next PC
+	 *  - Currently Opcodes not properly setup
+	 * 
+	 * @param op_byte
+	 * 		Opcode to do case branching
+	 */
 	private void opcodeInstruction(byte op_byte) {
-		
 		
 		switch(op_byte){
 		
