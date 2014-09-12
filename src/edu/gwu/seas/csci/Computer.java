@@ -1,6 +1,7 @@
 package edu.gwu.seas.csci;
 
 import java.util.BitSet;
+import java.util.Observable;
 
 import javax.swing.JFrame;
 
@@ -8,7 +9,7 @@ import javax.swing.JFrame;
  * Initializes system resources and runs programs.
  * 
  */
-public class Computer {
+public class Computer extends Observable{
 
     public static void main(String[] args) {
 	// TODO Auto-generated method stub
@@ -23,10 +24,10 @@ public class Computer {
     	frontpanel.setVisible(true);
     	//Test for updating register
     	BitSet test = new BitSet(18);
-    	System.out.println(test.size());
     	for(int i=0; i<18; i++) { 
     		if((i%2) == 0) test.set(i); 
     		} 
-    	frontpanel.update_register("R0", test);
+    	Computer_GUI.update_register("R0", test);
+    	
     }
 }

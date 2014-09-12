@@ -13,6 +13,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
@@ -34,11 +36,11 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	private JPanel contentPane;
 	private JTextField textField;
 	private JRadioButton processing_rbtn;
-	private JTextPane terminal;
+	private static JTextPane terminal;
 	private JButton start, load;
 	private FileLoader fileloader;
 	private CPU cpu;
-	private HashMap<String, JRadioButton[]> Registers;	//map of registers on gui
+	private static HashMap<String, JRadioButton[]> Registers;	//map of registers on gui
 
 	/**
 	 * Create the frame.
@@ -237,7 +239,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	}
 	
 	//By giving a string value for register, and a value, registers can be monitored
-	public void update_register(String register, BitSet value) {
+	public static void update_register(String register, BitSet value) {
 		try {	
 			JRadioButton [] curr_reg = Registers.get(register);
 			for (int i=0; i<curr_reg.length; i++){
@@ -273,4 +275,5 @@ public class Computer_GUI extends JFrame implements ActionListener{
 			processing_rbtn.setSelected(true);
 		}
 	}
+
 }

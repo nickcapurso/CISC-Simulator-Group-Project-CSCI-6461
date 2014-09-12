@@ -70,7 +70,7 @@ public class CPU {
 		irdecoder = new IRDecoder(this);
 
 	}
-	
+
 	/**
 	 * Sets a register with a BitSet value.
 	 * 
@@ -88,6 +88,10 @@ public class CPU {
 			Register destination = regMap.get(destName);
 			Utils.bitsetDeepCopy(sourceSet, sourceBits, 
 					destination, destination.getNumBits());
+			
+			//update the GUI
+			Computer_GUI.update_register(destName, sourceSet);
+			
 		}
 	}
 	
