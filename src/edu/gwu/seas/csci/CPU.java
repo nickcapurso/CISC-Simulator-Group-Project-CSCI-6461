@@ -28,6 +28,9 @@ public class CPU {
 	public static final String ADDR = "ADDR";
 	public static final String EA = "EA";
 	
+	public static int prog_step = 0;
+	public static int cycle_count = 0;
+	
 	
 	private Map<String, Register> regMap = new HashMap<String, Register>();
 	private Memory memory;
@@ -136,33 +139,63 @@ public class CPU {
 	}
 	
 	/**
-	 * From the OPCODE, executes the appropriate register transfer logic
-	 * according to the instruction and its arguments.
+	 * Called from continue/start gui button
+	 *
+	 * @param cont
+	 * 			Branch logic for continous processing or macro/micro step
 	 */
-	private void executeInstruction(){
+	public void executeInstruction(boolean cont){
 		//TODO Figure out where to move code which fetches memory at EA
 		//Not all instructions need to get memory at an effective address
+		if (cont) {
+			while (true) {
+				singleInstruction();
+			}
+		} else {
+			singleInstruction();
+		}
+	}
+	
+	/*
+	 * Run a sinlge instruction
+	 *  - enables micro steps
+	 *  - reliant upon the prog_step counter tracking step progress
+	 */
+	private void singleInstruction() {
+		switch (prog_step) {
+		case 0:
+			setReg(MAR, regMap.get(PC));
+			cycle_count++;
+			prog_step++;
+		case 1:
+			int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+			setReg(MDR, memory.get(mar_addr));
+			cycle_count++;
+			prog_step++;
+		case 2:
+			setReg(IR, regMap.get(MDR));
+			cycle_count++;
+			prog_step++;
+		case 3:
+			irdecoder.parseIR(regMap.get(IR));
+			cycle_count++;
+			prog_step++;
+		default:
+			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));	
+		}
+	}
+	
+	private void opcodeInstruction(byte op_byte) {
 		
-		switch(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE)){
 		
-		case OpCodesList.LDR:
-			//EA -> MAR
-			setReg(MAR, regMap.get(EA));
-			
-			//Mem(EA) -> MDR
-			setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
-			
+		switch(op_byte){
+		
+		case OpCodesList.LDR:			
 			//MDR -> regFile(R)
 			setReg(registerFile(getReg(R)), getReg(MDR));
 			break;
 			
 		case OpCodesList.STR:
-			//EA -> MAR
-			setReg(MAR, regMap.get(EA));
-			
-			//regFile(R) -> MDR
-			setReg(MDR, getReg(registerFile(getReg(R))));
-			
 			//MDR -> Mem(MAR)
 			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
 			break;

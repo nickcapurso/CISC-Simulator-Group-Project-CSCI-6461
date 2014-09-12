@@ -37,7 +37,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	private JTextField textField;
 	private JRadioButton processing_rbtn;
 	private static JTextPane terminal;
-	private JButton start, load;
+	private JButton start, load, microstep, macrostep, cont;
 	private FileLoader fileloader;
 	private CPU cpu;
 	private static HashMap<String, JRadioButton[]> Registers;	//map of registers on gui
@@ -83,14 +83,17 @@ public class Computer_GUI extends JFrame implements ActionListener{
 		load = new JButton("Load");
 		load.setBounds(201, 523, 97, 25);
 		contentPane.add(load);
+		load.addActionListener(this);
 		
-		JButton btnStep = new JButton("Macro Step");
-		btnStep.setBounds(426, 310, 97, 25);
-		contentPane.add(btnStep);
+		macrostep = new JButton("Macro Step");
+		macrostep.setBounds(426, 310, 97, 25);
+		contentPane.add(macrostep);
+		macrostep.addActionListener(this);
 		
-		JButton btnStepInto = new JButton("Micro Step");
-		btnStepInto.setBounds(426, 348, 97, 25);
-		contentPane.add(btnStepInto);
+		microstep = new JButton("Micro Step");
+		microstep.setBounds(426, 348, 97, 25);
+		contentPane.add(microstep);
+		microstep.addActionListener(this);
 		
 		JButton btnRunInput = new JButton("Run Input");
 		btnRunInput.setBounds(310, 523, 97, 25);
@@ -100,10 +103,11 @@ public class Computer_GUI extends JFrame implements ActionListener{
 		btnReset.setBounds(426, 484, 97, 25);
 		contentPane.add(btnReset);
 		
-		JButton btnContinue = new JButton("Continue");
-		btnContinue.setBounds(426, 386, 97, 25);
-		contentPane.add(btnContinue);
-		load.addActionListener(this);
+		cont = new JButton("Continue");
+		cont.setBounds(426, 386, 97, 25);
+		contentPane.add(cont);
+		cont.addActionListener(this);
+
 
 		
 		/*
@@ -225,8 +229,10 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == start) {
-			//cpu.start();
+		if (e.getSource() == start || e.getSource() == cont) {
+			cpu.executeInstruction(true);
+		} else if (e.getSource() == microstep){
+			cpu.executeInstruction(false);
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
