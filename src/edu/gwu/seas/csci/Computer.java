@@ -1,5 +1,7 @@
 package edu.gwu.seas.csci;
 
+import java.util.BitSet;
+
 import javax.swing.JFrame;
 
 /**
@@ -16,14 +18,15 @@ public class Computer {
     	FileLoader fileloader = new FileLoader();
     	CPU cpu = new CPU();
     	Computer_GUI frontpanel = new Computer_GUI(fileloader, cpu);
-    	frontpanel.setSize(500,300);
+    	frontpanel.setSize(900,650);
     	frontpanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frontpanel.setVisible(true);
-    	//added method update_register to monitor values currently stored in registers
-    	frontpanel.update_register("r0", "5");
-    	//added method to log processes to terminal
-		for (int i=0; i<100; i++) {
-			frontpanel.append_to_terminal("This is line " + i + "\n");
-		}    	
+    	//Test for updating register
+    	BitSet test = new BitSet(18);
+    	System.out.println(test.size());
+    	for(int i=0; i<18; i++) { 
+    		if((i%2) == 0) test.set(i); 
+    		} 
+    	frontpanel.update_register("R0", test);
     }
 }
