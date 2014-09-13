@@ -72,6 +72,7 @@ public class IRDecoder {
 		 */
 		// TODO Put all of the "IR.get(...)" into a setter method for the
 		// different registers in the CPU.
+		System.out.println(instruction_class);
 		switch (instruction_class) {
 		case HALT:
 			// Halt instruction has a unique instruction format

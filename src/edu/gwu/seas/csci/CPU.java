@@ -353,7 +353,10 @@ public class CPU {
 				break;
 
 			}
-
+			break;
+			
+		case OpCodesList.HLT:
+			System.out.println("End of the program");
 			break;
 		}
 	}

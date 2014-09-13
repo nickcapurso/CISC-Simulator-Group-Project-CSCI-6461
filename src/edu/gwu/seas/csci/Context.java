@@ -29,6 +29,7 @@ public class Context {
     private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
 
     private Context() {
+    	opcodeClasses.put("HLT", InstructionClass.HALT);
     opcodeClasses.put("LDR", InstructionClass.LD_STR);
     opcodeClasses.put("STR", InstructionClass.LD_STR);
     opcodeClasses.put("LDA", InstructionClass.LD_STR);
@@ -39,6 +40,7 @@ public class Context {
 	opcodeClasses.put("AIR", InstructionClass.LD_STR_IMD);
 	opcodeClasses.put("SIR", InstructionClass.LD_STR_IMD);
 
+	opCodeBytes.put("HLT", OpCodesList.HLT);
 	opCodeBytes.put("LDR", OpCodesList.LDR);
 	opCodeBytes.put("STR", OpCodesList.STR);
 	opCodeBytes.put("LDA", OpCodesList.LDA);
@@ -49,6 +51,7 @@ public class Context {
 	opCodeBytes.put("AIR", OpCodesList.AIR);
 	opCodeBytes.put("SIR", OpCodesList.SIR);
 
+	opCodeStrings.put(OpCodesList.HLT, "HLT");
 	opCodeStrings.put(OpCodesList.LDR, "LDR");
 	opCodeStrings.put(OpCodesList.STR, "STR");
 	opCodeStrings.put(OpCodesList.LDA, "LDA");
