@@ -1,6 +1,5 @@
 package edu.gwu.seas.csci;
 
-import java.text.ParseException;
 import java.util.*;
 
 /*CPU class registers placed into a map. I think this implementation is hard to use...i'd prefer to use
@@ -290,46 +289,179 @@ public class CPU {
 
 	    break;
 	}
-    }
-
-    /**
-     * Returns a String key into the register map according to the contents of R
-     * (the register index register)
-     * 
-     * @param R
-     *            The R register.
-     * @return A String key into the register map.
-     */
-    private String registerFile(BitSet R) {
-	switch (Utils.convertToByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
-	case 0:
-	    return R0;
-	case 1:
-	    return R1;
-	case 2:
-	    return R2;
-	case 3:
-	    return R3;
+	
+	/**
+	 * Run a single instruction
+	 *  - enables micro steps
+	 *  - reliant upon the prog_step counter tracking step progress
+	 */
+	private void singleInstruction() {
+		switch (prog_step) {
+		case 0:
+			setReg(MAR, regMap.get(PC));
+			cycle_count++;
+			prog_step++;
+			break;
+			
+		case 1:
+			int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+			setReg(MDR, memory.get(mar_addr));
+			cycle_count++;
+			prog_step++;
+			break;
+			
+		case 2:
+			setReg(IR, regMap.get(MDR));
+			cycle_count++;
+			prog_step++;
+			break;
+			
+		case 3:
+			irdecoder.parseIR(regMap.get(IR));
+			cycle_count++;
+			prog_step++;
+			break;
+			
+		default:
+			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));	
+		}
 	}
-	return null;
-    }
-
-    /**
-     * Returns a String key into the register map according to the contents of
-     * IX (the index register index)
-     * 
-     * @param R
-     *            The R register.
-     * @return A String key into the register map.
-     */
-    private String indexRegisterFile(BitSet IX) {
-	switch (Utils.convertToByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
-	case 1:
-	    return X1;
-	case 2:
-	    return X2;
-	case 3:
-	    return X3;
+	
+	
+	/**
+	 * Branch Logic for individual opcodes
+	 *  - at end of any opcode logic it should reset prog_step counter
+	 *    - This will make singleInstruction restart, thus reaching the next PC
+	 *  - Currently Opcodes not properly setup
+	 * 
+	 * @param op_byte
+	 * 		Opcode to do case branching
+	 */
+	private void opcodeInstruction(byte op_byte) {
+		
+		switch(op_byte){
+		
+		case OpCodesList.LDR:
+			switch(prog_step) {
+			case 4:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 5:
+				//Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+				setReg(MDR, memory.get(mar_addr));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 6:
+				//MDR -> registerFile(R)
+				setReg(registerFile(getReg(R)), regMap.get(MDR));
+				cycle_count++;
+				prog_step=0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.STR:
+			switch(prog_step){
+			case 4:
+				//MDR -> Mem(MAR)
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				cycle_count++;
+				prog_step=0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.LDA:
+			//If no indirection, then load regFile(R) with EA
+			//else, need to go get the address to load from memory
+			if(Utils.convertToByte(getReg(I), InstructionBitFormats.LD_STR_I_SIZE) == 0){
+				switch(prog_step){
+				case 4:
+					//EA -> regFile(R)
+					setReg(registerFile(getReg(R)), getReg(EA));
+					cycle_count++;
+					prog_step=0;
+					break;
+				}
+			}else{
+				switch(prog_step){
+				case 4:
+					//EA -> MAR
+					setReg(MAR, regMap.get(EA));
+					cycle_count++;
+					prog_step++;
+					break;
+				case 5:
+					//Mem(EA) -> MDR
+					setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+					cycle_count++;
+					prog_step++;
+					break;
+				case 6:
+					//MDR -> regFile(R)
+					setReg(registerFile(getReg(R)), getReg(MDR));
+					cycle_count++;
+					prog_step=0;
+					break;
+				}	
+			}
+			break;
+			
+		case OpCodesList.LDX:
+			switch(prog_step){
+			case 4:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Mem(EA) -> MDR
+				setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//MDR -> indexRegFile(R)
+				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));	
+				cycle_count++;
+				prog_step=0;
+				break;
+			}	
+			break;
+			
+		case OpCodesList.STX:
+			switch(prog_step){
+			case 4:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//indexRegFile(R) -> MDR
+				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//MDR -> Mem(MAR)
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				cycle_count++;
+				prog_step=0;
+				break;
+				
+			}
+			
+			break;
+		}
 	}
 
 	return null;
