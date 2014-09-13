@@ -30,6 +30,26 @@ public class Utils {
 	    value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
 	return value;
     }
+    
+    /**
+     * Converts a BitSet to its numeric equivalent, stored in a byte. The return
+     * value can be used for numeric based comparisons.
+     * 
+     * @param register
+     *            The Register instance to be converted.
+     * @return The numeric value represented by the BitSet.
+     */
+    public static byte convertToByte(final Register reg) {
+    	byte value = 0;
+
+    	int numBits = reg.getNumBits();
+    	
+    	for (int i = numBits - 1; i >= 0; i--) {
+    		value += reg.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
+    	}
+
+    	return value;
+    }
 
     /**
      * Converts a BitSet to its numeric equivalent, stored in a int. Can be used

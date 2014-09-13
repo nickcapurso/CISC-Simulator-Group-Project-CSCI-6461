@@ -402,6 +402,33 @@ public class CPU {
 
 		return null;
 	}
+	
+	/**
+	 * Calculates the EA (effective address) 
+	 */
+	private void calculateEA() { 
+		//BitSet ea = new BitSet(18);
+		//int numBits = 18;
+		
+		if (Utils.convertToByte(regMap.get(I)) == 0) { //No indirect addressing
+			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing			
+				setReg(EA, regMap.get(ADDR));
+			} else { //Indexing only
+				//set EA = ADDR + Xx
+				//setReg(EA, (regMap.get(ADDR) + regMap.get(IX)))
+				
+			}
+		} else { //Indirect addressing
+			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing
+				setReg(EA, regMap.get(regMap.get(ADDR)));
+			} else { //Indexing 
+				//EA = ADDR + Xx
+				//EA = EA
+			}
+			
+		}
+	}
+	
 
 	/**
 	 * Prints the contents of all the registers to the console. (Eventually will
