@@ -13,15 +13,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-
-import com.sun.javafx.collections.MappingChange.Map;
 
 public class Computer_GUI extends JFrame implements ActionListener{
 
@@ -35,7 +30,6 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField textField;
-	private JRadioButton processing_rbtn;
 	private static JTextPane terminal;
 	private JButton start, load, microstep, macrostep, cont, runInput;
 	private FileLoader fileloader;
@@ -65,6 +59,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 				
 		terminal = new JTextPane();
 		terminal.setBounds(12, 310, 402, 199);
+		terminal.setEditable(false);
 		contentPane.add(terminal);
 		
 		/*
