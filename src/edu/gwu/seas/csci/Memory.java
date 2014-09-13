@@ -29,6 +29,8 @@ public class Memory {
      * Private constructor forces access via the getInstance() method.
      */
     private Memory() {
+    	for(int i = 0; i < memory.length; i++)
+    		memory[i] = new Word();
     }
 
     /**
