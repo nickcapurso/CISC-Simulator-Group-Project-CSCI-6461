@@ -82,7 +82,7 @@ public class FileLoader implements Loader {
 	}
 	try {
 	    String temp = null;
-	    short memory_location = 6; // Locations 0-5 are reserved.
+	    short memory_location = 8; // Locations 0-5 are reserved.
 	    while ((temp = reader.readLine()) != null) {
 		Word word = new Word();
 		// Read the opcode from the input line.
@@ -94,25 +94,43 @@ public class FileLoader implements Loader {
 		// Ensure the key returned a valid InstructionClass object.
 		if (instruction_class == null)
 		    continue;
-		byte general_register = Byte.parseByte(temp.substring(4, 5));
+		byte general_register = 0;
 		String instruction_elements[] = temp.split(",");
 		byte index_register = 0;
 		byte address = 0;
 		byte indirection = 0;
 		byte opcode = 0;
 		// Switch on the class of opcode.
+		// TODO: Need to change the switch categories because the
+		// instruction format does not correspond directly to class of
+		// opcode. Create categories that uniquely identify a common
+		// format of opcode instructions and use them instead.
 		switch (instruction_class) {
 		case ARITH:
 		    break;
 		case LD_STR:
-		    index_register = Byte.parseByte(instruction_elements[1]);
-		    address = Byte.parseByte(instruction_elements[2]);
-		    indirection = Byte.parseByte(instruction_elements[3]);
-		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
-		    writer.writeInstruction(word, opcode, general_register,
-			    index_register, indirection, address);
+		    // This is an example of why we need to switch on something
+		    // other than opcode class.
+		    if (opcodeKeyString.equals("LDX")
+			    || opcodeKeyString.equals("STX")) {
+			index_register = Byte.parseByte(temp.substring(4, 5));
+			;
+			address = Byte.parseByte(instruction_elements[1]);
+			indirection = Byte.parseByte(instruction_elements[2]);
+		    } else {
+			general_register = Byte.parseByte(temp.substring(4, 5));
+			index_register = Byte
+				.parseByte(instruction_elements[1]);
+			address = Byte.parseByte(instruction_elements[2]);
+			indirection = Byte.parseByte(instruction_elements[3]);
+			opcode = context.getOpCodeBytes().get(opcodeKeyString);
+			writer.writeInstruction(word, opcode, general_register,
+				index_register, indirection, address);
+		    }
+
 		    break;
 		case LD_STR_IMD:
+		    general_register = Byte.parseByte(temp.substring(4, 5));
 		    address = Byte.parseByte(instruction_elements[1]);
 		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
 		    writer.writeInstruction(word, opcode, general_register,
