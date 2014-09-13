@@ -151,17 +151,31 @@ public class CPU {
 	 * @param cont
 	 * 			Branch logic for continous processing or macro/micro step
 	 */
-	public void executeInstruction(boolean cont){
+	public void executeInstruction(String step_type){
 		//TODO Figure out where to move code which fetches memory at EA
 		//Not all instructions need to get memory at an effective address
-		System.out.println("reached here");
-		if (cont) {
-			while (true) {
+		switch (step_type){
+			case "continue":
+				System.out.println("Continue");
+				while (true) {
+					singleInstruction();
+				}
+				
+			case "micro step":
+				System.out.println("Micro Step");
 				singleInstruction();
-			}
-		} else {
-			System.out.println("I did not hit the while loop yes!");
-			singleInstruction();
+				break;
+				
+			case "macro step":
+				System.out.println("Macro Step");
+				do {
+					singleInstruction();
+				} while(prog_step != 0);
+				break;
+				
+			default:
+				System.out.println("Direct Exectuion");
+				//setReg(IR, BitSet(from step_type));
 		}
 	}
 	

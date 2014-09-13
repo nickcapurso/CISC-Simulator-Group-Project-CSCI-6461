@@ -37,7 +37,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	private JTextField textField;
 	private JRadioButton processing_rbtn;
 	private static JTextPane terminal;
-	private JButton start, load, microstep, macrostep, cont;
+	private JButton start, load, microstep, macrostep, cont, runInput;
 	private FileLoader fileloader;
 	private CPU cpu;
 	private static HashMap<String, JRadioButton[]> Registers;	//map of registers on gui
@@ -95,9 +95,9 @@ public class Computer_GUI extends JFrame implements ActionListener{
 		contentPane.add(microstep);
 		microstep.addActionListener(this);
 		
-		JButton btnRunInput = new JButton("Run Input");
-		btnRunInput.setBounds(310, 523, 97, 25);
-		contentPane.add(btnRunInput);
+		runInput = new JButton("Run Input");
+		runInput.setBounds(310, 523, 97, 25);
+		contentPane.add(runInput);
 		
 		JButton btnReset = new JButton("Reset");
 		btnReset.setBounds(426, 484, 97, 25);
@@ -230,9 +230,11 @@ public class Computer_GUI extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == start || e.getSource() == cont) {
-			cpu.executeInstruction(true);
-		} else if (e.getSource() == microstep){
-			cpu.executeInstruction(false);
+			cpu.executeInstruction("continue");
+		} else if (e.getSource() == microstep) {
+			cpu.executeInstruction("micro step");
+		} else if (e.getSource() == macrostep) {
+			cpu.executeInstruction("macro step");		
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
@@ -241,6 +243,8 @@ public class Computer_GUI extends JFrame implements ActionListener{
 			} catch (Exception ex) { //Catch exception if any
 			      System.err.println("Error: " + ex.getMessage());
 			}
+		} else if (e.getSource() == runInput) {
+			cpu.executeInstruction(textField.getText());
 		}
 	}
 	
