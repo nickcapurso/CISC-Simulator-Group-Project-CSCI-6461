@@ -29,6 +29,7 @@ public class CPU {
 	public static final String ADDR = "ADDR";
 	public static final String EA = "EA";
 
+	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
 
@@ -162,9 +163,10 @@ public class CPU {
 		switch (step_type){
 			case "continue":
 				System.out.println("Continue");
-				while (true) {
+				while (cont_execution) {
 					singleInstruction();
 				}
+				break;
 				
 			case "micro step":
 				System.out.println("Micro Step");
@@ -353,7 +355,11 @@ public class CPU {
 				break;
 
 			}
-
+			break;
+			
+		case OpCodesList.HLT:
+			System.out.println("End of the program");
+			cont_execution = false;
 			break;
 		}
 	}
