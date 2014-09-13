@@ -52,6 +52,7 @@ public class CPU {
 		
 		//Special registers
 		regMap.put(PC, new Register(12));
+		//set PC to start of Program Counter
 		regMap.put(IR, new Register());
 		regMap.put(CC, new Register(4));
 		regMap.put(MAR, new Register(12));
@@ -128,6 +129,9 @@ public class CPU {
 			System.out.println("Source: " + destName + " size: " + destination.getNumBits());
 			Utils.bitsetDeepCopy(sourceMemory, 18, 
 					destination, destination.getNumBits());
+			
+			//update the GUI
+			Computer_GUI.update_register(destName, (BitSet) sourceMemory);
 		}
 	}
 	
