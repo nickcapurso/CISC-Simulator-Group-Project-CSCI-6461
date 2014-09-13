@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.text.ParseException;
 
 /**
@@ -35,7 +37,26 @@ public class FileLoader implements Loader {
      */
     private Context context = Context.getInstance();
 
+    /**
+     * 
+     */
+    private InstructionWriter writer = new InstructionWriter();
+
+    /**
+     * Contains the contents of ROM.
+     */
+    private File input = null;
+
+    /**
+     * FileLoader is constructed with a default input.
+     */
     public FileLoader() {
+	URL url = getClass().getResource("/input.txt");
+	try {
+	    input = new File(url.toURI());
+	} catch (URISyntaxException e) {
+	    e.printStackTrace();
+	}
     }
 
     /*
@@ -88,14 +109,14 @@ public class FileLoader implements Loader {
 		    address = Byte.parseByte(instruction_elements[2]);
 		    indirection = Byte.parseByte(instruction_elements[3]);
 		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
-		    setLoadStoreInstruction(word, opcode, general_register,
+		    writer.writeInstruction(word, opcode, general_register,
 			    index_register, indirection, address);
 		    break;
 		case LD_STR_IMD:
 		    address = Byte.parseByte(instruction_elements[1]);
 		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
-		    setLoadStoreImmedInstruction(word, opcode,
-			    general_register, address);
+		    writer.writeInstruction(word, opcode, general_register,
+			    address);
 		    break;
 		case LOGIC:
 		    break;
@@ -112,98 +133,9 @@ public class FileLoader implements Loader {
 	}
     }
 
-    /**
-     * Inserts the internal components of a {@link Word} in an
-     * {@link Context.InstructionClass} LD_STR_IMD internal format.
-     * 
-     * @param word
-     *            The word into which the elements will be inserted.
-     * @param opcode
-     *            The opcode value to insert into the word.
-     * @param general_register
-     *            The general register value to insert into the word.
-     * @param address
-     *            The address value to insert into the word.
-     */
-    public void setLoadStoreImmedInstruction(Word word, byte opcode,
-	    byte general_register, byte address) {
-	setOpcode(word, opcode);
-	setGeneralRegister(word, general_register);
-	setAddress(word, address);
-
-    }
-
-    /**
-     * @param opcode
-     * @param general_register
-     * @param index_register
-     * @param indirection
-     * @param address
-     */
-    public void setLoadStoreInstruction(Word word, byte opcode,
-	    byte general_register, byte index_register, byte indirection,
-	    byte address) {
-	setOpcode(word, opcode);
-	setGeneralRegister(word, general_register);
-	setIndexRegister(word, index_register);
-	setIndirection(word, indirection);
-	setAddress(word, address);
-    }
-
-    /**
-     * Sets the instruction opcode to bit positions 0-5.
-     * 
-     * @param word
-     * @param opcode
-     */
-    public void setOpcode(Word word, byte opcode) {
-	for (byte i = 0; i < 6; i++) {
-	    if (Utils.isBitSet(opcode, i))
-		word.set(5 - i);
-	}
-    }
-
-    /**
-     * @param word
-     * @param general_register
-     */
-    public void setGeneralRegister(Word word, byte general_register) {
-	for (byte i = 0; i < 2; i++) {
-	    if (Utils.isBitSet(general_register, i))
-		word.set(7 - i);
-	}
-    }
-
-    /**
-     * @param word
-     * @param index_register
-     */
-    public void setIndexRegister(Word word, byte index_register) {
-	for (byte i = 0; i < 2; i++) {
-	    if (Utils.isBitSet(index_register, i))
-		word.set(9 - i);
-	}
-    }
-
-    /**
-     * @param word
-     * @param indirection
-     */
-    public void setIndirection(Word word, byte indirection) {
-	for (byte i = 0; i < 1; i++) {
-	    if (Utils.isBitSet(indirection, i))
-		word.set(10);
-	}
-    }
-
-    /**
-     * @param word
-     * @param address
-     */
-    public void setAddress(Word word, byte address) {
-	for (byte i = 0; i < 8; i++) {
-	    if (Utils.isBitSet(address, i))
-		word.set(17 - i);
-	}
+    @Override
+    public void load() throws NullPointerException, ParseException,
+	    IllegalArgumentException {
+	this.load(input);
     }
 }

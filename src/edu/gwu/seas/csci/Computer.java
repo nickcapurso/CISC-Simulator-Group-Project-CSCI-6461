@@ -27,6 +27,6 @@ public class Computer {
     }
 
     private void start() {
-	
+	cpu.loadROM();
     }
 }

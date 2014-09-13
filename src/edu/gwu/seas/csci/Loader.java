@@ -27,4 +27,15 @@ public interface Loader {
      */
     public void load(Object input) throws ParseException,
 	    IllegalArgumentException;
+
+    /**
+     * @throws NullPointerException
+     *             If there is no set default input to load.
+     * @throws ParseException
+     *             If the input cannot be parsed.
+     * @throws IllegalArgumentException
+     *             If the input is not of the expected type.
+     */
+    public void load() throws NullPointerException, ParseException,
+	    IllegalArgumentException;
 }
