@@ -75,7 +75,7 @@ public class FileLoaderTest {
 	assertEquals(true, one.get(16));
 	assertEquals(false, one.get(17));
 
-	// Word two should be 000101 01 00 1 0010001
+	// Word two should be 000101 00 01 1 0010001
 	assertEquals(false, two.get(0));
 	assertEquals(false, two.get(1));
 	assertEquals(false, two.get(2));
@@ -83,9 +83,9 @@ public class FileLoaderTest {
 	assertEquals(false, two.get(4));
 	assertEquals(true, two.get(5));
 	assertEquals(false, two.get(6));
-	assertEquals(true, two.get(7));
+	assertEquals(false, two.get(7));
 	assertEquals(false, two.get(8));
-	assertEquals(false, two.get(9));
+	assertEquals(true, two.get(9));
 	assertEquals(true, two.get(10));
 	assertEquals(false, two.get(11));
 	assertEquals(false, two.get(12));
@@ -95,16 +95,16 @@ public class FileLoaderTest {
 	assertEquals(false, two.get(16));
 	assertEquals(true, two.get(17));
 
-	// Word three should be 000110 10 00 0 0001000
+	// Word three should be 000110 00 10 0 0001000
 	assertEquals(false, three.get(0));
 	assertEquals(false, three.get(1));
 	assertEquals(false, three.get(2));
 	assertEquals(true, three.get(3));
 	assertEquals(true, three.get(4));
 	assertEquals(false, three.get(5));
-	assertEquals(true, three.get(6));
+	assertEquals(false, three.get(6));
 	assertEquals(false, three.get(7));
-	assertEquals(false, three.get(8));
+	assertEquals(true, three.get(8));
 	assertEquals(false, three.get(9));
 	assertEquals(false, three.get(10));
 	assertEquals(false, three.get(11));
@@ -115,17 +115,17 @@ public class FileLoaderTest {
 	assertEquals(false, three.get(16));
 	assertEquals(false, three.get(17));
 
-	// Word four should be 000111 11 00 0 0010011
+	// Word four should be 000111 00 11 0 0010011
 	assertEquals(false, four.get(0));
 	assertEquals(false, four.get(1));
 	assertEquals(false, four.get(2));
 	assertEquals(true, four.get(3));
 	assertEquals(true, four.get(4));
 	assertEquals(true, four.get(5));
-	assertEquals(true, four.get(6));
-	assertEquals(true, four.get(7));
-	assertEquals(false, four.get(8));
-	assertEquals(false, four.get(9));
+	assertEquals(false, four.get(6));
+	assertEquals(false, four.get(7));
+	assertEquals(true, four.get(8));
+	assertEquals(true, four.get(9));
 	assertEquals(false, four.get(10));
 	assertEquals(false, four.get(11));
 	assertEquals(false, four.get(12));

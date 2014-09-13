@@ -76,7 +76,7 @@ public class InstructionWriter {
      *            The value of the general register to insert into the word.
      */
     private void setGeneralRegister(Word word, byte general_register) {
-	Utils.byteToBitSetDeepCopy(general_register, word, (byte) 2, (byte) 7);
+	Utils.byteToBitSetDeepCopy(general_register, word, (byte) 2, (byte) 9);
     }
 
     /**
@@ -86,7 +86,7 @@ public class InstructionWriter {
      * @param index_register
      */
     private void setIndexRegister(Word word, byte index_register) {
-	Utils.byteToBitSetDeepCopy(index_register, word, (byte) 2, (byte) 9);
+	Utils.byteToBitSetDeepCopy(index_register, word, (byte) 2, (byte) 7);
     }
 
     /**
