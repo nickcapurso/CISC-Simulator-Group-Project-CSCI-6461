@@ -21,7 +21,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 
-import com.sun.javafx.collections.MappingChange.Map;
 
 public class Computer_GUI extends JFrame implements ActionListener{
 

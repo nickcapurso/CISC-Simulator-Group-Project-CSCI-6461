@@ -165,8 +165,8 @@ public class CPU {
 		}
 	}
 	
-	/*
-	 * Run a sinlge instruction
+	/**
+	 * Run a single instruction
 	 *  - enables micro steps
 	 *  - reliant upon the prog_step counter tracking step progress
 	 */
@@ -203,7 +203,7 @@ public class CPU {
 	}
 	
 	
-	/*
+	/**
 	 * Branch Logic for individual opcodes
 	 *  - at end of any opcode logic it should reset prog_step counter
 	 *    - This will make singleInstruction restart, thus reaching the next PC
@@ -219,12 +219,14 @@ public class CPU {
 		case OpCodesList.LDR:
 			switch(prog_step) {
 			case 4:
-				setReg(MAR, regMap.get(ADDR));
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 				
 			case 5:
+				//Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
 				setReg(MDR, memory.get(mar_addr));
 				cycle_count++;
@@ -232,7 +234,8 @@ public class CPU {
 				break;
 				
 			case 6:
-				setReg(R, regMap.get(MDR));
+				//MDR -> registerFile(R)
+				setReg(registerFile(getReg(R)), regMap.get(MDR));
 				cycle_count++;
 				prog_step=0;
 				break;
@@ -240,48 +243,97 @@ public class CPU {
 			break;
 			
 		case OpCodesList.STR:
-			//MDR -> Mem(MAR)
-			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+			switch(prog_step){
+			case 4:
+				//MDR -> Mem(MAR)
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				cycle_count++;
+				prog_step=0;
+				break;
+			}
 			break;
 			
 		case OpCodesList.LDA:
 			//If no indirection, then load regFile(R) with EA
 			//else, need to go get the address to load from memory
 			if(Utils.convertToByte(getReg(I), InstructionBitFormats.LD_STR_I_SIZE) == 0){
-				//EA -> regFile(R)
-				setReg(registerFile(getReg(R)), getReg(EA));
+				switch(prog_step){
+				case 4:
+					//EA -> regFile(R)
+					setReg(registerFile(getReg(R)), getReg(EA));
+					cycle_count++;
+					prog_step=0;
+					break;
+				}
 			}else{
-				//EA -> MAR
-				setReg(MAR, regMap.get(EA));
-				
-				//Mem(EA) -> MDR
-				setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
-				
-				//MDR -> regFile(R)
-				setReg(registerFile(getReg(R)), getReg(MDR));
+				switch(prog_step){
+				case 4:
+					//EA -> MAR
+					setReg(MAR, regMap.get(EA));
+					cycle_count++;
+					prog_step++;
+					break;
+				case 5:
+					//Mem(EA) -> MDR
+					setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+					cycle_count++;
+					prog_step++;
+					break;
+				case 6:
+					//MDR -> regFile(R)
+					setReg(registerFile(getReg(R)), getReg(MDR));
+					cycle_count++;
+					prog_step=0;
+					break;
+				}	
 			}
 			break;
 			
 		case OpCodesList.LDX:
-			//EA -> MAR
-			setReg(MAR, regMap.get(EA));
-			
-			//Mem(EA) -> MDR
-			setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
-			
-			//MDR -> indexRegFile(R)
-			setReg(indexRegisterFile(getReg(IX)), getReg(MDR));			
+			switch(prog_step){
+			case 4:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Mem(EA) -> MDR
+				setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//MDR -> indexRegFile(R)
+				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));	
+				cycle_count++;
+				prog_step=0;
+				break;
+			}	
 			break;
 			
 		case OpCodesList.STX:
-			//EA -> MAR
-			setReg(MAR, regMap.get(EA));
-			
-			//indexRegFile(R) -> MDR
-			setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
-			
-			//MDR -> Mem(MAR)
-			memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+			switch(prog_step){
+			case 4:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//indexRegFile(R) -> MDR
+				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//MDR -> Mem(MAR)
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				cycle_count++;
+				prog_step=0;
+				break;
+				
+			}
 			
 			break;
 		}
