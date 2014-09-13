@@ -238,6 +238,7 @@ public class Computer_GUI extends JFrame implements ActionListener{
 			} catch (Exception ex) { //Catch exception if any
 			      System.err.println("Error: " + ex.getMessage());
 			}
+		//Needs to run through the FileLoader Instruction Parser to work properly
 		} else if (e.getSource() == runInput) {
 			cpu.executeInstruction(textField.getText());
 		}
