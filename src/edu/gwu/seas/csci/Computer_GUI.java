@@ -13,14 +13,10 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-
 
 public class Computer_GUI extends JFrame implements ActionListener {
 
@@ -34,7 +30,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
     private JTextField textField;
     private JRadioButton processing_rbtn;
     private static JTextPane terminal;
-    private JButton start, load, microstep, macrostep, cont;
+    private JButton start, load, microstep, macrostep, cont, runInput;
     private FileLoader fileloader;
     private CPU cpu;
     private static HashMap<String, JRadioButton[]> Registers; // map of
@@ -63,6 +59,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 	terminal = new JTextPane();
 	terminal.setBounds(12, 310, 402, 199);
+	terminal.setEnabled(false);
 	contentPane.add(terminal);
 
 	/*
@@ -92,9 +89,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	contentPane.add(microstep);
 	microstep.addActionListener(this);
 
-	JButton btnRunInput = new JButton("Run Input");
-	btnRunInput.setBounds(310, 523, 97, 25);
-	contentPane.add(btnRunInput);
+	JButton runInput = new JButton("Run Input");
+	runInput.setBounds(310, 523, 97, 25);
+	contentPane.add(runInput);
 
 	JButton btnReset = new JButton("Reset");
 	btnReset.setBounds(426, 484, 97, 25);
@@ -181,30 +178,29 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	// For loop to decrease RadioButton [] creation
 	for (int j = 0; j < MR.length; j++) {
 	    for (int i = 0; i < R0.length; i++) {
-		if (j < GPR.length) {
-		    GPR[j][i] = new JRadioButton();
-		    GPR[j][i].setEnabled(false);
-		    GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
-		    contentPane.add(GPR[j][i]);
-		}
-		if (i < X1.length) {
-		    if (j < XR.length) {
-			XR[j][i] = new JRadioButton();
-			XR[j][i].setEnabled(false);
-			XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
-			contentPane.add(XR[j][i]);
-		    }
-		    MR[j][i] = new JRadioButton();
-		    MR[j][i].setEnabled(false);
-		    MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-		    contentPane.add(MR[j][i]);
-		}
+	    	if (j < GPR.length) {
+			    GPR[j][i] = new JRadioButton();
+			    GPR[j][i].setEnabled(false);
+			    GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
+			    contentPane.add(GPR[j][i]);
+	    	}
+			if (i < X1.length) {
+			    if (j < XR.length) {
+				XR[j][i] = new JRadioButton();
+				XR[j][i].setEnabled(false);
+				XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
+				contentPane.add(XR[j][i]);
+			    }
+			    MR[j][i] = new JRadioButton();
+			    MR[j][i].setEnabled(false);
+			    MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+			    contentPane.add(MR[j][i]);
+			}
 	    }
 	}
-
-	/*
-	 * Place registers in the map (Registers)
-	 */
+		/*
+		 * Place registers in the map (Registers)
+		 */
 	Registers.put("R0", R0);
 	Registers.put("R1", R1);
 	Registers.put("R2", R2);
@@ -218,24 +214,30 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	Registers.put("MFR", MFR);
 	Registers.put("MAR", MAR);
 
-    }
+}
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-	if (e.getSource() == start || e.getSource() == cont) {
-	    cpu.executeInstruction(true);
-	} else if (e.getSource() == microstep) {
-	    cpu.executeInstruction(false);
-	} else if (e.getSource() == load) {
-	    String filepath = textField.getText();
-	    try {
-		File load_file = new File(filepath);
-		fileloader.load(load_file);
-	    } catch (Exception ex) { // Catch exception if any
-		System.err.println("Error: " + ex.getMessage());
-	    }
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == start || e.getSource() == cont) {
+			cpu.executeInstruction("continue");
+		} else if (e.getSource() == microstep) {
+			cpu.executeInstruction("micro step");
+		} else if (e.getSource() == macrostep) {
+			cpu.executeInstruction("macro step");		
+		} else if (e.getSource() == load) {
+			String filepath = textField.getText();
+			try {
+			    File load_file = new File(filepath);
+			    fileloader.load(load_file);
+			} catch (Exception ex) { //Catch exception if any
+			      System.err.println("Error: " + ex.getMessage());
+			}
+		//Needs to run through the FileLoader Instruction Parser to work properly
+		} else if (e.getSource() == runInput) {
+			cpu.executeInstruction(textField.getText());
+		}
 	}
-    }
 
     // By giving a string value for register, and a value, registers can be
     // monitored
