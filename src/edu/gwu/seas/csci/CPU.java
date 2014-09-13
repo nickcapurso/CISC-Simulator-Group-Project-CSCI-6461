@@ -111,6 +111,9 @@ public class CPU {
 			Register destination = regMap.get(destName);
 			Utils.bitsetDeepCopy(source, source.getNumBits(), 
 					destination, destination.getNumBits());
+			
+			//update the GUI
+			Computer_GUI.update_register(destName, source);
 		}
 	}
 	
@@ -147,11 +150,13 @@ public class CPU {
 	public void executeInstruction(boolean cont){
 		//TODO Figure out where to move code which fetches memory at EA
 		//Not all instructions need to get memory at an effective address
+		System.out.println("reached here");
 		if (cont) {
 			while (true) {
 				singleInstruction();
 			}
 		} else {
+			System.out.println("I did not hit the while loop yes!");
 			singleInstruction();
 		}
 	}
@@ -167,19 +172,27 @@ public class CPU {
 			setReg(MAR, regMap.get(PC));
 			cycle_count++;
 			prog_step++;
+			break;
+			
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
 			setReg(MDR, memory.get(mar_addr));
 			cycle_count++;
 			prog_step++;
+			break;
+			
 		case 2:
 			setReg(IR, regMap.get(MDR));
 			cycle_count++;
 			prog_step++;
+			break;
+			
 		case 3:
 			irdecoder.parseIR(regMap.get(IR));
 			cycle_count++;
 			prog_step++;
+			break;
+			
 		default:
 			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));	
 		}
@@ -199,9 +212,27 @@ public class CPU {
 		
 		switch(op_byte){
 		
-		case OpCodesList.LDR:			
-			//MDR -> regFile(R)
-			setReg(registerFile(getReg(R)), getReg(MDR));
+		case OpCodesList.LDR:
+			switch(prog_step) {
+			case 4:
+				setReg(MAR, regMap.get(ADDR));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 5:
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+				setReg(MDR, memory.get(mar_addr));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 6:
+				setReg(R, regMap.get(MDR));
+				cycle_count++;
+				prog_step=0;
+				break;
+			}
 			break;
 			
 		case OpCodesList.STR:

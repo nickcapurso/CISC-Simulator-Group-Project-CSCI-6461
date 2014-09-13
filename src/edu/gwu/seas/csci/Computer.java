@@ -23,11 +23,11 @@ public class Computer extends Observable{
     	frontpanel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     	frontpanel.setVisible(true);
     	//Test for updating register
-    	BitSet test = new BitSet(18);
+/*    	BitSet test = new BitSet(18);
     	for(int i=0; i<18; i++) { 
     		if((i%2) == 0) test.set(i); 
     		} 
-    	Computer_GUI.update_register("R0", test);
+    	Computer_GUI.update_register("R0", test);*/
     	
     }
 }

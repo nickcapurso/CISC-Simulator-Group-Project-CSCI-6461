@@ -256,11 +256,11 @@ public class Computer_GUI extends JFrame implements ActionListener{
 				}
 			}
 		} catch (Exception e) {
-			StyledDocument document = (StyledDocument) terminal.getDocument();
+/*			StyledDocument document = (StyledDocument) terminal.getDocument();
 			try {
 				document.insertString(document.getLength(), "Error Updating Board\n", null);
 			} catch (BadLocationException e2) {
-			}
+			}*/
 		}
 	}
 	
@@ -273,13 +273,4 @@ public class Computer_GUI extends JFrame implements ActionListener{
 			e.printStackTrace();
 		}
 	}
-	
-	public void processing() {
-		if (processing_rbtn.isSelected()) {
-			processing_rbtn.setSelected(false);
-		} else {
-			processing_rbtn.setSelected(true);
-		}
-	}
-
 }
