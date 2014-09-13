@@ -30,26 +30,6 @@ public class Utils {
 	    value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
 	return value;
     }
-    
-    /**
-     * Converts a BitSet to its numeric equivalent, stored in a byte. The return
-     * value can be used for numeric based comparisons.
-     * 
-     * @param register
-     *            The Register instance to be converted.
-     * @return The numeric value represented by the BitSet.
-     */
-    public static byte convertToByte(final Register reg) {
-    	byte value = 0;
-
-    	int numBits = reg.getNumBits();
-    	
-    	for (int i = numBits - 1; i >= 0; i--) {
-    		value += reg.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
-    	}
-
-    	return value;
-    }
 
     /**
      * Converts a BitSet to its numeric equivalent, stored in a int. Can be used
@@ -101,15 +81,19 @@ public class Utils {
     public static void bitsetDeepCopy(BitSet source, int sourceBits,
 	    BitSet destination, int destinationBits) {
 
+    	//Utils.BitSetToString("Source", source, sourceBits);
+    	
 	if (sourceBits <= destinationBits) {
 	    destination.clear();
-	    for (int i = destinationBits - sourceBits; i < destinationBits; i++)
-		destination.set(i, source.get(i));
+	    for (int i = destinationBits - sourceBits, j = 0; i < destinationBits; i++, j++)
+	    	destination.set(i, source.get(j));
+	    
 	} else {
 	    // Truncate
 	    for (int i = sourceBits - destinationBits, j = 0; i < sourceBits; i++, j++)
 		destination.set(j, source.get(i));
 	}
+	//Utils.BitSetToString("Destination now", destination, destinationBits);
     }
 
     /**

@@ -3,6 +3,8 @@ package edu.gwu.seas.csci;
 import java.text.ParseException;
 import java.util.*;
 
+import edu.gwu.seas.csci.Utils;
+
 /*CPU class registers placed into a map. I think this implementation is hard to use...i'd prefer to use
  * the more verbose CPU class with many getters and setters.  */
 
@@ -69,13 +71,49 @@ public class CPU {
 		regMap.put(I, new Register(InstructionBitFormats.LD_STR_I_SIZE));
 		regMap.put(ADDR, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 
-		// Assuming EA should be as large as the ADDR register?
-		regMap.put(EA, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
+		// Assuming EA should be as large as the MAR register?
+		regMap.put(EA, new Register(12));
 
 		memory = Memory.getInstance();
 		irdecoder = new IRDecoder(this);
 		romLoader = new FileLoader();
 
+		
+		// Example of manually setting up memory and running LDR instruction
+
+		//$54 = 100 (1100100)
+		Word location54 = new Word();
+		location54.set(15, true);
+		location54.set(12, true);
+		location54.set(11, true);	
+		
+		memory.put(location54, 54);
+		
+		//$100 = 5 (101)
+		Word location100 = new Word();
+		location100.set(15, true);
+		location100.set(17, true);
+		
+		memory.put(location100, 100);
+		
+		//LDR 3,0,54
+		BitSet instruction1 = new BitSet(18);
+		instruction1.set(5, true);
+		instruction1.set(8, true);
+		instruction1.set(9, true);
+		instruction1.set(12, true);
+		instruction1.set(13, true);
+		instruction1.set(15, true);
+		instruction1.set(16, true);
+		
+		setReg(IR, instruction1, 18);
+		irdecoder.parseIR(getReg(IR));
+		System.out.println("------------ After parsing ------------");
+		printAllRegisters();
+		
+		executeInstruction("macro step");
+		System.out.println("------------ After executing ------------");
+		printAllRegisters();		
 	}
 
 	/**
@@ -118,7 +156,8 @@ public class CPU {
 
 			// update the GUI
 			Computer_GUI.update_register(destName, source);
-		}
+		}else
+			System.out.println("Register map does not contain key " + destName);
 	}
 
 	/**
@@ -130,8 +169,8 @@ public class CPU {
 	public void setReg(String destName, Word sourceMemory) {
 		if (regMap.containsKey(destName)) {
 			Register destination = regMap.get(destName);
-			System.out.println("Source: " + destName + " size: "
-					+ destination.getNumBits());
+			//System.out.println("Source: " + destName + " size: "
+				//	+ destination.getNumBits());
 			Utils.bitsetDeepCopy(sourceMemory, 18, destination,
 					destination.getNumBits());
 
@@ -192,6 +231,13 @@ public class CPU {
 	 *  - reliant upon the prog_step counter tracking step progress
 	 */
 	private void singleInstruction() {
+		
+		//REMOVE LATER
+		//Skips steps 0-3, also assumes EA = ADDR
+		if(prog_step == 0){
+			prog_step = 4;
+			setReg(EA, getReg(ADDR));
+		}
 		switch (prog_step) {
 		case 0:
 			setReg(MAR, regMap.get(PC));
@@ -200,7 +246,7 @@ public class CPU {
 			break;
 
 		case 1:
-			int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
 			setReg(MDR, memory.get(mar_addr));
 			cycle_count++;
 			prog_step++;
@@ -238,6 +284,7 @@ public class CPU {
 		switch(op_byte){
 
 		case OpCodesList.LDR:
+			System.out.println("Instruction is LDR");
 			switch(prog_step) {
 			case 4:
 				//EA -> MAR
@@ -248,7 +295,8 @@ public class CPU {
 
 			case 5:
 				//Mem(MAR) -> MDR
-				int mar_addr = Utils.convertToInt(regMap.get(MAR), 18);
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+				System.out.println("Fetching memory addr " + mar_addr);
 				setReg(MDR, memory.get(mar_addr));
 				cycle_count++;
 				prog_step++;
@@ -267,7 +315,7 @@ public class CPU {
 			switch(prog_step){
 			case 4:
 				//MDR -> Mem(MAR)
-				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), getReg(MAR).getNumBits());
 				cycle_count++;
 				prog_step=0;
 				break;
@@ -349,7 +397,7 @@ public class CPU {
 				break;
 			case 6:
 				//MDR -> Mem(MAR)
-				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), 18);
+				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), regMap.get(MAR).getNumBits());
 				cycle_count++;
 				prog_step=0;
 				break;
@@ -360,6 +408,7 @@ public class CPU {
 		case OpCodesList.HLT:
 			System.out.println("End of the program");
 			cont_execution = false;
+			prog_step=0;
 			break;
 		}
 	}
@@ -402,33 +451,6 @@ public class CPU {
 
 		return null;
 	}
-	
-	/**
-	 * Calculates the EA (effective address) 
-	 */
-	private void calculateEA() { 
-		//BitSet ea = new BitSet(18);
-		//int numBits = 18;
-		
-		if (Utils.convertToByte(regMap.get(I)) == 0) { //No indirect addressing
-			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing			
-				setReg(EA, regMap.get(ADDR));
-			} else { //Indexing only
-				//set EA = ADDR + Xx
-				//setReg(EA, (regMap.get(ADDR) + regMap.get(IX)))
-				
-			}
-		} else { //Indirect addressing
-			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing
-				setReg(EA, regMap.get(regMap.get(ADDR)));
-			} else { //Indexing 
-				//EA = ADDR + Xx
-				//EA = EA
-			}
-			
-		}
-	}
-	
 
 	/**
 	 * Prints the contents of all the registers to the console. (Eventually will
@@ -461,6 +483,32 @@ public class CPU {
 				InstructionBitFormats.LD_STR_ADDR_SIZE);
 	}
 
+	/**
+	 * Calculates the EA (effective address) 
+	 */
+	/*private void calculateEA() { 
+		//BitSet ea = new BitSet(18);
+		//int numBits = 18;
+		
+		if (Utils.convertToByte(regMap.get(I)) == 0) { //No indirect addressing
+			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing			
+				setReg(EA, regMap.get(ADDR));
+			} else { //Indexing only
+				//set EA = ADDR + Xx
+				//setReg(EA, (regMap.get(ADDR) + regMap.get(IX)))
+				
+			}
+		} else { //Indirect addressing
+			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing
+				setReg(EA, regMap.get(regMap.get(ADDR)));
+			} else { //Indexing 
+				//EA = ADDR + Xx
+				//EA = EA
+			}
+			
+		}
+	}*/
+	
 	public void loadROM() {
 		try {
 			romLoader.load();
