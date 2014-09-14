@@ -142,4 +142,18 @@ public class Utils {
 		}
 		return set;
 	}
+	
+	public static Word registerToWord(BitSet set, int numBits){
+		Word word = new Word();
+		if (numBits <= 18) {
+			for (int i = 18 - numBits, j = 0; i < 18; i++, j++)
+				word.set(i, set.get(j));
+
+		} else {
+			// Truncate
+			for (int i = numBits - 18, j = 0; i < numBits; i++, j++)
+				word.set(j, set.get(i));
+		}
+		return word;
+	}
 }

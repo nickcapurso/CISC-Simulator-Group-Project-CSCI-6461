@@ -324,8 +324,19 @@ public class CPU {
 		case OpCodesList.STR:
 			switch(prog_step){
 			case 5:
+				//EA -> MAR
+				setReg(MAR, regMap.get(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				setReg(MDR, getReg(registerFile(getReg(R))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 7:
 				//MDR -> Mem(MAR)
-				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), getReg(MAR).getNumBits());
+				memory.put(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), getReg(MAR).getNumBits());
 				cycle_count++;
 				prog_step=0;
 				break;
@@ -409,7 +420,7 @@ public class CPU {
 				break;
 			case 7:
 				//MDR -> Mem(MAR)
-				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), regMap.get(MAR).getNumBits());
+				memory.put(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), regMap.get(MAR).getNumBits());
 				cycle_count++;
 				prog_step=0;
 				break;
