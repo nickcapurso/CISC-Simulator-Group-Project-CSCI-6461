@@ -181,7 +181,7 @@ public class CPU {
 		setReg(PC, 
 				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()), 
 				getReg(PC).getNumBits());
-		executeInstruction("continue");
+		//executeInstruction("continue");
 	}
 
 	/**
