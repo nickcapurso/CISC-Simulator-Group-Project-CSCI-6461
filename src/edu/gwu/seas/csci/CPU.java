@@ -82,7 +82,7 @@ public class CPU {
 
 		
 		// Example of manually setting up memory and running LDR instruction
-
+/*
 		//$54 = 100 (1100100)
 		Word location54 = new Word();
 		location54.set(15, true);
@@ -97,6 +97,31 @@ public class CPU {
 		location100.set(17, true);
 		
 		memory.put(location100, 100);
+		
+		//$105 = 16 (10000)
+		Word location105 = new Word();
+		location105.set(13, true);
+		
+		memory.put(location105, 105);
+		
+		//$200 = 54 (110110)
+		Word location200 = new Word();
+		location200.set(12, true);
+		location200.set(13, true);
+		location200.set(15, true);
+		location200.set(16, true);
+		
+		memory.put(location200, 200);
+		
+		//$20 = 54 (110110)
+		Word location20 = new Word();
+		location20.set(12, true);
+		location20.set(13, true);
+		location20.set(15, true);
+		location20.set(16, true);
+		
+		memory.put(location20, 20);
+*/		
 	}
 
 	/**
@@ -181,6 +206,7 @@ public class CPU {
 		setReg(PC, 
 				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()), 
 				getReg(PC).getNumBits());
+		//Utils.bitsetToString(PC, getReg(PC), getReg(PC).getNumBits());
 		//executeInstruction("continue");
 	}
 
@@ -266,12 +292,6 @@ public class CPU {
 			cycle_count++;
 			prog_step++;
 			break;
-			
-		case 4:
-			calculateEA();
-			cycle_count++;
-			prog_step++;
-			break;
 
 		default:
 			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));
@@ -294,6 +314,12 @@ public class CPU {
 
 		case OpCodesList.LDR:
 			switch(prog_step) {
+			case 4:
+				calculateEA(false);
+				cycle_count++;
+				prog_step++;
+				break;
+				
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -320,6 +346,12 @@ public class CPU {
 
 		case OpCodesList.STR:
 			switch(prog_step){
+			case 4:
+				calculateEA(false);
+				cycle_count++;
+				prog_step++;
+				break;
+				
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -342,6 +374,12 @@ public class CPU {
 
 		case OpCodesList.LDA:
 			switch(prog_step){
+			case 4:
+				calculateEA(false);
+				cycle_count++;
+				prog_step++;
+				break;
+				
 			case 5:
 				//EA -> regFile(R)
 				setReg(registerFile(getReg(R)), getReg(EA));
@@ -353,6 +391,12 @@ public class CPU {
 
 		case OpCodesList.LDX:
 			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+				
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -377,6 +421,12 @@ public class CPU {
 
 		case OpCodesList.STX:
 			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+				
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -407,28 +457,35 @@ public class CPU {
 		}
 	}
 	
+
 	/**
-	 * Calculates the EA (effective address) 
+	 * Calculates the EA (effective address). Boolean parameter is used
+	 * for LDX or STX instructions where IX specifies the index register
+	 * to load/store and NOT to be used when calculating the EA.
+	 * 
+	 * @param loadStoreIndex Set to true if doing a LDX or STX instruction.
 	 */
-	private void calculateEA() { 
+	private void calculateEA(boolean loadStoreIndex) { 
 		Register i = regMap.get(I);
 		Register ix = regMap.get(IX);
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
 		
 		if (Utils.convertToByte(i, i.getNumBits()) == 0) { //No indirect addressing
-			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
+			if (loadStoreIndex || Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				//ADDR + Xx
-				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
-						Utils.convertToInt(addr, addr.getNumBits());
-				
-				//EA = ADDR + Xx
-				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
+				if(!loadStoreIndex){
+					//ADDR + Xx
+					int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+							Utils.convertToInt(addr, addr.getNumBits());
+					
+					//EA = ADDR + Xx
+					setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
+				}
 			}
 		} else { //Indirect addressing	
-			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
+			if (loadStoreIndex || Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
 				//ADDR + Xx
