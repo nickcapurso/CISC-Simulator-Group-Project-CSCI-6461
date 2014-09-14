@@ -341,39 +341,13 @@ public class CPU {
 			break;
 
 		case OpCodesList.LDA:
-			//If no indirection, then load regFile(R) with EA
-			//else, need to go get the address to load from memory
-			if(Utils.convertToByte(getReg(I), InstructionBitFormats.LD_STR_I_SIZE) == 0){
-				switch(prog_step){
-				case 5:
-					//EA -> regFile(R)
-					setReg(registerFile(getReg(R)), getReg(EA));
-					cycle_count++;
-					prog_step=0;
-					break;
-				}
-			}else{
-				switch(prog_step){
-				case 5:
-					//EA -> MAR
-					setReg(MAR, regMap.get(EA));
-					cycle_count++;
-					prog_step++;
-					break;
-				case 6:
-					//Mem(MAR) -> MDR
-					int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
-					setReg(MDR, memory.get(mar_addr));
-					cycle_count++;
-					prog_step++;
-					break;
-				case 7:
-					//MDR -> regFile(R)
-					setReg(registerFile(getReg(R)), getReg(MDR));
-					cycle_count++;
-					prog_step=0;
-					break;
-				}	
+			switch(prog_step){
+			case 5:
+				//EA -> regFile(R)
+				setReg(registerFile(getReg(R)), getReg(EA));
+				cycle_count++;
+				prog_step=0;
+				break;
 			}
 			break;
 
