@@ -59,7 +59,7 @@ public class CPU {
 		// set PC to start of Program Counter
 		regMap.put(IR, new Register());
 		regMap.put(CC, new Register(4));
-		regMap.put(MAR, new Register(12));
+		regMap.put(MAR, new Register());
 		regMap.put(MDR, new Register());
 		regMap.put(MSR, new Register());
 		regMap.put(MFR, new Register(4));
@@ -72,7 +72,7 @@ public class CPU {
 		regMap.put(ADDR, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 
 		// Assuming EA should be as large as the MAR register?
-		regMap.put(EA, new Register(12));
+		regMap.put(EA, new Register());
 
 		memory = Memory.getInstance();
 		irdecoder = new IRDecoder(this);
@@ -236,7 +236,8 @@ public class CPU {
 		//Skips steps 0-3, also assumes EA = ADDR
 		if(prog_step == 0){
 			prog_step = 4;
-			setReg(EA, getReg(ADDR));
+			calculateEA();
+			//setReg(EA, getReg(ADDR));
 		}
 		switch (prog_step) {
 		case 0:
@@ -284,7 +285,6 @@ public class CPU {
 		switch(op_byte){
 
 		case OpCodesList.LDR:
-			System.out.println("Instruction is LDR");
 			switch(prog_step) {
 			case 4:
 				//EA -> MAR
@@ -296,7 +296,6 @@ public class CPU {
 			case 5:
 				//Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
-				System.out.println("Fetching memory addr " + mar_addr);
 				setReg(MDR, memory.get(mar_addr));
 				cycle_count++;
 				prog_step++;
@@ -343,8 +342,9 @@ public class CPU {
 					prog_step++;
 					break;
 				case 5:
-					//Mem(EA) -> MDR
-					setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+					//Mem(MAR) -> MDR
+					int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+					setReg(MDR, memory.get(mar_addr));
 					cycle_count++;
 					prog_step++;
 					break;
@@ -367,8 +367,9 @@ public class CPU {
 				prog_step++;
 				break;
 			case 5:
-				//Mem(EA) -> MDR
-				setReg(MDR, memory.get(getReg(EA), InstructionBitFormats.LD_STR_ADDR_SIZE));
+				//Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+				setReg(MDR, memory.get(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -410,6 +411,51 @@ public class CPU {
 			cont_execution = false;
 			prog_step=0;
 			break;
+		}
+	}
+	
+	/**
+	 * Calculates the EA (effective address) 
+	 */
+	private void calculateEA() { 
+		Register i = regMap.get(I);
+		Register ix = regMap.get(IX);
+		Register ea = regMap.get(EA);
+		Register addr = regMap.get(ADDR);
+		
+		if (Utils.convertToByte(i, i.getNumBits()) == 0) { //No indirect addressing
+			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
+				setReg(EA, regMap.get(ADDR));
+			} else { //Indexing, no indirect
+				//ADDR + EA
+				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+						Utils.convertToInt(addr, addr.getNumBits());
+				
+				//EA = ADDR + EA
+				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
+			}
+		} else { //Indirect addressing	
+			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
+				setReg(EA, regMap.get(ADDR));
+			} else { //Indexing, no indirect
+				//ADDR + EA
+				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+						Utils.convertToInt(addr, addr.getNumBits());
+				
+				//EA = ADDR + EA
+				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
+			}
+			
+			//TODO implement the clock
+			//Taking care of the indirect part
+			//EA -> Mar
+			setReg(MAR, getReg(EA));
+			
+			//Memory(MAR) -> MDR
+			setReg(MDR, memory.get(getReg(MAR), getReg(MAR).getNumBits()));
+			
+			//MDR -> EA
+			setReg(EA, getReg(MDR));
 		}
 	}
 
@@ -457,57 +503,28 @@ public class CPU {
 	 * become obsolete when GUI is done)
 	 */
 	private void printAllRegisters() {
-		Utils.BitSetToString(R0, getReg(R0), 18);
-		Utils.BitSetToString(R1, getReg(R1), 18);
-		Utils.BitSetToString(R2, getReg(R2), 18);
-		Utils.BitSetToString(R3, getReg(R3), 18);
-		Utils.BitSetToString(X1, getReg(X1), 12);
-		Utils.BitSetToString(X2, getReg(X2), 12);
-		Utils.BitSetToString(X3, getReg(X3), 12);
-		Utils.BitSetToString(PC, getReg(PC), 12);
-		Utils.BitSetToString(IR, getReg(IR), 18);
-		Utils.BitSetToString(CC, getReg(CC), 4);
-		Utils.BitSetToString(MAR, getReg(MAR), 12);
-		Utils.BitSetToString(MDR, getReg(MDR), 18);
-		Utils.BitSetToString(MSR, getReg(MSR), 18);
-		Utils.BitSetToString(MFR, getReg(MFR), 4);
-		Utils.BitSetToString(OPCODE, getReg(OPCODE),
-				InstructionBitFormats.OPCODE_SIZE);
-		Utils.BitSetToString(IX, getReg(IX),
-				InstructionBitFormats.LD_STR_IX_SIZE);
-		Utils.BitSetToString(R, getReg(R), InstructionBitFormats.LD_STR_R_SIZE);
-		Utils.BitSetToString(I, getReg(I), InstructionBitFormats.LD_STR_I_SIZE);
-		Utils.BitSetToString(ADDR, getReg(ADDR),
-				InstructionBitFormats.LD_STR_ADDR_SIZE);
-		Utils.BitSetToString(EA, getReg(EA),
-				InstructionBitFormats.LD_STR_ADDR_SIZE);
+		Utils.bitsetToString(R0, getReg(R0), getReg(R0).getNumBits());
+		Utils.bitsetToString(R1, getReg(R1), getReg(R1).getNumBits());
+		Utils.bitsetToString(R2, getReg(R2), getReg(R2).getNumBits());
+		Utils.bitsetToString(R3, getReg(R3), getReg(R3).getNumBits());
+		Utils.bitsetToString(X1, getReg(X1), getReg(X1).getNumBits());
+		Utils.bitsetToString(X2, getReg(X2), getReg(X2).getNumBits());
+		Utils.bitsetToString(X3, getReg(X3), getReg(X3).getNumBits());
+		Utils.bitsetToString(PC, getReg(PC), getReg(PC).getNumBits());
+		Utils.bitsetToString(IR, getReg(IR), getReg(IR).getNumBits());
+		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
+		Utils.bitsetToString(MAR, getReg(MAR), getReg(MAR).getNumBits());
+		Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
+		Utils.bitsetToString(MSR, getReg(MSR), getReg(MSR).getNumBits());
+		Utils.bitsetToString(MFR, getReg(MFR), getReg(MFR).getNumBits());
+		Utils.bitsetToString(OPCODE, getReg(OPCODE), getReg(OPCODE).getNumBits());
+		Utils.bitsetToString(IX, getReg(IX), getReg(IX).getNumBits());
+		Utils.bitsetToString(R, getReg(R), getReg(R).getNumBits());
+		Utils.bitsetToString(I, getReg(I), getReg(I).getNumBits());
+		Utils.bitsetToString(ADDR, getReg(ADDR), getReg(ADDR).getNumBits());
+		Utils.bitsetToString(EA, getReg(EA), getReg(EA).getNumBits());
 	}
 
-	/**
-	 * Calculates the EA (effective address) 
-	 */
-	/*private void calculateEA() { 
-		//BitSet ea = new BitSet(18);
-		//int numBits = 18;
-		
-		if (Utils.convertToByte(regMap.get(I)) == 0) { //No indirect addressing
-			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing			
-				setReg(EA, regMap.get(ADDR));
-			} else { //Indexing only
-				//set EA = ADDR + Xx
-				//setReg(EA, (regMap.get(ADDR) + regMap.get(IX)))
-				
-			}
-		} else { //Indirect addressing
-			if (Utils.convertToByte(regMap.get(IX)) == 0) { //No indexing
-				setReg(EA, regMap.get(regMap.get(ADDR)));
-			} else { //Indexing 
-				//EA = ADDR + Xx
-				//EA = EA
-			}
-			
-		}
-	}*/
 	
 	public void loadROM() {
 		try {
