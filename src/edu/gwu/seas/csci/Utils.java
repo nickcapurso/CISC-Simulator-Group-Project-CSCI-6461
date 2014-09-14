@@ -143,6 +143,14 @@ public class Utils {
 		return set;
 	}
 	
+	/**
+	 * Converts a Register (casted to it's superclass, BitSet)
+	 * to a Word (since subclasses can't be casted to subclasses)
+	 * 
+	 * @param set The Register
+	 * @param numBits The number of bits represented by the Register (a Word is 18-bits)
+	 * @return
+	 */
 	public static Word registerToWord(BitSet set, int numBits){
 		Word word = new Word();
 		if (numBits <= 18) {
