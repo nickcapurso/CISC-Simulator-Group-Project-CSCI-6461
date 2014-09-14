@@ -465,27 +465,27 @@ public class CPU {
 	 * 
 	 * @param loadStoreIndex Set to true if doing a LDX or STX instruction.
 	 */
-	private void calculateEA(boolean loadStoreIndex) { 
+	private void calculateEA(boolean LDXSTXInstruction) { 
 		Register i = regMap.get(I);
 		Register ix = regMap.get(IX);
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
 		
 		if (Utils.convertToByte(i, i.getNumBits()) == 0) { //No indirect addressing
-			if (loadStoreIndex || Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
+			if (LDXSTXInstruction || 
+					Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				if(!loadStoreIndex){
-					//ADDR + Xx
-					int temp = Utils.convertToInt(ix, ix.getNumBits()) +
-							Utils.convertToInt(addr, addr.getNumBits());
-					
-					//EA = ADDR + Xx
-					setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
-				}
+				//ADDR + Xx
+				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+						Utils.convertToInt(addr, addr.getNumBits());
+				
+				//EA = ADDR + Xx
+				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
 		} else { //Indirect addressing	
-			if (loadStoreIndex || Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
+			if (LDXSTXInstruction || 
+					Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
 				//ADDR + Xx
