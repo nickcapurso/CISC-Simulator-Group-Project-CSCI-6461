@@ -80,9 +80,6 @@ public class Utils {
 	 */
 	public static void bitsetDeepCopy(BitSet source, int sourceBits,
 			BitSet destination, int destinationBits) {
-
-		//Utils.BitSetToString("Source", source, sourceBits);
-
 		if (sourceBits <= destinationBits) {
 			destination.clear();
 			for (int i = destinationBits - sourceBits, j = 0; i < destinationBits; i++, j++)
@@ -93,7 +90,6 @@ public class Utils {
 			for (int i = sourceBits - destinationBits, j = 0; i < sourceBits; i++, j++)
 				destination.set(j, source.get(i));
 		}
-		//Utils.BitSetToString("Destination now", destination, destinationBits);
 	}
 
 	/**
@@ -140,10 +136,9 @@ public class Utils {
 	 */
 	public static BitSet intToBitSet(int value, int setSize){
 		BitSet set = new BitSet(setSize);
-		for(int i = setSize; i > 0; i--){
+		for(int i = setSize-1; i > 0; i--){
 			set.set(i, (value & 1) == 1? true:false);
 			value >>>= 1;
-			
 		}
 		return set;
 	}

@@ -31,6 +31,8 @@ public class CPU {
 	public static final String ADDR = "ADDR";
 	public static final String EA = "EA";
 
+	public static final byte BOOTLOADER_START = 010;
+
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
@@ -95,25 +97,6 @@ public class CPU {
 		location100.set(17, true);
 		
 		memory.put(location100, 100);
-		
-		//LDR 3,0,54
-		BitSet instruction1 = new BitSet(18);
-		instruction1.set(5, true);
-		instruction1.set(8, true);
-		instruction1.set(9, true);
-		instruction1.set(12, true);
-		instruction1.set(13, true);
-		instruction1.set(15, true);
-		instruction1.set(16, true);
-		
-		setReg(IR, instruction1, 18);
-		irdecoder.parseIR(getReg(IR));
-		System.out.println("------------ After parsing ------------");
-		printAllRegisters();
-		
-		executeInstruction("macro step");
-		System.out.println("------------ After executing ------------");
-		printAllRegisters();		
 	}
 
 	/**
@@ -189,6 +172,17 @@ public class CPU {
 	public Register getReg(String regName) {
 		return regMap.get(regName);
 	}
+	
+	/**
+	 * Points the PC to Octal 10 where the bootloader program is loaded
+	 * and starts execution (by default, runs until HLT)
+	 */
+	public void startBootloader(){
+		setReg(PC, 
+				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()), 
+				getReg(PC).getNumBits());
+		executeInstruction("continue");
+	}
 
 	/**
 	 * Called from continue/start gui button
@@ -204,12 +198,24 @@ public class CPU {
 				System.out.println("Continue");
 				while (cont_execution) {
 					singleInstruction();
+					
+					if(prog_step == 0){
+						System.out.println("--------- Instruction Done ---------");
+						printAllRegisters();
+						advancePC();
+					}
 				}
 				break;
 				
 			case "micro step":
 				System.out.println("Micro Step");
 				singleInstruction();
+				
+				if(prog_step == 0){
+					System.out.println("--------- Instruction Done ---------");
+					printAllRegisters();
+					advancePC();
+				}
 				break;
 				
 			case "macro step":
@@ -217,6 +223,10 @@ public class CPU {
 				do {
 					singleInstruction();
 				} while(prog_step != 0);
+				
+				System.out.println("--------- Instruction Done ---------");
+				printAllRegisters();
+				advancePC();
 				break;
 				
 			default:
@@ -231,14 +241,6 @@ public class CPU {
 	 *  - reliant upon the prog_step counter tracking step progress
 	 */
 	private void singleInstruction() {
-		
-		//REMOVE LATER
-		//Skips steps 0-3, also assumes EA = ADDR
-		if(prog_step == 0){
-			prog_step = 4;
-			calculateEA();
-			//setReg(EA, getReg(ADDR));
-		}
 		switch (prog_step) {
 		case 0:
 			setReg(MAR, regMap.get(PC));
@@ -249,6 +251,7 @@ public class CPU {
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
 			setReg(MDR, memory.get(mar_addr));
+			Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 			cycle_count++;
 			prog_step++;
 			break;
@@ -264,9 +267,15 @@ public class CPU {
 			cycle_count++;
 			prog_step++;
 			break;
+			
+		case 4:
+			calculateEA();
+			cycle_count++;
+			prog_step++;
+			break;
 
 		default:
-			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));	
+			opcodeInstruction(Utils.convertToByte(getReg(OPCODE), InstructionBitFormats.OPCODE_SIZE));
 		}
 	}
 
@@ -286,22 +295,24 @@ public class CPU {
 
 		case OpCodesList.LDR:
 			switch(prog_step) {
-			case 4:
+			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 
-			case 5:
+			case 6:
 				//Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+				System.out.println("Fetching memory location: " + mar_addr);
 				setReg(MDR, memory.get(mar_addr));
+				Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 				cycle_count++;
 				prog_step++;
 				break;
 
-			case 6:
+			case 7:
 				//MDR -> registerFile(R)
 				setReg(registerFile(getReg(R)), regMap.get(MDR));
 				cycle_count++;
@@ -312,7 +323,7 @@ public class CPU {
 
 		case OpCodesList.STR:
 			switch(prog_step){
-			case 4:
+			case 5:
 				//MDR -> Mem(MAR)
 				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), getReg(MAR).getNumBits());
 				cycle_count++;
@@ -326,7 +337,7 @@ public class CPU {
 			//else, need to go get the address to load from memory
 			if(Utils.convertToByte(getReg(I), InstructionBitFormats.LD_STR_I_SIZE) == 0){
 				switch(prog_step){
-				case 4:
+				case 5:
 					//EA -> regFile(R)
 					setReg(registerFile(getReg(R)), getReg(EA));
 					cycle_count++;
@@ -335,20 +346,20 @@ public class CPU {
 				}
 			}else{
 				switch(prog_step){
-				case 4:
+				case 5:
 					//EA -> MAR
 					setReg(MAR, regMap.get(EA));
 					cycle_count++;
 					prog_step++;
 					break;
-				case 5:
+				case 6:
 					//Mem(MAR) -> MDR
 					int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
 					setReg(MDR, memory.get(mar_addr));
 					cycle_count++;
 					prog_step++;
 					break;
-				case 6:
+				case 7:
 					//MDR -> regFile(R)
 					setReg(registerFile(getReg(R)), getReg(MDR));
 					cycle_count++;
@@ -360,20 +371,20 @@ public class CPU {
 
 		case OpCodesList.LDX:
 			switch(prog_step){
-			case 4:
+			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 5:
+			case 6:
 				//Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
 				setReg(MDR, memory.get(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 6:
+			case 7:
 				//MDR -> indexRegFile(R)
 				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));	
 				cycle_count++;
@@ -384,19 +395,19 @@ public class CPU {
 
 		case OpCodesList.STX:
 			switch(prog_step){
-			case 4:
+			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 5:
+			case 6:
 				//indexRegFile(R) -> MDR
 				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 6:
+			case 7:
 				//MDR -> Mem(MAR)
 				memory.put((Word)getReg(MDR).getValue(), getReg(MAR), regMap.get(MAR).getNumBits());
 				cycle_count++;
@@ -457,6 +468,13 @@ public class CPU {
 			//MDR -> EA
 			setReg(EA, getReg(MDR));
 		}
+	}
+	
+	private void advancePC(){
+		int pcContents = Utils.convertToInt(getReg(PC), getReg(PC).getNumBits());
+		setReg(PC,
+				Utils.intToBitSet(++pcContents, getReg(PC).getNumBits()),
+						getReg(PC).getNumBits());
 	}
 
 	/**
@@ -529,6 +547,7 @@ public class CPU {
 	public void loadROM() {
 		try {
 			romLoader.load();
+			startBootloader();
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
