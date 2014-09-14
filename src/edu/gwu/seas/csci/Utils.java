@@ -140,9 +140,10 @@ public class Utils {
 	 */
 	public static BitSet intToBitSet(int value, int setSize){
 		BitSet set = new BitSet(setSize);
-		for(int i = setSize; i < 0; i--){
+		for(int i = setSize; i > 0; i--){
 			set.set(i, (value & 1) == 1? true:false);
 			value >>>= 1;
+			
 		}
 		return set;
 	}
