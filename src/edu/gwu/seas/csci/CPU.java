@@ -82,7 +82,7 @@ public class CPU {
 
 		
 		// Example of manually setting up memory and running LDR instruction
-/*
+
 		//$54 = 100 (1100100)
 		Word location54 = new Word();
 		location54.set(15, true);
@@ -121,7 +121,7 @@ public class CPU {
 		location20.set(16, true);
 		
 		memory.put(location20, 20);
-*/		
+
 	}
 
 	/**
@@ -470,26 +470,27 @@ public class CPU {
 		Register ix = regMap.get(IX);
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
-		
+
 		if (Utils.convertToByte(i, i.getNumBits()) == 0) { //No indirect addressing
 			if (LDXSTXInstruction || 
 					Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				//ADDR + Xx
-				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+				//ADDR + indexregisterfile(IX)
+				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)), getReg(indexRegisterFile(ix)).getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
-				
+			
 				//EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
+			
 		} else { //Indirect addressing	
 			if (LDXSTXInstruction || 
 					Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				//ADDR + Xx
-				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
+				//ADDR + indexregisterfile(IX)
+				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)), getReg(indexRegisterFile(ix)).getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
 				
 				//EA = ADDR + Xx
