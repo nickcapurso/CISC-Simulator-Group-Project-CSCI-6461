@@ -28,13 +28,16 @@ public class Context {
     private Map<String, Byte> opCodeBytes = new HashMap<String, Byte>();
     private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
 
+    /**
+     * 
+     */
     private Context() {
-    	opcodeClasses.put("HLT", InstructionClass.HALT);
-    opcodeClasses.put("LDR", InstructionClass.LD_STR);
-    opcodeClasses.put("STR", InstructionClass.LD_STR);
-    opcodeClasses.put("LDA", InstructionClass.LD_STR);
-    opcodeClasses.put("LDX", InstructionClass.LD_STR);
-    opcodeClasses.put("STX", InstructionClass.LD_STR);
+	opcodeClasses.put("HLT", InstructionClass.HALT);
+	opcodeClasses.put("LDR", InstructionClass.LD_STR);
+	opcodeClasses.put("STR", InstructionClass.LD_STR);
+	opcodeClasses.put("LDA", InstructionClass.LD_STR);
+	opcodeClasses.put("LDX", InstructionClass.LD_STR);
+	opcodeClasses.put("STX", InstructionClass.LD_STR);
 	opcodeClasses.put("AMR", InstructionClass.LD_STR);
 	opcodeClasses.put("SMR", InstructionClass.LD_STR);
 	opcodeClasses.put("AIR", InstructionClass.LD_STR_IMD);

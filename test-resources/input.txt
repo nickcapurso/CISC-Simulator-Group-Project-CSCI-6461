@@ -1,6 +1,10 @@
-//File format:  0-2 OpCode, 3 General Register, 4 Index Register, 5 Indirection, 6-12 Address
-//Update this to match the format listed on page 8.  Ex:  LDR 3,0,54,Optional Indirection (0 or 1)
+LDR 0,0,08,0
+STR 1,1,09,1
+LDA 0,2,10,0
 AMR 0,0,06,0
 SMR 1,0,17,1
+LDX 3,11,1
+STX 0,12,0
 AIR 2,08
 SIR 3,19
+HLT
