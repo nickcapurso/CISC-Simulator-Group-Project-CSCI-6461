@@ -427,22 +427,22 @@ public class CPU {
 			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing			
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				//ADDR + EA
+				//ADDR + Xx
 				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
 				
-				//EA = ADDR + EA
+				//EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
 		} else { //Indirect addressing	
 			if (Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
 				setReg(EA, regMap.get(ADDR));
 			} else { //Indexing, no indirect
-				//ADDR + EA
+				//ADDR + Xx
 				int temp = Utils.convertToInt(ix, ix.getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
 				
-				//EA = ADDR + EA
+				//EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
 			
