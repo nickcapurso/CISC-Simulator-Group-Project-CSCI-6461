@@ -251,7 +251,6 @@ public class CPU {
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
 			setReg(MDR, memory.get(mar_addr));
-			Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 			cycle_count++;
 			prog_step++;
 			break;
@@ -305,9 +304,7 @@ public class CPU {
 			case 6:
 				//Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
-				System.out.println("Fetching memory location: " + mar_addr);
 				setReg(MDR, memory.get(mar_addr));
-				Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 				cycle_count++;
 				prog_step++;
 				break;
