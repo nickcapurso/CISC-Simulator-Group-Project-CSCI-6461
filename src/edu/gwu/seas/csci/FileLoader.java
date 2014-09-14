@@ -15,12 +15,13 @@ import java.text.ParseException;
 /**
  * Reads the contents of a file from disk and loads it into {@link Memory}. The
  * file is expected to contain instructions that constitute a program, with one
- * instruction per line. The expected line format is as follows:
+ * instruction per line, and elements of the instruction separated by a comma.
+ * The expected line format varies with the type of instruction.
  * 
- * </br><u>Element, (Valid Values), Positions</u> </br>OPCODE (Valid Values
- * Many) 0-2 </br>GeneralRegister (Valid Values 0-3) 3 </br>Index Register
- * (Valid Values 0-3) 4 </br>Indirection Flag (Valid Values 0-1) 5 </br>Address
- * (Valid Values 0-127) 6-12
+ * TODO: Need to change the switch categories in the load method because the
+ * instruction format does not correspond directly to class of opcode. Create
+ * categories that uniquely identify a common format of opcode instructions and
+ * use them instead.
  * 
  * @author Alex Remily
  */
@@ -38,7 +39,7 @@ public class FileLoader implements Loader {
     private Context context = Context.getInstance();
 
     /**
-     * 
+     * Used to write instructions into Word objects in memory.
      */
     private InstructionWriter writer = new InstructionWriter();
 
@@ -101,10 +102,7 @@ public class FileLoader implements Loader {
 		byte indirection = 0;
 		byte opcode = 0;
 		// Switch on the class of opcode.
-		// TODO: Need to change the switch categories because the
-		// instruction format does not correspond directly to class of
-		// opcode. Create categories that uniquely identify a common
-		// format of opcode instructions and use them instead.
+
 		switch (instruction_class) {
 		case ARITH:
 		    break;
@@ -114,9 +112,9 @@ public class FileLoader implements Loader {
 		    if (opcodeKeyString.equals("LDX")
 			    || opcodeKeyString.equals("STX")) {
 			index_register = Byte.parseByte(temp.substring(4, 5));
-			;
 			address = Byte.parseByte(instruction_elements[1]);
 			indirection = Byte.parseByte(instruction_elements[2]);
+			opcode = context.getOpCodeBytes().get(opcodeKeyString);
 		    } else {
 			general_register = Byte.parseByte(temp.substring(4, 5));
 			index_register = Byte
@@ -124,17 +122,16 @@ public class FileLoader implements Loader {
 			address = Byte.parseByte(instruction_elements[2]);
 			indirection = Byte.parseByte(instruction_elements[3]);
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
-			writer.writeInstruction(word, opcode, general_register,
-				index_register, indirection, address);
 		    }
-
+		    writer.writeInstruction(word, opcode, general_register,
+			    index_register, indirection, address);
 		    break;
 		case LD_STR_IMD:
 		    general_register = Byte.parseByte(temp.substring(4, 5));
 		    address = Byte.parseByte(instruction_elements[1]);
 		    opcode = context.getOpCodeBytes().get(opcodeKeyString);
 		    writer.writeInstruction(word, opcode, general_register,
-			    address);
+			    index_register, indirection, address);
 		    break;
 		case LOGIC:
 		    break;
