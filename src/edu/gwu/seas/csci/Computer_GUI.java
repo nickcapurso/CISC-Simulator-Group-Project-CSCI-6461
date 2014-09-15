@@ -28,11 +28,11 @@ public class Computer_GUI extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
     private JPanel contentPane;
     private JTextField textField;
-    private JRadioButton processing_rbtn;
     private static JTextPane terminal;
-    private JButton start, load, microstep, macrostep, cont, runInput;
+    private JButton start, load, microstep, macrostep, cont, runinput, reset;
     private FileLoader fileloader;
     private CPU cpu;
+    private JLabel opcode_name;
     private static HashMap<String, JRadioButton[]> Registers; // map of
 							      // registers on
 							      // gui
@@ -89,14 +89,15 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	contentPane.add(microstep);
 	microstep.addActionListener(this);
 
-	JButton runInput = new JButton("Run Input");
-	runInput.setBounds(310, 523, 97, 25);
-	contentPane.add(runInput);
+	JButton runinput = new JButton("Run Input");
+	runinput.setBounds(310, 523, 97, 25);
+	contentPane.add(runinput);
 
-	JButton btnReset = new JButton("Reset");
-	btnReset.setBounds(426, 484, 97, 25);
-	contentPane.add(btnReset);
-
+	reset = new JButton("Reset");
+	reset.setBounds(426, 484, 97, 25);
+	contentPane.add(reset);
+	reset.addActionListener(this);
+	
 	cont = new JButton("Continue");
 	cont.setBounds(426, 386, 97, 25);
 	contentPane.add(cont);
@@ -152,6 +153,14 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	JLabel lblMfr = new JLabel("MFR:");
 	lblMfr.setBounds(498, 134, 41, 30);
 	contentPane.add(lblMfr);
+	
+	JLabel lblIr = new JLabel("IR:");
+	lblIr.setBounds(498, 172, 56, 16);
+	contentPane.add(lblIr);
+	
+	opcode_name = new JLabel("");
+	opcode_name.setBounds(730, 172, 56, 16);
+	contentPane.add(opcode_name);
 
 	/*
 	 * Create a map of all registers used on GUI - Registers are stored as
@@ -159,10 +168,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	 * RadioButtons to 0/1 we can visually represent values in Registers
 	 */
 	Registers = new HashMap<String, JRadioButton[]>();
-	JRadioButton[] R0 = new JRadioButton[16];
-	JRadioButton[] R1 = new JRadioButton[16];
-	JRadioButton[] R2 = new JRadioButton[16];
-	JRadioButton[] R3 = new JRadioButton[16];
+	JRadioButton[] R0 = new JRadioButton[18];
+	JRadioButton[] R1 = new JRadioButton[18];
+	JRadioButton[] R2 = new JRadioButton[18];
+	JRadioButton[] R3 = new JRadioButton[18];
 	JRadioButton[][] GPR = { R0, R1, R2, R3 };
 	JRadioButton[] X1 = new JRadioButton[12];
 	JRadioButton[] X2 = new JRadioButton[12];
@@ -173,7 +182,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	JRadioButton[] MSR = new JRadioButton[12];
 	JRadioButton[] MDR = new JRadioButton[12];
 	JRadioButton[] MFR = new JRadioButton[12];
-	JRadioButton[][] MR = { PC, MAR, MDR, MFR, MSR };
+	JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR };
 
 	// For loop to decrease RadioButton [] creation
 	for (int j = 0; j < MR.length; j++) {
@@ -198,6 +207,14 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			}
 	    }
 	}
+	
+	JRadioButton[] IR = new JRadioButton[6];
+	for (int i = 0; i<6; i++) {
+		IR[i] = new JRadioButton();
+		IR[i].setEnabled(false);
+		IR[i].setBounds(547 + 24 * i, 170, 20, 20);
+		contentPane.add(IR[i]);
+	}
 		/*
 		 * Place registers in the map (Registers)
 		 */
@@ -213,6 +230,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	Registers.put("MDR", MDR);
 	Registers.put("MFR", MFR);
 	Registers.put("MAR", MAR);
+	Registers.put("IR", IR);
 
 }
 
@@ -234,8 +252,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			      System.err.println("Error: " + ex.getMessage());
 			}
 		//Needs to run through the FileLoader Instruction Parser to work properly
-		} else if (e.getSource() == runInput) {
+		} else if (e.getSource() == runinput) {
 			cpu.executeInstruction(textField.getText());
+		} else if (e.getSource() == reset) {
+			cpu.startBootloader();
 		}
 	}
 
