@@ -63,9 +63,9 @@ public class CPU {
 		regMap.put(R3, new Register());
 
 		// 3 Index Registers
-		regMap.put(X1, new Register(12));
-		regMap.put(X2, new Register(12));
-		regMap.put(X3, new Register(12));
+		regMap.put(X1, new Register());
+		regMap.put(X2, new Register());
+		regMap.put(X3, new Register());
 
 		// Special registers
 		regMap.put(PC, new Register(12));
