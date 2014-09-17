@@ -16,7 +16,7 @@ public class Computer {
 	cpu = new CPU();
 	memory = Memory.getInstance();
 	gui = new Computer_GUI(cpu, memory);
-	gui.setSize(900, 650);
+	gui.setSize(1000, 650);
 	gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	gui.setVisible(true);
     }
