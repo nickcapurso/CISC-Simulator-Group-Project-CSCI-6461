@@ -154,7 +154,7 @@ public class CPU {
 					destination.getNumBits());
 
 			// update the GUI
-			Computer_GUI.update_register(destName, sourceSet);
+			Computer_GUI.update_register(destName, getReg(destName));
 
 		}
 	}
@@ -174,7 +174,7 @@ public class CPU {
 					destination.getNumBits());
 
 			// update the GUI
-			Computer_GUI.update_register(destName, source);
+			Computer_GUI.update_register(destName, getReg(destName));
 		}else
 			System.out.println("Register map does not contain key " + destName);
 	}
@@ -194,7 +194,7 @@ public class CPU {
 					destination.getNumBits());
 
 			// update the GUI
-			Computer_GUI.update_register(destName, (BitSet) sourceMemory);
+			Computer_GUI.update_register(destName, getReg(destName));
 		}
 	}
 
@@ -241,6 +241,7 @@ public class CPU {
 						advancePC();
 					}
 				}
+				cont_execution = true;
 				break;
 				
 			case "micro step":

@@ -1,5 +1,7 @@
 package edu.gwu.seas.csci;
 
+import java.util.BitSet;
+
 import javax.swing.JFrame;
 
 /**
@@ -19,6 +21,10 @@ public class Computer {
 	gui.setSize(1000, 650);
 	gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	gui.setVisible(true);
+	BitSet test = new BitSet(18);
+	test.set(0);
+	test.set(17);
+	Computer_GUI.update_register("MAR", test);
     }
 
     public static void main(String[] args) {
