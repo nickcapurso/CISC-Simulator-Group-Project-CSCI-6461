@@ -176,15 +176,15 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	JRadioButton[] R2 = new JRadioButton[18];
 	JRadioButton[] R3 = new JRadioButton[18];
 	JRadioButton[][] GPR = { R0, R1, R2, R3 };
-	JRadioButton[] X1 = new JRadioButton[12];
-	JRadioButton[] X2 = new JRadioButton[12];
-	JRadioButton[] X3 = new JRadioButton[12];
+	JRadioButton[] X1 = new JRadioButton[18];
+	JRadioButton[] X2 = new JRadioButton[18];
+	JRadioButton[] X3 = new JRadioButton[18];
 	JRadioButton[][] XR = { X1, X2, X3 };
 	JRadioButton[] PC = new JRadioButton[12];
-	JRadioButton[] MAR = new JRadioButton[12];
-	JRadioButton[] MSR = new JRadioButton[12];
-	JRadioButton[] MDR = new JRadioButton[12];
-	JRadioButton[] MFR = new JRadioButton[12];
+	JRadioButton[] MAR = new JRadioButton[18];
+	JRadioButton[] MSR = new JRadioButton[18];
+	JRadioButton[] MDR = new JRadioButton[18];
+	JRadioButton[] MFR = new JRadioButton[4];
 	JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR };
 
 	// For loop to decrease RadioButton [] creation
@@ -196,18 +196,32 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			    GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
 			    contentPane.add(GPR[j][i]);
 	    	}
-			if (i < X1.length) {
-			    if (j < XR.length) {
-				XR[j][i] = new JRadioButton();
-				XR[j][i].setEnabled(false);
-				XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
-				contentPane.add(XR[j][i]);
-			    }
+		    if (j < XR.length) {
+			XR[j][i] = new JRadioButton();
+			XR[j][i].setEnabled(false);
+			XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
+			contentPane.add(XR[j][i]);
+		    }
+		    if (j == MR.length - 1) {
+		    	if (i < MFR.length) {
+			    	MR[j][i] = new JRadioButton();
+			    	MR[j][i].setEnabled(false);
+			    	MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+			    	contentPane.add(MR[j][i]);
+		    	}
+		    } else if (j == 0) {
+		    	if (i < PC.length) {
+		    	MR[j][i] = new JRadioButton();
+		    	MR[j][i].setEnabled(false);
+		    	MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+		    	contentPane.add(MR[j][i]);
+		    	}
+		    } else {
 			    MR[j][i] = new JRadioButton();
 			    MR[j][i].setEnabled(false);
 			    MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
 			    contentPane.add(MR[j][i]);
-			}
+		    }
 	    }
 	}
 	
