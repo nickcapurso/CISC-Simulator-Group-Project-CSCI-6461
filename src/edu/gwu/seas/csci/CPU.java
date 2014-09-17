@@ -5,9 +5,20 @@ import java.util.*;
 
 import edu.gwu.seas.csci.Utils;
 
-/*CPU class registers placed into a map. I think this implementation is hard to use...i'd prefer to use
- * the more verbose CPU class with many getters and setters.  */
-
+/**
+ * The CPU class is modelled after the Von Neumann architecture, where the 
+ * CPU contains various types of registers and controls the logic between them. 
+ * The registers include four general purpose registers, three index registers, 
+ * memory-access registers, and various special-purpose registers (for example, a 
+ * register to hold the opcode of an instruction). In addition, the CPU class executes 
+ * a program's instructions from the micro-operation level and simulates a clock for the 
+ * micro-operations to adhere to.  Each of the registers is represented by a Register 
+ * object (an extension of the BitSet object) of the appropriate size. Each register is
+ * placed into a HashMap, where the key is the register's name, for simplified access.  
+ * Finally, the CPU keeps references to the Memory, IRDecoder, and Loader classes to 
+ * respectively access memory, parse instructions, and load the boot loader program.
+ * 
+ */
 public class CPU {
 	// Public constants for register names
 	public static final String R0 = "R0";
@@ -218,8 +229,6 @@ public class CPU {
 	 *            Branch logic for continous processing or macro/micro step
 	 */
 	public void executeInstruction(String step_type){
-		//TODO Figure out where to move code which fetches memory at EA
-		//Not all instructions need to get memory at an effective address
 		switch (step_type){
 			case "continue":
 				System.out.println("Continue");
@@ -500,7 +509,7 @@ public class CPU {
 			
 			//TODO implement the clock
 			//Taking care of the indirect part
-			//EA -> Mar
+			//EA -> MAR
 			setReg(MAR, getReg(EA));
 			
 			//Memory(MAR) -> MDR

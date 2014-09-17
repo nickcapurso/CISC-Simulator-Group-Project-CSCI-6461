@@ -3,8 +3,11 @@ package edu.gwu.seas.csci;
 import java.util.BitSet;
 
 /**
- * A Register is essentially a BitSet that also keeps track of its intended
- * size that was specified in the Constructor.
+ * The Register class extends the BitSet class. 
+ * It provides greater code readability and also maintains the number of
+ * bits a given Register was instantiated to be (for example, MAR is 18 bits).
+ * 
+ * @author Nick Capurso
  */
 public class Register extends BitSet{
 	private int numBits;

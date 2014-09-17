@@ -3,13 +3,12 @@ package edu.gwu.seas.csci;
 import java.util.BitSet;
 
 /**
- * Provides for a method to parse the IR according to the format of the current
- * opcode.
- * <p>
- * TODO: Test this class.
+ * The IRDecoder class is responsible for parsing the contents of the 
+ * IR into the special-purpose registers based on the opcode and the instruction 
+ * bit format. It makes use of the Context and InstructionBitFormats classes to 
+ * determine the correct bit format against which to parse the IR.
  * 
  * @author Nick Capurso
- *
  */
 public class IRDecoder {
 	// Constants for the different types of instruction formats

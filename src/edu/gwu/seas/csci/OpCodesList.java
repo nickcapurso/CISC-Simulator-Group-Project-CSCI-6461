@@ -18,7 +18,6 @@ package edu.gwu.seas.csci;
  * <p>
  * 
  * @author Nick Capurso
- *
  */
 public class OpCodesList {
 	/**

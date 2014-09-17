@@ -3,11 +3,12 @@ package edu.gwu.seas.csci;
 import java.util.BitSet;
 
 /**
- * Provides public static utility methods for use in various locations
- * throughout the simulator.
+ * The Utils class contains a variety of utility methods that various other classes 
+ * make use of. It contains various conversion methods - for instance, to convert 
+ * back and forth a BitSet and its numeric equivalent. It also includes deep copy 
+ * methods to copy the contents of one Register or BitSet to another.
  * 
  * @author Nick Capurso, Alex Remily
- *
  */
 public class Utils {
 
