@@ -154,7 +154,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	lblMfr.setBounds(498, 134, 41, 30);
 	contentPane.add(lblMfr);
 	
-	JLabel lblIr = new JLabel("IR:");
+	JLabel lblIr = new JLabel("OPCODE:");
 	lblIr.setBounds(498, 172, 56, 16);
 	contentPane.add(lblIr);
 	
