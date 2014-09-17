@@ -463,6 +463,7 @@ public class CPU {
 			System.out.println("End of the program");
 			cont_execution = false;
 			prog_step=0;
+			Computer_GUI.disable_btns();
 			break;
 		}
 	}

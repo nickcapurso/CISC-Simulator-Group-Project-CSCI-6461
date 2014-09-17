@@ -29,7 +29,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
     private JPanel contentPane;
     private JTextField textField;
     private static JTextPane terminal;
-    private JButton start, load, microstep, macrostep, cont, runinput, reset;
+	private JButton load;
+	private static JButton cont, start, microstep, macrostep;
+	private JButton runinput;
+	private JButton reset;
     private FileLoader fileloader;
     private CPU cpu;
     private JLabel opcode_name;
@@ -154,7 +157,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	lblMfr.setBounds(498, 134, 41, 30);
 	contentPane.add(lblMfr);
 	
-	JLabel lblIr = new JLabel("IR:");
+	JLabel lblIr = new JLabel("OPCODE:");
 	lblIr.setBounds(498, 172, 56, 16);
 	contentPane.add(lblIr);
 	
@@ -231,6 +234,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	Registers.put("MFR", MFR);
 	Registers.put("MAR", MAR);
 	Registers.put("IR", IR);
+	
+	load.setEnabled(false);
+	runinput.setEnabled(false);
 
 }
 
@@ -256,6 +262,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cpu.executeInstruction(textField.getText());
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
+	    	start.setEnabled(true);
+	    	cont.setEnabled(true);
+	    	macrostep.setEnabled(true);
+	    	microstep.setEnabled(true);
 		}
 	}
 
@@ -282,6 +292,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	}
     }
 
+    public static void disable_btns() {
+    	start.setEnabled(false);
+    	cont.setEnabled(false);
+    	macrostep.setEnabled(false);
+    	microstep.setEnabled(false);
+    }
+    
     public void append_to_terminal(String value) {
 	StyledDocument document = (StyledDocument) terminal.getDocument();
 	try {
