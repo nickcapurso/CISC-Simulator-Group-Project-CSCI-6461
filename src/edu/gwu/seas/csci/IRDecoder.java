@@ -11,13 +11,6 @@ import java.util.BitSet;
  * @author Nick Capurso
  */
 public class IRDecoder {
-	// Constants for the different types of instruction formats
-	private static final byte INSTRUCTION_FORMAT_HALT = 0;
-	private static final byte INSTRUCTION_FORMAT_TRAP = 1;
-	private static final byte INSTRUCTION_FORMAT_LD_STR = 2;
-	private static final byte INSTRUCTION_FORMAT_XY_ARITH = 3;
-	private static final byte INSTRUCTION_FORMAT_SHIFT = 4;
-	private static final byte INSTRUCTION_FORMAT_IO = 5;
 
 	/**
 	 * Keeps a reference to the CPU object in order to call the instance's
@@ -54,11 +47,7 @@ public class IRDecoder {
 		// All instructions formats have the opcode in the first 6 bits
 		opcode = IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END + 1);
 		cpu.setReg(CPU.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
-		
-		// Print IR and OPCODE to console
-		//Utils.BitSetToString(CPU.IR, IR, 18);
-		//Utils.BitSetToString(CPU.OPCODE, cpu.getReg(CPU.OPCODE), InstructionBitFormats.OPCODE_SIZE);
-		
+
 		// Get the instruction class for the current opcode
 		instruction_string = context.getOpCodeStrings().get(
 				Utils.convertToByte(opcode, InstructionBitFormats.OPCODE_SIZE));
@@ -71,7 +60,6 @@ public class IRDecoder {
 		 */
 		// TODO Put all of the "IR.get(...)" into a setter method for the
 		// different registers in the CPU.
-		// System.out.println(instruction_class);
 		switch (instruction_class) {
 		case HALT:
 			// Halt instruction has a unique instruction format
@@ -89,29 +77,20 @@ public class IRDecoder {
 					InstructionBitFormats.LD_STR_IX_END + 1),
 					InstructionBitFormats.LD_STR_IX_SIZE);
 			
-			//Utils.BitSetToString(CPU.IX, cpu.getReg(CPU.IX), InstructionBitFormats.LD_STR_IX_SIZE);
-			
 			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.LD_STR_R_START,
 					InstructionBitFormats.LD_STR_R_END + 1),
 					InstructionBitFormats.LD_STR_R_SIZE);
-			
-			//Utils.BitSetToString(CPU.R, cpu.getReg(CPU.R), InstructionBitFormats.LD_STR_R_SIZE);
 			
 			cpu.setReg(CPU.I, IR.get(
 					InstructionBitFormats.LD_STR_I_START,
 					InstructionBitFormats.LD_STR_I_END + 1),
 					InstructionBitFormats.LD_STR_I_SIZE);
 			
-			//Utils.BitSetToString(CPU.I, cpu.getReg(CPU.I), InstructionBitFormats.LD_STR_I_SIZE);
-			
 			cpu.setReg(CPU.ADDR, IR.get(
 					InstructionBitFormats.LD_STR_ADDR_START,
 					InstructionBitFormats.LD_STR_ADDR_END + 1),
 					InstructionBitFormats.LD_STR_ADDR_SIZE);
-			
-			//Utils.BitSetToString(CPU.ADDR, cpu.getReg(CPU.ADDR), InstructionBitFormats.LD_STR_ADDR_SIZE);
-			
 			break;
 		case LD_STR_IMD:
 			break;
