@@ -6,7 +6,8 @@ package edu.gwu.seas.csci;
 import java.util.BitSet;
 
 /**
- * A word is simply an 18-bit BitSet.
+ * A word is simply an 18-bit BitSet that is used to populate locations in
+ * Memory.
  * 
  * @author Alex Remily
  */

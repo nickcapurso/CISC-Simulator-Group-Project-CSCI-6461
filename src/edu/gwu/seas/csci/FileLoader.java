@@ -5,9 +5,12 @@ package edu.gwu.seas.csci;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
@@ -23,13 +26,16 @@ import java.text.ParseException;
  * categories that uniquely identify a common format of opcode instructions and
  * use them instead.
  * 
+ * TODO: Fix the architecture to reflect a resource stream vs a file object
+ * load. This is just a quick fix to get the project to run for Part 1.
+ * 
  * @author Alex Remily
  */
 public class FileLoader implements Loader {
 
     /**
      * Provide a reference to the Computer's memory to hold the contents of the
-     * input file.
+     * reader file.
      */
     private Memory memory = Memory.getInstance();
 
@@ -46,18 +52,14 @@ public class FileLoader implements Loader {
     /**
      * Contains the contents of ROM.
      */
-    private File input = null;
+    private BufferedReader reader = null;
 
     /**
-     * FileLoader is constructed with a default input.
+     * FileLoader is constructed with a default reader.
      */
     public FileLoader() {
-	URL url = getClass().getResource("/input.txt");
-	try {
-	    input = new File(url.toURI());
-	} catch (URISyntaxException e) {
-	    e.printStackTrace();
-	}
+	InputStream in = getClass().getResourceAsStream("/input.txt");
+	reader = new BufferedReader(new InputStreamReader(in));
     }
 
     /*
@@ -66,27 +68,13 @@ public class FileLoader implements Loader {
      * @see edu.gwu.seas.csci.Loader#load(java.lang.Object)
      */
     @Override
-    public void load(Object input) throws ParseException,
-	    IllegalArgumentException {
-	// Test method argument.
-	if (!(input instanceof File)) {
-	    throw new IllegalArgumentException("Object " + input.getClass()
-		    + " not an instance of java.io.File.");
-	}
-	// Create objects for file read.
-	File inputFile = (File) input;
-	BufferedReader reader = null;
-	try {
-	    reader = new BufferedReader(new FileReader(inputFile));
-	} catch (FileNotFoundException e) {
-	    throw new IllegalArgumentException(e.getMessage());
-	}
+    public void load(Object input) throws ParseException {
 	try {
 	    String temp = null;
 	    short memory_location = 8; // Locations 0-5 are reserved.
 	    while ((temp = reader.readLine()) != null) {
 		Word word = new Word();
-		// Read the opcode from the input line.
+		// Read the opcode from the reader line.
 		String opcodeKeyString = temp.substring(0, 3);
 		// Determine the class of the opcode from the Computer's
 		// context.
@@ -151,6 +139,6 @@ public class FileLoader implements Loader {
     @Override
     public void load() throws NullPointerException, ParseException,
 	    IllegalArgumentException {
-	this.load(input);
+	this.load(reader);
     }
 }

@@ -23,11 +23,8 @@ public interface Loader {
      *            resource type that they load, e.g., a file or an input stream.
      * @throws ParseException
      *             If the input cannot be parsed.
-     * @throws IllegalArgumentException
-     *             If the input is not of the expected type.
      */
-    public void load(Object input) throws ParseException,
-	    IllegalArgumentException;
+    public void load(Object input) throws ParseException;
 
     /**
      * Expects a source of input to be provided by the implementing class and
