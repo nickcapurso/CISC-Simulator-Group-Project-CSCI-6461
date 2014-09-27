@@ -9,3 +9,4 @@
 /dependency-reduced-pom.xml
 /bin/
 .settings
+/test/

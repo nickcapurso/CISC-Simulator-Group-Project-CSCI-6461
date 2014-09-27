@@ -1,7 +1,5 @@
 package edu.gwu.seas.csci;
 
-import java.util.BitSet;
-
 import javax.swing.JFrame;
 
 /**
