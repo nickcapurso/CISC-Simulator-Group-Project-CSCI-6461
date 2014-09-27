@@ -43,7 +43,7 @@ public class IRDecoder {
 		String instruction_string;
 		Context.InstructionClass instruction_class;
 		BitSet opcode;
-		
+
 		// All instructions formats have the opcode in the first 6 bits
 		opcode = IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END + 1);
 		cpu.setReg(CPU.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
@@ -52,7 +52,7 @@ public class IRDecoder {
 		instruction_string = context.getOpCodeStrings().get(
 				Utils.convertToByte(opcode, InstructionBitFormats.OPCODE_SIZE));
 		instruction_class = context.getOpcodeClasses().get(instruction_string);
-		
+
 
 		/**
 		 * After determining the type of instruction format, break up the
@@ -76,17 +76,17 @@ public class IRDecoder {
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
 					InstructionBitFormats.LD_STR_IX_SIZE);
-			
+
 			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.LD_STR_R_START,
 					InstructionBitFormats.LD_STR_R_END + 1),
 					InstructionBitFormats.LD_STR_R_SIZE);
-			
+
 			cpu.setReg(CPU.I, IR.get(
 					InstructionBitFormats.LD_STR_I_START,
 					InstructionBitFormats.LD_STR_I_END + 1),
 					InstructionBitFormats.LD_STR_I_SIZE);
-			
+
 			cpu.setReg(CPU.ADDR, IR.get(
 					InstructionBitFormats.LD_STR_ADDR_START,
 					InstructionBitFormats.LD_STR_ADDR_END + 1),

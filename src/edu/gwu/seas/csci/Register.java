@@ -11,7 +11,7 @@ import java.util.BitSet;
  */
 public class Register extends BitSet{
 	private int numBits;
-	
+
 	/**
 	 * Default constructor sets size to 18.
 	 */
@@ -19,7 +19,7 @@ public class Register extends BitSet{
 		super(18);
 		numBits = 18;
 	}
-	
+
 	/**
 	 * Constructor with size given.
 	 * @param numBits 
@@ -29,14 +29,14 @@ public class Register extends BitSet{
 		super(numBits);
 		this.numBits = numBits;
 	}
-	
+
 	/**
 	 * @return The BitSet representing the value in this register.
 	 */
 	public BitSet getValue(){
 		return this;
 	}
-	
+
 	/**
 	 * @return The number of bits held in this register.
 	 */

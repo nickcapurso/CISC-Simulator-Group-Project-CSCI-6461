@@ -91,7 +91,7 @@ public class CPU {
 		irdecoder = new IRDecoder(this);
 		romLoader = new FileLoader();
 
-		
+
 		// Example of manually setting up memory and running LDR instruction
 
 		//$54 = 100 (1100100)
@@ -99,38 +99,38 @@ public class CPU {
 		location54.set(15, true);
 		location54.set(12, true);
 		location54.set(11, true);	
-		
+
 		memory.put(location54, 54);
-		
+
 		//$100 = 5 (101)
 		Word location100 = new Word();
 		location100.set(15, true);
 		location100.set(17, true);
-		
+
 		memory.put(location100, 100);
-		
+
 		//$105 = 16 (10000)
 		Word location105 = new Word();
 		location105.set(13, true);
-		
+
 		memory.put(location105, 105);
-		
+
 		//$200 = 54 (110110)
 		Word location200 = new Word();
 		location200.set(12, true);
 		location200.set(13, true);
 		location200.set(15, true);
 		location200.set(16, true);
-		
+
 		memory.put(location200, 200);
-		
+
 		//$20 = 54 (110110)
 		Word location20 = new Word();
 		location20.set(12, true);
 		location20.set(13, true);
 		location20.set(15, true);
 		location20.set(16, true);
-		
+
 		memory.put(location20, 20);
 
 	}
@@ -189,7 +189,7 @@ public class CPU {
 		if (regMap.containsKey(destName)) {
 			Register destination = regMap.get(destName);
 			//System.out.println("Source: " + destName + " size: "
-				//	+ destination.getNumBits());
+			//	+ destination.getNumBits());
 			Utils.bitsetDeepCopy(sourceMemory, 18, destination,
 					destination.getNumBits());
 
@@ -208,7 +208,7 @@ public class CPU {
 	public Register getReg(String regName) {
 		return regMap.get(regName);
 	}
-	
+
 	/**
 	 * Points the PC to Octal 10 where the bootloader program is loaded
 	 * and starts execution (by default, runs until HLT)
@@ -230,45 +230,45 @@ public class CPU {
 	 */
 	public void executeInstruction(String step_type){
 		switch (step_type){
-			case "continue":
-				System.out.println("Continue");
-				while (cont_execution) {
-					singleInstruction();
-					
-					if(prog_step == 0){
-						System.out.println("--------- Instruction Done ---------");
-						printAllRegisters();
-						advancePC();
-					}
-				}
-				cont_execution = true;
-				break;
-				
-			case "micro step":
-				System.out.println("Micro Step");
+		case "continue":
+			System.out.println("Continue");
+			while (cont_execution) {
 				singleInstruction();
-				
+
 				if(prog_step == 0){
 					System.out.println("--------- Instruction Done ---------");
 					printAllRegisters();
 					advancePC();
 				}
-				break;
-				
-			case "macro step":
-				System.out.println("Macro Step");
-				do {
-					singleInstruction();
-				} while(prog_step != 0);
-				
+			}
+			cont_execution = true;
+			break;
+
+		case "micro step":
+			System.out.println("Micro Step");
+			singleInstruction();
+
+			if(prog_step == 0){
 				System.out.println("--------- Instruction Done ---------");
 				printAllRegisters();
 				advancePC();
-				break;
-				
-			default:
-				System.out.println("Direct Exectuion");
-				//setReg(IR, BitSet(from step_type));
+			}
+			break;
+
+		case "macro step":
+			System.out.println("Macro Step");
+			do {
+				singleInstruction();
+			} while(prog_step != 0);
+
+			System.out.println("--------- Instruction Done ---------");
+			printAllRegisters();
+			advancePC();
+			break;
+
+		default:
+			System.out.println("Direct Exectuion");
+			//setReg(IR, BitSet(from step_type));
 		}
 	}
 
@@ -330,7 +330,7 @@ public class CPU {
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -362,7 +362,7 @@ public class CPU {
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -390,7 +390,7 @@ public class CPU {
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 5:
 				//EA -> regFile(R)
 				setReg(registerFile(getReg(R)), getReg(EA));
@@ -407,7 +407,7 @@ public class CPU {
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -437,7 +437,7 @@ public class CPU {
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
@@ -459,7 +459,7 @@ public class CPU {
 
 			}
 			break;
-			
+
 		case OpCodesList.HLT:
 			System.out.println("End of the program");
 			cont_execution = false;
@@ -468,7 +468,7 @@ public class CPU {
 			break;
 		}
 	}
-	
+
 
 	/**
 	 * Calculates the EA (effective address). Boolean parameter is used
@@ -491,11 +491,11 @@ public class CPU {
 				//ADDR + indexregisterfile(IX)
 				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)), getReg(indexRegisterFile(ix)).getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
-			
+
 				//EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
-			
+
 		} else { //Indirect addressing	
 			if (LDXSTXInstruction || 
 					Utils.convertToByte(ix, ix.getNumBits()) == 0) { //No indexing		
@@ -504,29 +504,29 @@ public class CPU {
 				//ADDR + indexregisterfile(IX)
 				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)), getReg(indexRegisterFile(ix)).getNumBits()) +
 						Utils.convertToInt(addr, addr.getNumBits());
-				
+
 				//EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()), ea.getNumBits());
 			}
-			
+
 			//TODO implement the clock
 			//Taking care of the indirect part
 			//EA -> MAR
 			setReg(MAR, getReg(EA));
-			
+
 			//Memory(MAR) -> MDR
 			setReg(MDR, memory.get(getReg(MAR), getReg(MAR).getNumBits()));
-			
+
 			//MDR -> EA
 			setReg(EA, getReg(MDR));
 		}
 	}
-	
+
 	private void advancePC(){
 		int pcContents = Utils.convertToInt(getReg(PC), getReg(PC).getNumBits());
 		setReg(PC,
 				Utils.intToBitSet(++pcContents, getReg(PC).getNumBits()),
-						getReg(PC).getNumBits());
+				getReg(PC).getNumBits());
 	}
 
 	/**
@@ -595,7 +595,7 @@ public class CPU {
 		Utils.bitsetToString(EA, getReg(EA), getReg(EA).getNumBits());
 	}
 
-	
+
 	public void loadROM() {
 		try {
 			romLoader.load();

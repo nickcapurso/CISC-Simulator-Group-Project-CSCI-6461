@@ -143,7 +143,7 @@ public class Utils {
 		}
 		return set;
 	}
-	
+
 	/**
 	 * Converts a Register (casted to it's superclass, BitSet)
 	 * to a Word (since subclasses can't be casted to subclasses)

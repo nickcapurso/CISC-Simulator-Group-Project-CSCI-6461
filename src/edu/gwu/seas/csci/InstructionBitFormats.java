@@ -13,17 +13,17 @@ public class InstructionBitFormats {
 	public static final byte OPCODE_START = 0;
 	public static final byte OPCODE_END = 5;
 	public static final byte OPCODE_SIZE = OPCODE_END - OPCODE_START + 1;
-	
+
 	//Constants for the halt instruction's unique format.
 	public static final byte HALT_SUFFIX_START = 12;
 	public static final byte HALT_SUFFIX_END = 17;
 	public static final byte HALT_SUFFIX_SIZE = HALT_SUFFIX_END - HALT_SUFFIX_START + 1;
-	
+
 	//Constants for the trap instruction's unique format.
 	public static final byte TRAP_CODE_START = 12;
 	public static final byte TRAP_CODE_END = 17;
 	public static final byte TRAP_CODE_SIZE = TRAP_CODE_END - TRAP_CODE_START + 1;
-	
+
 	//Constants for the "Load/Store" format - also used for some arithmetic and jump instructions.
 	public static final byte LD_STR_IX_START = 6;
 	public static final byte LD_STR_IX_END = 7;
@@ -37,7 +37,7 @@ public class InstructionBitFormats {
 	public static final byte LD_STR_ADDR_START = 11;
 	public static final byte LD_STR_ADDR_END = 17;
 	public static final byte LD_STR_ADDR_SIZE = LD_STR_ADDR_END - LD_STR_ADDR_START + 1;
-	
+
 	//Constants for the arithmetic instructions that do register to register operations
 	public static final byte XY_ARITH_RX_START = 6;
 	public static final byte XY_ARITH_RX_END = 7;
@@ -45,7 +45,7 @@ public class InstructionBitFormats {
 	public static final byte XY_ARITH_RY_START = 8;
 	public static final byte XY_ARITH_RY_END = 9;
 	public static final byte XY_ARITH_RY_SIZE = XY_ARITH_RY_END - XY_ARITH_RY_START + 1;
-	
+
 	//Constants for the shift and rotate instructions
 	public static final byte SHIFT_R_START = 8;
 	public static final byte SHIFT_R_END = 9;
@@ -59,7 +59,7 @@ public class InstructionBitFormats {
 	public static final byte SHIFT_COUNT_START = 13;
 	public static final byte SHIFT_COUNT_END = 17;
 	public static final byte SHIFT_COUNT_SIZE = SHIFT_COUNT_END - SHIFT_COUNT_START + 1;
-	
+
 	//Constants for the IO instructions
 	public static final byte IO_R_START = 8;
 	public static final byte IO_R_END = 9;

@@ -20,241 +20,239 @@ import javax.swing.JLabel;
 
 public class Computer_GUI extends JFrame implements ActionListener {
 
-    /**
-     * This class defines the UI used for the simulator Attributes include: -
-     * Textpanel for output - Radio Button for cpu cycles - Textfiled for user
-     * input
-     */
-    private static final long serialVersionUID = 1L;
-    private JPanel contentPane;
-    private JTextField textField;
-    private static JTextPane terminal;
+	/**
+	 * This class defines the UI used for the simulator Attributes include: -
+	 * Textpanel for output - Radio Button for cpu cycles - Textfiled for user
+	 * input
+	 */
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
+	private JTextField textField;
+	private static JTextPane terminal;
 	private JButton load;
 	private static JButton cont, start, microstep, macrostep;
 	private JButton runinput;
 	private JButton reset;
-    private FileLoader fileloader;
-    private CPU cpu;
-    private JLabel opcode_name;
-    private static HashMap<String, JRadioButton[]> Registers; // map of
-							      // registers on
-							      // gui
+	private FileLoader fileloader;
+	private CPU cpu;
+	private JLabel opcode_name;
+	private static HashMap<String, JRadioButton[]> Registers; // map of registers on gui
 
-    /**
-     * Create the frame.
-     */
-    public Computer_GUI(CPU cpu1, Memory memory) {
-	cpu = cpu1;
-	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	setBounds(100, 100, 954, 608);
-	contentPane = new JPanel();
-	contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-	setContentPane(contentPane);
-	contentPane.setLayout(null);
-
-	/*
-	 * Textfield and Textpane for I/O
+	/**
+	 * Create the frame.
 	 */
-	textField = new JTextField();
-	textField.setBounds(10, 522, 179, 27);
-	contentPane.add(textField);
-	textField.setColumns(10);
+	public Computer_GUI(CPU cpu1, Memory memory) {
+		cpu = cpu1;
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 954, 608);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
 
-	terminal = new JTextPane();
-	terminal.setBounds(12, 310, 402, 199);
-	terminal.setEnabled(false);
-	contentPane.add(terminal);
+		/*
+		 * Textfield and Textpane for I/O
+		 */
+		textField = new JTextField();
+		textField.setBounds(10, 522, 179, 27);
+		contentPane.add(textField);
+		textField.setColumns(10);
 
-	/*
-	 * JButtons for user interaction - Load: load a textfile through
-	 * relative path - Start: start the loaded program (will run default on
-	 * initialization) - btnStep: Take a Macro Step in the Program -
-	 * btnStepInto: Take a Micro Step in the Program - btnContinue: Run the
-	 * rest of the Program
-	 */
-	start = new JButton("Start");
-	start.setBounds(426, 523, 97, 25);
-	contentPane.add(start);
-	start.addActionListener(this);
+		terminal = new JTextPane();
+		terminal.setBounds(12, 310, 402, 199);
+		terminal.setEnabled(false);
+		contentPane.add(terminal);
 
-	load = new JButton("Load");
-	load.setBounds(201, 523, 97, 25);
-	contentPane.add(load);
-	load.addActionListener(this);
+		/*
+		 * JButtons for user interaction - Load: load a textfile through
+		 * relative path - Start: start the loaded program (will run default on
+		 * initialization) - btnStep: Take a Macro Step in the Program -
+		 * btnStepInto: Take a Micro Step in the Program - btnContinue: Run the
+		 * rest of the Program
+		 */
+		start = new JButton("Start");
+		start.setBounds(426, 523, 97, 25);
+		contentPane.add(start);
+		start.addActionListener(this);
 
-	macrostep = new JButton("Macro Step");
-	macrostep.setBounds(426, 310, 97, 25);
-	contentPane.add(macrostep);
-	macrostep.addActionListener(this);
+		load = new JButton("Load");
+		load.setBounds(201, 523, 97, 25);
+		contentPane.add(load);
+		load.addActionListener(this);
 
-	microstep = new JButton("Micro Step");
-	microstep.setBounds(426, 348, 97, 25);
-	contentPane.add(microstep);
-	microstep.addActionListener(this);
+		macrostep = new JButton("Macro Step");
+		macrostep.setBounds(426, 310, 97, 25);
+		contentPane.add(macrostep);
+		macrostep.addActionListener(this);
 
-	JButton runinput = new JButton("Run Input");
-	runinput.setBounds(310, 523, 97, 25);
-	contentPane.add(runinput);
+		microstep = new JButton("Micro Step");
+		microstep.setBounds(426, 348, 97, 25);
+		contentPane.add(microstep);
+		microstep.addActionListener(this);
 
-	reset = new JButton("Reset");
-	reset.setBounds(426, 484, 97, 25);
-	contentPane.add(reset);
-	reset.addActionListener(this);
-	
-	cont = new JButton("Continue");
-	cont.setBounds(426, 386, 97, 25);
-	contentPane.add(cont);
-	cont.addActionListener(this);
+		JButton runinput = new JButton("Run Input");
+		runinput.setBounds(310, 523, 97, 25);
+		contentPane.add(runinput);
 
-	/*
-	 * Register Label Creation - If there is time should create in a loop
-	 */
-	JLabel r0_lbl = new JLabel("R0:");
-	r0_lbl.setBounds(10, 10, 25, 30);
-	contentPane.add(r0_lbl);
+		reset = new JButton("Reset");
+		reset.setBounds(426, 484, 97, 25);
+		contentPane.add(reset);
+		reset.addActionListener(this);
 
-	JLabel R1_lbl = new JLabel("R1:");
-	R1_lbl.setBounds(10, 41, 25, 30);
-	contentPane.add(R1_lbl);
+		cont = new JButton("Continue");
+		cont.setBounds(426, 386, 97, 25);
+		contentPane.add(cont);
+		cont.addActionListener(this);
 
-	JLabel R2_lbl = new JLabel("R2:");
-	R2_lbl.setBounds(10, 72, 25, 30);
-	contentPane.add(R2_lbl);
+		/*
+		 * Register Label Creation - If there is time should create in a loop
+		 */
+		JLabel r0_lbl = new JLabel("R0:");
+		r0_lbl.setBounds(10, 10, 25, 30);
+		contentPane.add(r0_lbl);
 
-	JLabel R3_lbl = new JLabel("R3:");
-	R3_lbl.setBounds(10, 103, 25, 30);
-	contentPane.add(R3_lbl);
+		JLabel R1_lbl = new JLabel("R1:");
+		R1_lbl.setBounds(10, 41, 25, 30);
+		contentPane.add(R1_lbl);
 
-	JLabel X1_lbl = new JLabel("X1:");
-	X1_lbl.setBounds(10, 134, 25, 30);
-	contentPane.add(X1_lbl);
+		JLabel R2_lbl = new JLabel("R2:");
+		R2_lbl.setBounds(10, 72, 25, 30);
+		contentPane.add(R2_lbl);
 
-	JLabel X2_lbl = new JLabel("X2:");
-	X2_lbl.setBounds(10, 165, 25, 30);
-	contentPane.add(X2_lbl);
+		JLabel R3_lbl = new JLabel("R3:");
+		R3_lbl.setBounds(10, 103, 25, 30);
+		contentPane.add(R3_lbl);
 
-	JLabel X3_lbl = new JLabel("X3:");
-	X3_lbl.setBounds(10, 196, 25, 30);
-	contentPane.add(X3_lbl);
+		JLabel X1_lbl = new JLabel("X1:");
+		X1_lbl.setBounds(10, 134, 25, 30);
+		contentPane.add(X1_lbl);
 
-	JLabel lblPc = new JLabel("PC:");
-	lblPc.setBounds(498, 10, 25, 30);
-	contentPane.add(lblPc);
+		JLabel X2_lbl = new JLabel("X2:");
+		X2_lbl.setBounds(10, 165, 25, 30);
+		contentPane.add(X2_lbl);
 
-	JLabel lblMar = new JLabel("MAR:");
-	lblMar.setBounds(498, 41, 41, 30);
-	contentPane.add(lblMar);
+		JLabel X3_lbl = new JLabel("X3:");
+		X3_lbl.setBounds(10, 196, 25, 30);
+		contentPane.add(X3_lbl);
 
-	JLabel lblMsr = new JLabel("MSR:");
-	lblMsr.setBounds(498, 72, 41, 30);
-	contentPane.add(lblMsr);
+		JLabel lblPc = new JLabel("PC:");
+		lblPc.setBounds(498, 10, 25, 30);
+		contentPane.add(lblPc);
 
-	JLabel lblMdr = new JLabel("MDR:");
-	lblMdr.setBounds(498, 103, 41, 30);
-	contentPane.add(lblMdr);
+		JLabel lblMar = new JLabel("MAR:");
+		lblMar.setBounds(498, 41, 41, 30);
+		contentPane.add(lblMar);
 
-	JLabel lblMfr = new JLabel("MFR:");
-	lblMfr.setBounds(498, 134, 41, 30);
-	contentPane.add(lblMfr);
-	
-	JLabel lblIr = new JLabel("OPCODE:");
-	lblIr.setBounds(498, 172, 56, 16);
-	contentPane.add(lblIr);
-	
-	opcode_name = new JLabel("");
-	opcode_name.setBounds(730, 172, 56, 16);
-	contentPane.add(opcode_name);
+		JLabel lblMsr = new JLabel("MSR:");
+		lblMsr.setBounds(498, 72, 41, 30);
+		contentPane.add(lblMsr);
 
-	/*
-	 * Create a map of all registers used on GUI - Registers are stored as
-	 * RadioButton [] to represent array of bitvalues - By setting certain
-	 * RadioButtons to 0/1 we can visually represent values in Registers
-	 */
-	Registers = new HashMap<String, JRadioButton[]>();
-	JRadioButton[] R0 = new JRadioButton[18];
-	JRadioButton[] R1 = new JRadioButton[18];
-	JRadioButton[] R2 = new JRadioButton[18];
-	JRadioButton[] R3 = new JRadioButton[18];
-	JRadioButton[][] GPR = { R0, R1, R2, R3 };
-	JRadioButton[] X1 = new JRadioButton[18];
-	JRadioButton[] X2 = new JRadioButton[18];
-	JRadioButton[] X3 = new JRadioButton[18];
-	JRadioButton[][] XR = { X1, X2, X3 };
-	JRadioButton[] PC = new JRadioButton[12];
-	JRadioButton[] MAR = new JRadioButton[18];
-	JRadioButton[] MSR = new JRadioButton[18];
-	JRadioButton[] MDR = new JRadioButton[18];
-	JRadioButton[] MFR = new JRadioButton[4];
-	JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR };
+		JLabel lblMdr = new JLabel("MDR:");
+		lblMdr.setBounds(498, 103, 41, 30);
+		contentPane.add(lblMdr);
 
-	// For loop to decrease RadioButton [] creation
-	for (int j = 0; j < MR.length; j++) {
-	    for (int i = 0; i < R0.length; i++) {
-	    	if (j < GPR.length) {
-			    GPR[j][i] = new JRadioButton();
-			    GPR[j][i].setEnabled(false);
-			    GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
-			    contentPane.add(GPR[j][i]);
-	    	}
-		    if (j < XR.length) {
-			XR[j][i] = new JRadioButton();
-			XR[j][i].setEnabled(false);
-			XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
-			contentPane.add(XR[j][i]);
-		    }
-		    if (j == MR.length - 1) {
-		    	if (i < MFR.length) {
-			    	MR[j][i] = new JRadioButton();
-			    	MR[j][i].setEnabled(false);
-			    	MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-			    	contentPane.add(MR[j][i]);
-		    	}
-		    } else if (j == 0) {
-		    	if (i < PC.length) {
-		    	MR[j][i] = new JRadioButton();
-		    	MR[j][i].setEnabled(false);
-		    	MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-		    	contentPane.add(MR[j][i]);
-		    	}
-		    } else {
-			    MR[j][i] = new JRadioButton();
-			    MR[j][i].setEnabled(false);
-			    MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-			    contentPane.add(MR[j][i]);
-		    }
-	    }
-	}
-	
-	JRadioButton[] IR = new JRadioButton[6];
-	for (int i = 0; i<6; i++) {
-		IR[i] = new JRadioButton();
-		IR[i].setEnabled(false);
-		IR[i].setBounds(547 + 24 * i, 170, 20, 20);
-		contentPane.add(IR[i]);
-	}
+		JLabel lblMfr = new JLabel("MFR:");
+		lblMfr.setBounds(498, 134, 41, 30);
+		contentPane.add(lblMfr);
+
+		JLabel lblIr = new JLabel("OPCODE:");
+		lblIr.setBounds(498, 172, 56, 16);
+		contentPane.add(lblIr);
+
+		opcode_name = new JLabel("");
+		opcode_name.setBounds(730, 172, 56, 16);
+		contentPane.add(opcode_name);
+
+		/*
+		 * Create a map of all registers used on GUI - Registers are stored as
+		 * RadioButton [] to represent array of bitvalues - By setting certain
+		 * RadioButtons to 0/1 we can visually represent values in Registers
+		 */
+		Registers = new HashMap<String, JRadioButton[]>();
+		JRadioButton[] R0 = new JRadioButton[18];
+		JRadioButton[] R1 = new JRadioButton[18];
+		JRadioButton[] R2 = new JRadioButton[18];
+		JRadioButton[] R3 = new JRadioButton[18];
+		JRadioButton[][] GPR = { R0, R1, R2, R3 };
+		JRadioButton[] X1 = new JRadioButton[18];
+		JRadioButton[] X2 = new JRadioButton[18];
+		JRadioButton[] X3 = new JRadioButton[18];
+		JRadioButton[][] XR = { X1, X2, X3 };
+		JRadioButton[] PC = new JRadioButton[12];
+		JRadioButton[] MAR = new JRadioButton[18];
+		JRadioButton[] MSR = new JRadioButton[18];
+		JRadioButton[] MDR = new JRadioButton[18];
+		JRadioButton[] MFR = new JRadioButton[4];
+		JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR };
+
+		// For loop to decrease RadioButton [] creation
+		for (int j = 0; j < MR.length; j++) {
+			for (int i = 0; i < R0.length; i++) {
+				if (j < GPR.length) {
+					GPR[j][i] = new JRadioButton();
+					GPR[j][i].setEnabled(false);
+					GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
+					contentPane.add(GPR[j][i]);
+				}
+				if (j < XR.length) {
+					XR[j][i] = new JRadioButton();
+					XR[j][i].setEnabled(false);
+					XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
+					contentPane.add(XR[j][i]);
+				}
+				if (j == MR.length - 1) {
+					if (i < MFR.length) {
+						MR[j][i] = new JRadioButton();
+						MR[j][i].setEnabled(false);
+						MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+						contentPane.add(MR[j][i]);
+					}
+				} else if (j == 0) {
+					if (i < PC.length) {
+						MR[j][i] = new JRadioButton();
+						MR[j][i].setEnabled(false);
+						MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+						contentPane.add(MR[j][i]);
+					}
+				} else {
+					MR[j][i] = new JRadioButton();
+					MR[j][i].setEnabled(false);
+					MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
+					contentPane.add(MR[j][i]);
+				}
+			}
+		}
+
+		JRadioButton[] IR = new JRadioButton[6];
+		for (int i = 0; i<6; i++) {
+			IR[i] = new JRadioButton();
+			IR[i].setEnabled(false);
+			IR[i].setBounds(547 + 24 * i, 170, 20, 20);
+			contentPane.add(IR[i]);
+		}
 		/*
 		 * Place registers in the map (Registers)
 		 */
-	Registers.put("R0", R0);
-	Registers.put("R1", R1);
-	Registers.put("R2", R2);
-	Registers.put("R3", R3);
-	Registers.put("X1", X1);
-	Registers.put("X2", X2);
-	Registers.put("X3", X3);
-	Registers.put("PC", PC);
-	Registers.put("MSR", MSR);
-	Registers.put("MDR", MDR);
-	Registers.put("MFR", MFR);
-	Registers.put("MAR", MAR);
-	Registers.put("IR", IR);
-	
-	load.setEnabled(false);
-	runinput.setEnabled(false);
+		Registers.put("R0", R0);
+		Registers.put("R1", R1);
+		Registers.put("R2", R2);
+		Registers.put("R3", R3);
+		Registers.put("X1", X1);
+		Registers.put("X2", X2);
+		Registers.put("X3", X3);
+		Registers.put("PC", PC);
+		Registers.put("MSR", MSR);
+		Registers.put("MDR", MDR);
+		Registers.put("MFR", MFR);
+		Registers.put("MAR", MAR);
+		Registers.put("IR", IR);
 
-}
+		load.setEnabled(false);
+		runinput.setEnabled(false);
 
-	
+	}
+
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == start || e.getSource() == cont) {
@@ -266,60 +264,60 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
-			    File load_file = new File(filepath);
-			    fileloader.load(load_file);
+				File load_file = new File(filepath);
+				fileloader.load(load_file);
 			} catch (Exception ex) { //Catch exception if any
-			      System.err.println("Error: " + ex.getMessage());
+				System.err.println("Error: " + ex.getMessage());
 			}
-		//Needs to run through the FileLoader Instruction Parser to work properly
+			//Needs to run through the FileLoader Instruction Parser to work properly
 		} else if (e.getSource() == runinput) {
 			cpu.executeInstruction(textField.getText());
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
-	    	start.setEnabled(true);
-	    	cont.setEnabled(true);
-	    	macrostep.setEnabled(true);
-	    	microstep.setEnabled(true);
+			start.setEnabled(true);
+			cont.setEnabled(true);
+			macrostep.setEnabled(true);
+			microstep.setEnabled(true);
 		}
 	}
 
-    // By giving a string value for register, and a value, registers can be
-    // monitored
-    public static void update_register(String register, BitSet value) {
-	try {
-	    JRadioButton[] curr_reg = Registers.get(register);
-	    for (int i = 0; i < curr_reg.length; i++) {
-		if (value.get(i)) {
-		    curr_reg[i].setSelected(true);
-		} else {
-		    curr_reg[i].setSelected(false);
+	// By giving a string value for register, and a value, registers can be
+	// monitored
+	public static void update_register(String register, BitSet value) {
+		try {
+			JRadioButton[] curr_reg = Registers.get(register);
+			for (int i = 0; i < curr_reg.length; i++) {
+				if (value.get(i)) {
+					curr_reg[i].setSelected(true);
+				} else {
+					curr_reg[i].setSelected(false);
+				}
+			}
+		} catch (Exception e) {
+			/*
+			 * StyledDocument document = (StyledDocument)
+			 * terminal.getDocument(); try {
+			 * document.insertString(document.getLength(),
+			 * "Error Updating Board\n", null); } catch (BadLocationException
+			 * e2) { }
+			 */
 		}
-	    }
-	} catch (Exception e) {
-	    /*
-	     * StyledDocument document = (StyledDocument)
-	     * terminal.getDocument(); try {
-	     * document.insertString(document.getLength(),
-	     * "Error Updating Board\n", null); } catch (BadLocationException
-	     * e2) { }
-	     */
 	}
-    }
 
-    public static void disable_btns() {
-    	start.setEnabled(false);
-    	cont.setEnabled(false);
-    	macrostep.setEnabled(false);
-    	microstep.setEnabled(false);
-    }
-    
-    public void append_to_terminal(String value) {
-	StyledDocument document = (StyledDocument) terminal.getDocument();
-	try {
-	    document.insertString(document.getLength(), value, null);
-	} catch (BadLocationException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	public static void disable_btns() {
+		start.setEnabled(false);
+		cont.setEnabled(false);
+		macrostep.setEnabled(false);
+		microstep.setEnabled(false);
 	}
-    }
+
+	public void append_to_terminal(String value) {
+		StyledDocument document = (StyledDocument) terminal.getDocument();
+		try {
+			document.insertString(document.getLength(), value, null);
+		} catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

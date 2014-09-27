@@ -35,7 +35,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte LDR = 01;
-	
+
 	/**
 	 * Store register to memory.
 	 * <p>
@@ -43,7 +43,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte STR = 02;
-	
+
 	/**
 	 * Load register with address.
 	 * <p>
@@ -51,7 +51,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte LDA = 03;
-	
+
 	/**
 	 * Add memory to register.
 	 * <p>
@@ -59,7 +59,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte AMR = 04;
-	
+
 	/**
 	 * Subtract memory from register.
 	 * <p>
@@ -67,7 +67,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte SMR = 05;
-	
+
 	/**
 	 * Add immediate to register (immediate is specified in ADDR). IX and I are ignored.
 	 * <p>
@@ -75,7 +75,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte AIR = 06;
-	
+
 	/**
 	 * Subtract immediate from register (immediate is specified in ADDR). IX and I are ignored.
 	 * <p>
@@ -83,7 +83,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte SIR = 07;
-	
+
 	/**
 	 * Jump if zero.
 	 * <p>
@@ -91,7 +91,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JZ = 010;
-	
+
 	/**
 	 * Jump if not equal.
 	 * <p>
@@ -99,7 +99,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JNE = 011;
-	
+
 	/**
 	 * Jump if condition code - specified in first argument (replaces r) and
 	 * specifies which bit of the CC to check against.
@@ -108,7 +108,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JCC = 012;
-	
+
 	/**
 	 * Unconditional jump. R is ignored.
 	 * <p>
@@ -116,7 +116,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JMP = 013;
-	
+
 	/**
 	 * Jump subroutine (or jump and save return address). R is ignored.
 	 * <p>
@@ -124,7 +124,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JSR = 014;
-	
+
 	/**
 	 * Return from subroutine - return code specified in ADDR field (optional). 
 	 * IX and I are ignored.
@@ -133,7 +133,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte RFS = 015;
-	
+
 	/**
 	 * Subtract one and branch.
 	 * <p>
@@ -141,7 +141,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte SOB = 016;
-	
+
 	/**
 	 * Jump if greater than or equal to.
 	 * <p>
@@ -149,7 +149,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte JGE = 017;
-	
+
 	/**
 	 * Multiply register by register. Result stored in RX (high order bits) and RX+1 (low order bits)
 	 * <p>
@@ -157,7 +157,7 @@ public class OpCodesList {
 	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
 	public static final byte MLT = 020;
-	
+
 	/**
 	 * Divide register by register. RX contains the quotient, RX+1 contains the remainder.
 	 * <p>
@@ -165,7 +165,7 @@ public class OpCodesList {
 	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
 	public static final byte DVD = 021;
-	
+
 	/**
 	 * Test if the contents of two registers are equal.
 	 * <p>
@@ -173,7 +173,7 @@ public class OpCodesList {
 	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
 	public static final byte TRR = 022;
-	
+
 	/**
 	 * Logical AND of two registers.
 	 * <p>
@@ -181,7 +181,7 @@ public class OpCodesList {
 	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
 	public static final byte AND = 023;
-	
+
 	/**
 	 * Logical OR of two registers.
 	 * <p>
@@ -189,7 +189,7 @@ public class OpCodesList {
 	 * Instruction format type: X & Y Arithmetic/Logical
 	 */
 	public static final byte ORR = 024;
-	
+
 	/**
 	 * Logical NOT of two registers.
 	 * <p>
@@ -206,7 +206,7 @@ public class OpCodesList {
 	 * Instruction format type: Special trap instruction
 	 */
 	public static final byte TRAP  = 030;
-	
+
 	/**
 	 * Shift register by count. 
 	 * <p>
@@ -214,7 +214,7 @@ public class OpCodesList {
 	 * Instruction format type: Shift/Rotate
 	 */
 	public static final byte SRC = 031;
-	
+
 	/**
 	 * Rotate register by count.
 	 * <p>
@@ -222,7 +222,7 @@ public class OpCodesList {
 	 * Instruction format type: Shift/Rotate
 	 */
 	public static final byte RRC = 032;
-	
+
 	/**
 	 * Floating add memory to register.
 	 * <p>
@@ -230,7 +230,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte FADD = 033;
-	
+
 	/**
 	 * Floating subtract from register.
 	 * <p>
@@ -238,7 +238,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte FSUB = 034;
-	
+
 	/**
 	 * Vector add.
 	 * <p>
@@ -246,7 +246,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte VADD = 035;
-	
+
 	/**
 	 * Vector subtract.
 	 * <p>
@@ -254,7 +254,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte VSUB = 036;
-	
+
 	/**
 	 * Convert to fixed/floating point
 	 * <p>
@@ -262,7 +262,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte CNVRT = 037;
-	
+
 	/**
 	 * Load index register from memory.
 	 * <p>
@@ -270,7 +270,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte LDX = 041;
-	
+
 	/**
 	 * Store index register to memory.
 	 * <p>
@@ -278,7 +278,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte STX = 042;
-	
+
 	/**
 	 * Load floating register from memory.
 	 * <p>
@@ -286,7 +286,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte LDFR = 050;
-	
+
 	/**
 	 * Store floating register to memory.
 	 * <p>
@@ -294,7 +294,7 @@ public class OpCodesList {
 	 * Instruction format type: Load/Store
 	 */
 	public static final byte STFR = 051;
-	
+
 	/**
 	 * Input character to register from device.
 	 * <p>
@@ -302,7 +302,7 @@ public class OpCodesList {
 	 * Instruction format type: I/O
 	 */
 	public static final byte IN	= 061;
-	
+
 	/**
 	 * Output character to device from register.
 	 * <p>
@@ -310,7 +310,7 @@ public class OpCodesList {
 	 * Instruction format type: I/O
 	 */
 	public static final byte OUT = 062;
-	
+
 	/**
 	 * Check device status to register.
 	 * <p>

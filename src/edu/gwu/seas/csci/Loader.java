@@ -15,28 +15,28 @@ import java.text.ParseException;
  */
 public interface Loader {
 
-    /**
-     * Requires a source of input from which to load instructions into memory.
-     * 
-     * @param input
-     *            The resource to load. Implementing classes should specify the
-     *            resource type that they load, e.g., a file or an input stream.
-     * @throws ParseException
-     *             If the input cannot be parsed.
-     */
-    public void load(Object input) throws ParseException;
+	/**
+	 * Requires a source of input from which to load instructions into memory.
+	 * 
+	 * @param input
+	 *            The resource to load. Implementing classes should specify the
+	 *            resource type that they load, e.g., a file or an input stream.
+	 * @throws ParseException
+	 *             If the input cannot be parsed.
+	 */
+	public void load(Object input) throws ParseException;
 
-    /**
-     * Expects a source of input to be provided by the implementing class and
-     * throws a NPE if one is not.
-     * 
-     * @throws NullPointerException
-     *             If there is no set default input to load.
-     * @throws ParseException
-     *             If the input cannot be parsed.
-     * @throws IllegalArgumentException
-     *             If the input is not of the expected type.
-     */
-    public void load() throws NullPointerException, ParseException,
-	    IllegalArgumentException;
+	/**
+	 * Expects a source of input to be provided by the implementing class and
+	 * throws a NPE if one is not.
+	 * 
+	 * @throws NullPointerException
+	 *             If there is no set default input to load.
+	 * @throws ParseException
+	 *             If the input cannot be parsed.
+	 * @throws IllegalArgumentException
+	 *             If the input is not of the expected type.
+	 */
+	public void load() throws NullPointerException, ParseException,
+	IllegalArgumentException;
 }
