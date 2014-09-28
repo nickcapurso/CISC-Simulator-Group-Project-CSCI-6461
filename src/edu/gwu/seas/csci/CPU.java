@@ -41,6 +41,16 @@ public class CPU {
 	public static final String IX = "IX";
 	public static final String ADDR = "ADDR";
 	public static final String EA = "EA";
+	public static final String OP1 = "OP1";
+	public static final String OP2 = "OP2";
+	public static final String OP3 = "OP3";
+	public static final String OP4 = "OP4";
+	public static final String RESULT = "RESULT";
+	public static final String RX = "RX";
+	public static final String RY = "RY";
+	public static final String AL = "AL";
+	public static final String LR = "LR";
+	public static final String COUNT = "COUNT";
 
 	public static final byte BOOTLOADER_START = 010;
 
@@ -69,7 +79,6 @@ public class CPU {
 
 		// Special registers
 		regMap.put(PC, new Register(12));
-		// set PC to start of Program Counter
 		regMap.put(IR, new Register());
 		regMap.put(CC, new Register(4));
 		regMap.put(MAR, new Register());
@@ -77,6 +86,16 @@ public class CPU {
 		regMap.put(MSR, new Register());
 		regMap.put(MFR, new Register(4));
 
+		// Assuming EA should be as large as the MAR register
+		regMap.put(EA, new Register());
+		
+		// ALU Registers
+		regMap.put(OP1, new Register());
+		regMap.put(OP2, new Register());
+		regMap.put(OP3, new Register());
+		regMap.put(OP4, new Register());
+		regMap.put(RESULT, new Register());
+		
 		// Registers for Load and Store instructions
 		regMap.put(OPCODE, new Register(InstructionBitFormats.OPCODE_SIZE));
 		regMap.put(IX, new Register(InstructionBitFormats.LD_STR_IX_SIZE));
@@ -84,15 +103,22 @@ public class CPU {
 		regMap.put(I, new Register(InstructionBitFormats.LD_STR_I_SIZE));
 		regMap.put(ADDR, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 
-		// Assuming EA should be as large as the MAR register?
-		regMap.put(EA, new Register());
+		// Registers for register-register instructions
+		regMap.put(RX, new Register(InstructionBitFormats.XY_ARITH_RX_SIZE));
+		regMap.put(RY, new Register(InstructionBitFormats.XY_ARITH_RY_SIZE));
+		
+		// Registers for shift instructions
+		regMap.put(AL, new Register(InstructionBitFormats.SHIFT_AL_SIZE));
+		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_START));
+		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
+		
 
 		memory = Memory.getInstance();
 		irdecoder = new IRDecoder(this);
 		romLoader = new FileLoader();
 
 
-		// Example of manually setting up memory and running LDR instruction
+		// Example of manually setting up memory
 
 		//$54 = 100 (1100100)
 		Word location54 = new Word();
@@ -458,6 +484,50 @@ public class CPU {
 				break;
 
 			}
+			break;
+			
+		case OpCodesList.JZ:
+			break;
+		case OpCodesList.JNE:
+			break;
+		case OpCodesList.JCC:
+			break;
+		case OpCodesList.JMP:
+			break;
+		case OpCodesList.JSR:
+			break;
+		case OpCodesList.RFS:
+			break;
+		case OpCodesList.SOB:
+			break;
+		case OpCodesList.JGE:
+			break;
+			
+		case OpCodesList.AMR:
+			break;
+		case OpCodesList.SMR:
+			break;
+		case OpCodesList.AIR:
+			break;
+		case OpCodesList.SIR:
+			break;
+			
+		case OpCodesList.MLT:
+			break;
+		case OpCodesList.DVD:
+			break;
+		case OpCodesList.TRR:
+			break;
+		case OpCodesList.AND:
+			break;
+		case OpCodesList.ORR:
+			break;
+		case OpCodesList.NOT:
+			break;
+			
+		case OpCodesList.SRC:
+			break;
+		case OpCodesList.RRC:
 			break;
 
 		case OpCodesList.HLT:
