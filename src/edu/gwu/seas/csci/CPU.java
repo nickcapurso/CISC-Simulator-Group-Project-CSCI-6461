@@ -487,47 +487,141 @@ public class CPU {
 			break;
 			
 		case OpCodesList.JZ:
+			//registerFile(R) -> OP1
+			//Perform equal to zero comparison in ALU	
+			//If RESULT == 1
+				//EA -> PC
 			break;
+			
 		case OpCodesList.JNE:
+			//registerFile(R) -> OP1
+			//Perform not equal to zero comparison in ALU
+			//If RESULT == 1
+				//EA -> PC
 			break;
+			
 		case OpCodesList.JCC:
+			//Multiple scenarios possible based on ALU implementation
+				//Could move CC to OP1 and the mask to OP2, then perform AND
+				//Could just supply a mask and use a test CC method in ALU
+				//etc..
+			//If RESULT == 1
+				//EA -> PC
 			break;
+			
 		case OpCodesList.JMP:
+			//EA -> PC
 			break;
+			
 		case OpCodesList.JSR:
+			//PC+1 -> R3
+			//EA -> PC
 			break;
+			
 		case OpCodesList.RFS:
+			//ADDR -> R0
+			//R3 -> PC 
 			break;
+			
 		case OpCodesList.SOB:
+			//registerFile(R) -> OP1
+			//Perform subtract one (or need another move -1 to OP2) in ALU
+			//Perform greater than 0 comparison in ALU
+			//If RESULT == 1 THEN
+				// EA -> PC
 			break;
+			
 		case OpCodesList.JGE:
+			//registerFile(R) -> OP1
+			//Perform greater than/equal comparison in ALU
+			//If RESULT == 1 THEN
+				// EA -> PC
 			break;
 			
 		case OpCodesList.AMR:
+			//registerFile(R) -> OP1
+			//EA -> OP2 (if indirection, EA will also already be holding the data)
+			//Perform add in ALU
+			//RESULT -> registerFile(R) 
 			break;
+			
 		case OpCodesList.SMR:
+			//registerFile(R) -> OP1
+			//EA -> OP2 (if indirection, EA will also already be holding the data)
+			//Perform subtract in ALU
+			//RESULT -> registerFile(R) 
 			break;
+			
 		case OpCodesList.AIR:
+			//registerFile(R) -> OP1
+			//ADDR -> OP2  (ADDR contains the immediate value)
+			//Perform add in ALU
+			//RESULT -> registerFile(R)
 			break;
+			
 		case OpCodesList.SIR:
+			//registerFile(R) -> OP1
+			//ADDR -> OP2  (ADDR contains the immediate value)
+			//Perform subtract in ALU
+			//RESULT -> registerFile(R)
 			break;
 			
 		case OpCodesList.MLT:
+			//registerFile(RX) -> OP1
+			//registerFile(RY) -> OP2
+			//Perform multiply in ALU
+			//RX will contain the high order word, RX+1 will contain the low order word
 			break;
+			
 		case OpCodesList.DVD:
+			//registerFile(RX) -> OP1
+			//registerFile(RY) -> OP2
+			//Perform divide in ALU
+			//RX will contain the quotient, RX+1 will contain the remainder
 			break;
+			
 		case OpCodesList.TRR:
+			//registerFile(RX) -> OP1
+			//registerFile(RY) -> OP2
+			//Perform equality test in ALU (also sets the condition code)
 			break;
+			
 		case OpCodesList.AND:
+			//registerFile(RX) -> OP1
+			//registerFile(RY) -> OP2
+			//Perform AND in ALU
+			//RESULT -> registerFile(RX)
 			break;
+			
 		case OpCodesList.ORR:
+			//registerFile(RX) -> OP1
+			//registerFile(RY) -> OP2
+			//Perform OR in ALU
+			//RESULT -> registerFile(RX)
 			break;
+			
 		case OpCodesList.NOT:
+			//registerFile(RX) -> OP1
+			//Perform NOT in ALU
+			//RESULT -> registerFile(RX)
 			break;
 			
 		case OpCodesList.SRC:
+			//registerFile(R) -> OP1
+			//COUNT -> OP2
+			//AL -> OP3
+			//LR -> OP4
+			//Perform shift in ALU
+			//RESULT -> registerFile(R)
 			break;
+			
 		case OpCodesList.RRC:
+			//registerFile(R) -> OP1
+			//COUNT -> OP2
+			//AL -> OP3
+			//LR -> OP4
+			//Perform rotate in ALU
+			//RESULT -> registerFile(R)
 			break;
 
 		case OpCodesList.HLT:
