@@ -266,9 +266,27 @@ public class CPU {
 			advancePC();
 			break;
 
+		//Direct Execution - Does not advance PC
 		default:
-			System.out.println("Direct Exectuion");
-			//setReg(IR, BitSet(from step_type));
+			System.out.println("Running user input");
+			try {
+				Word word_command = Utils.StringToWord(step_type);
+				Utils.bitsetToString("input", word_command, 18);
+				setReg(MAR, word_command);
+				cycle_count++;
+				prog_step++;
+				do {
+					singleInstruction();
+				} while(prog_step != 0);
+				
+				System.out.println("--------- Instruction Done ---------");
+				printAllRegisters();
+				//Does not advance PC
+				//setReg(IR, BitSet(from step_type));
+			} catch (IllegalArgumentException e) {
+				//null passed as word
+				e.printStackTrace();
+			}
 		}
 	}
 

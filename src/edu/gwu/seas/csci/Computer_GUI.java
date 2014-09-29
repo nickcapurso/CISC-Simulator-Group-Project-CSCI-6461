@@ -27,11 +27,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTextField textField;
+	private static JTextField textField;
 	private static JTextPane terminal;
 	private JButton load;
-	private static JButton cont, start, microstep, macrostep;
-	private JButton runinput;
+	private static JButton cont, start, microstep, macrostep, runinput;
 	private JButton reset;
 	private FileLoader fileloader;
 	private CPU cpu;
@@ -90,9 +89,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.add(microstep);
 		microstep.addActionListener(this);
 
-		JButton runinput = new JButton("Run Input");
+		runinput = new JButton("Run Input");
 		runinput.setBounds(310, 523, 97, 25);
 		contentPane.add(runinput);
+		runinput.addActionListener(this);
 
 		reset = new JButton("Reset");
 		reset.setBounds(426, 484, 97, 25);
@@ -248,7 +248,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("IR", IR);
 
 		load.setEnabled(false);
-		runinput.setEnabled(false);
 
 	}
 
@@ -271,14 +270,19 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			}
 			//Needs to run through the FileLoader Instruction Parser to work properly
 		} else if (e.getSource() == runinput) {
-			cpu.executeInstruction(textField.getText());
+			System.out.println("User Input");
+			String user_input = textField.getText();
+			System.out.println(user_input);
+			cpu.executeInstruction(user_input);
+			
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
 			start.setEnabled(true);
 			cont.setEnabled(true);
 			macrostep.setEnabled(true);
 			microstep.setEnabled(true);
-		}
+		} 
+		System.out.println("ldjfksdl");
 	}
 
 	// By giving a string value for register, and a value, registers can be
