@@ -6,9 +6,17 @@ package edu.gwu.seas.csci;
  */
 
 public interface CPUConstants {
+	
+	/**
+	 * General CPU constants
+	 */
+	
+	public static final int DEFAULT_BIT_SIZE = 18;
+	
 	/**
 	 * Public constants for register names
 	 */
+	
 	public static final String R0 = "R0";
 	public static final String R1 = "R1";
 	public static final String R2 = "R2";
@@ -44,11 +52,18 @@ public interface CPUConstants {
 	 * ALU constants
 	 */
 	
+	public static final String AND_OP = "AND";
+	public static final String OR_OP = "OR";
+	public static final String RIGHT_SHIFT = "right_shift";
+	public static final String LEFT_SHIFT = "left_shift";
+	
 	//On bits in the CC register that indicate conditions.
 	public static final int OVERFLOW = 0;
 	public static final int UNDERFLOW = 1;
 	public static final int DIVZERO = 2;
 	public static final int EQUALORNOT = 3;
+	
+
 	
 	
 	
