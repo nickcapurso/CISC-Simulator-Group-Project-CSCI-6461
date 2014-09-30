@@ -314,6 +314,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		macrostep.setEnabled(false);
 		microstep.setEnabled(false);
 	}
+	
+	public static void toggle_runinput(Boolean toggle) {
+		runinput.setEnabled(toggle);
+	}
 
 	public void append_to_terminal(String value) {
 		StyledDocument document = (StyledDocument) terminal.getDocument();

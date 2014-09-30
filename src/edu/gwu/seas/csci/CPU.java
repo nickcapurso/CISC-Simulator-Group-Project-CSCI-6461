@@ -246,12 +246,14 @@ public class CPU {
 
 		case "micro step":
 			System.out.println("Micro Step");
+			Computer_GUI.toggle_runinput(false);
 			singleInstruction();
 
 			if(prog_step == 0){
 				System.out.println("--------- Instruction Done ---------");
 				printAllRegisters();
 				advancePC();
+				Computer_GUI.toggle_runinput(true);
 			}
 			break;
 
@@ -272,9 +274,9 @@ public class CPU {
 			try {
 				Word word_command = Utils.StringToWord(step_type);
 				Utils.bitsetToString("input", word_command, 18);
-				setReg(MAR, word_command);
+				setReg(MDR, word_command);
 				cycle_count++;
-				prog_step++;
+				prog_step = prog_step + 2;
 				do {
 					singleInstruction();
 				} while(prog_step != 0);
@@ -305,6 +307,7 @@ public class CPU {
 
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+			System.out.println(mar_addr);
 			setReg(MDR, memory.get(mar_addr));
 			cycle_count++;
 			prog_step++;
