@@ -266,8 +266,27 @@ public class CPU {
 			System.out.println("--------- Instruction Done ---------");
 			printAllRegisters();
 			advancePC();
+			Computer_GUI.toggle_runinput(true);
 			break;
 
+		//Logic for machine fault
+		case "machine fault":
+			prog_step = 0; //Reset the prog_step initalize new operation
+			memory.put(Utils.registerToWord(regMap.get(PC), 18), 4); //store the PC in the designated memory address
+			setReg(MAR, memory.get(1)); //get the operation for the subroutine
+			System.out.println("Machine Fault");
+			while (cont_execution) {
+				singleInstruction();
+
+				if(prog_step == 0){
+					System.out.println("--------- Instruction Done ---------");
+					printAllRegisters();
+					advancePC();
+				}
+			}
+			cont_execution = true;
+			break;
+			
 		//Direct Execution - Does not advance PC
 		default:
 			System.out.println("Running user input");

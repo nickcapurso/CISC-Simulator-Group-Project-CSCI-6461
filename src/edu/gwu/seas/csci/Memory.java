@@ -51,6 +51,7 @@ public class Memory {
 	public void put(Word word, int address) throws IndexOutOfBoundsException {
 		// TODO: Need to work out Fault and Trap Logic
 		if (address > memory.length)
+			//Illegal Memory address fault
 			throw new IndexOutOfBoundsException();
 		memory[address] = word;
 	}
@@ -70,6 +71,7 @@ public class Memory {
 		int address = Utils.convertToInt(register, numBits);
 
 		if(address > memory.length)
+			//Illegal Memory address fault
 			throw new IndexOutOfBoundsException();
 		memory[address] = word;
 	}
@@ -84,6 +86,7 @@ public class Memory {
 	public Word get(int address) throws IndexOutOfBoundsException {
 		// TODO: Need to work out Fault and Trap Logic
 		if (address > memory.length)
+			//Illegal Memory address fault
 			throw new IndexOutOfBoundsException();
 		return memory[address];
 	}
@@ -100,6 +103,7 @@ public class Memory {
 		int address = Utils.convertToInt(register, numBits);
 
 		if(address > memory.length)
+			//Illegal Memory address fault
 			throw new IndexOutOfBoundsException();
 		return memory[address];
 	}

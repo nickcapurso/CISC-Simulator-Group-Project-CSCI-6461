@@ -170,63 +170,68 @@ public class Utils {
 	}
 	
 	public static Word StringToWord(String input) {
-		System.out.println("Test input is: " + input);
-		Word word = new Word();
-		// Read the opcode from the reader line.
-		String opcodeKeyString = input.substring(0, 3);
-		System.out.println(opcodeKeyString);
-		// Determine the class of the opcode from the Computer's
-		// context.
-		Context.InstructionClass instruction_class = context
-				.getOpcodeClasses().get(opcodeKeyString);
-		// Ensure the key returned a valid InstructionClass object.
-		if (instruction_class == null)
-			return null;
-		byte general_register = 0;
-		String instruction_elements[] = input.split(",");
-		byte index_register = 0;
-		byte address = 0;
-		byte indirection = 0;
-		byte opcode = 0;
-		// Switch on the class of opcode.
-
-		switch (instruction_class) {
-		case ARITH:
-			break;
-		case LD_STR:
-			// This is an example of why we need to switch on something
-			// other than opcode class.
-			if (opcodeKeyString.equals("LDX")
-					|| opcodeKeyString.equals("STX")) {
-				index_register = Byte.parseByte(input.substring(4, 5));
-				address = Byte.parseByte(instruction_elements[1]);
-				indirection = Byte.parseByte(instruction_elements[2]);
-				opcode = context.getOpCodeBytes().get(opcodeKeyString);
-			} else {
+		try {
+			System.out.println("Test input is: " + input);
+			Word word = new Word();
+			// Read the opcode from the reader line.
+			String opcodeKeyString = input.substring(0, 3);
+			System.out.println(opcodeKeyString);
+			// Determine the class of the opcode from the Computer's
+			// context.
+			Context.InstructionClass instruction_class = context
+					.getOpcodeClasses().get(opcodeKeyString);
+			// Ensure the key returned a valid InstructionClass object.
+			if (instruction_class == null)
+				return null;
+			byte general_register = 0;
+			String instruction_elements[] = input.split(",");
+			byte index_register = 0;
+			byte address = 0;
+			byte indirection = 0;
+			byte opcode = 0;
+			// Switch on the class of opcode.
+	
+			switch (instruction_class) {
+			case ARITH:
+				break;
+			case LD_STR:
+				// This is an example of why we need to switch on something
+				// other than opcode class.
+				if (opcodeKeyString.equals("LDX")
+						|| opcodeKeyString.equals("STX")) {
+					index_register = Byte.parseByte(input.substring(4, 5));
+					address = Byte.parseByte(instruction_elements[1]);
+					indirection = Byte.parseByte(instruction_elements[2]);
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+				} else {
+					general_register = Byte.parseByte(input.substring(4, 5));
+					index_register = Byte
+							.parseByte(instruction_elements[1]);
+					address = Byte.parseByte(instruction_elements[2]);
+					indirection = Byte.parseByte(instruction_elements[3]);
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+				}
+				writer.writeInstruction(word, opcode, general_register,
+						index_register, indirection, address);
+				break;
+			case LD_STR_IMD:
 				general_register = Byte.parseByte(input.substring(4, 5));
-				index_register = Byte
-						.parseByte(instruction_elements[1]);
-				address = Byte.parseByte(instruction_elements[2]);
-				indirection = Byte.parseByte(instruction_elements[3]);
+				address = Byte.parseByte(instruction_elements[1]);
 				opcode = context.getOpCodeBytes().get(opcodeKeyString);
+				writer.writeInstruction(word, opcode, general_register,
+						index_register, indirection, address);
+				break;
+			case LOGIC:
+				break;
+			case TRANS:
+				break;
+			default:
+				break;
 			}
-			writer.writeInstruction(word, opcode, general_register,
-					index_register, indirection, address);
-			break;
-		case LD_STR_IMD:
-			general_register = Byte.parseByte(input.substring(4, 5));
-			address = Byte.parseByte(instruction_elements[1]);
-			opcode = context.getOpCodeBytes().get(opcodeKeyString);
-			writer.writeInstruction(word, opcode, general_register,
-					index_register, indirection, address);
-			break;
-		case LOGIC:
-			break;
-		case TRANS:
-			break;
-		default:
-			break;
+			return word;
+		} catch (Exception e){
+			//This will be a Illegal Operation code
+			return null;
 		}
-		return word;
 	}
 }

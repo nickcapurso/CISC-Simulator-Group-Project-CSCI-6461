@@ -126,6 +126,7 @@ public class FileLoader implements Loader {
 			}
 			reader.close();
 		} catch (IOException e) {
+			//Illegal Operation Fault
 			throw new ParseException(e.getMessage(), 0);
 		}
 	}
