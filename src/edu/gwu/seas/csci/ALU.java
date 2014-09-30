@@ -152,13 +152,27 @@ public class ALU implements CPUConstants{
 		SIR();
 	}
 
-
 	
-	/* Multiplication instructions */
-	
+	/** 
+	 * Multiply register by register. OP1 and OP2 should hold the register values 
+	 * to multiple.  RESULT then holds the high order bits and RESULT2 contains
+	 * the low order bits.
+	 */
 	public static void MLT() {
-		//do a for loop that creates a sum
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
 		
+		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
+		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
+		
+		long result = op1Val * op2Val;
+		
+		int newBitSize = DEFAULT_BIT_SIZE * 2;
+		result = result >>> (64 - newBitSize);
+		
+		//BitSet totalResult = Utils.longToBitSet(result, newBitSize);
+		
+
 	}
 	
 	
@@ -237,18 +251,73 @@ public class ALU implements CPUConstants{
 	/* Shifter */
 	
 	/**
-	 * Shifts the contents of a register.  Direction is specified by the shiftType
-	 * and the number of shifts is specified by the count.
-	 * @param count
-	 * @param shiftType
+	 * Shifts the contents of a register.  The value to be shifted is stored in OP1.  The number of shifts is in OP2.
+	 * If left shifting, then OP3 should hold a value of 1.  If right shifting is specified, then OP3 should be empty.
+	 * If logically shifting, then OP4 should have a value of 1.  If arithmetic shifting, OP4 should be empty.
 	 */
-	public static void SRC(int count, String shiftType) {
-		// TODO Auto-generated method stub
+	public static void SRC() {
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
+		Register op3 = cpu.getReg(OP3);
+		Register op4 = cpu.getReg(OP4);
+		
+		Boolean left_shift = true;
+		Boolean logical_shift = true;
+		int regSize = op1.getNumBits();
+		int origVal = Utils.convertToInt(op1, regSize);
+		int count = Utils.convertToInt(op2, op2.getNumBits());
+		
+		if (op3.isEmpty()) {
+			left_shift = false;
+		}
+		if (op4.isEmpty()) {
+			logical_shift = false;
+		}
+		
+		
+		int finalVal = 0;
+		
+		
+		if (left_shift) { //Left shift is same for both arith and logical
+			finalVal = origVal << count;
+		} else if (logical_shift) { //Right shift filling in zeros from leftmost side.
+			finalVal = origVal >>> count;
+		} else if (!logical_shift) { //Right shift fills in same as sign bit from leftmost side.
+			finalVal = origVal >> count;
+		}
+		
+		BitSet resultVal = Utils.intToBitSet(finalVal, regSize);
+		
+		cpu.setReg(RESULT, resultVal, regSize);
+		
+		
+		
+		// part of attempt when considering implementation with for loops...
+		/*
+		if (left_shift) {
+			for (int i = 0; i < regSize; i++) {
+				int newIndex = i + count;
+				
+				if (newIndex >= (regSize - 1) ) {
+					continue; //These bits have been shifted out of scope for the register.
+				} else {
+					if (op1.get(i)) {
+						resultVal.set(bitIndex);
+					}
+				}
+			}
+		}
+		*/
+
 		
 	}
-
+	/**
+	 * Rotates the contents of a register.  The value to be shifted is stored in OP1.  The number of shifts is in OP2.
+	 * If left shifting, then OP3 should hold a value of 1.  If right shifting is specified, then OP3 should be empty.
+	 * If logically shifting, then OP4 should have a value of 1.  If arithmetic shifting, OP4 should be empty.
+	 */
 	public static void RRC() {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
