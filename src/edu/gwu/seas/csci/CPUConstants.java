@@ -42,6 +42,7 @@ public interface CPUConstants {
 	public static final String OP3 = "OP3";
 	public static final String OP4 = "OP4";
 	public static final String RESULT = "RESULT";
+	public static final String RESULT2 = "RESULT2";
 	public static final String RX = "RX";
 	public static final String RY = "RY";
 	public static final String AL = "AL";
