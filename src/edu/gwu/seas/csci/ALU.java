@@ -1,6 +1,8 @@
 package edu.gwu.seas.csci;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 /**
  * The ALU class contains the implementation for the arithmetical and logical instructions.
@@ -172,6 +174,50 @@ public class ALU implements CPUConstants{
 		
 		//BitSet totalResult = Utils.longToBitSet(result, newBitSize);
 		
+		//Attempt 2: binary multiplication
+		
+		
+		
+		List<BitSet> addList = new ArrayList<BitSet>();
+		BitSet finalResult = new BitSet();
+		
+		int op2Length = op2.length();
+		int op1Length = op1.length();
+		
+		for (int i = 0; i < op2Length; i++) {
+			//Create and fill a new bitset for each index in the op2 binary array that is multiplied against op1
+			BitSet b = new BitSet();
+			
+			//Multiply op2[i] * op1.  Store product in b.
+			//int carry = 0;
+			
+			for (int j = 0; j < op1Length; j++) {
+				if (op1.get(j) && op2.get(i)) { //1 * 1
+					b.set(i + j, true);
+				} else {
+					b.set(i + j, false);
+				}
+			}
+			
+			addList.add(b);
+		}
+		
+		//After list of all product bitsets is generated...they are added together.
+		
+		//One addition operand is removed from the list		
+		if (!addList.isEmpty()) {
+			finalResult = addList.get(0);
+			addList.remove(0);
+		}
+		
+		
+		while (!addList.isEmpty()) {
+			for (BitSet b : addList) {
+				//Add 2 numbers together and remove b from list
+			}
+		}
+		
+		
 
 	}
 	
@@ -317,6 +363,37 @@ public class ALU implements CPUConstants{
 	 * If logically shifting, then OP4 should have a value of 1.  If arithmetic shifting, OP4 should be empty.
 	 */
 	public static void RRC() {
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
+		Register op3 = cpu.getReg(OP3);
+		Register op4 = cpu.getReg(OP4);
+		
+		Boolean left_shift = true;
+		Boolean logical_shift = true;
+		int regSize = op1.getNumBits();
+		int origVal = Utils.convertToInt(op1, regSize);
+		int count = Utils.convertToInt(op2, op2.getNumBits());
+		
+		if (op3.isEmpty()) {
+			left_shift = false;
+		}
+		if (op4.isEmpty()) {
+			logical_shift = false;
+		}
+		
+		//Rotate bits
+		BitSet resultVal = new BitSet(regSize);
+		
+		if (left_shift) {
+			//copy orig right half
+			for (int i = 0; i < regSize - 1 - count; i++) {
+				resultVal.set(i + count, op1.get(i));
+			}
+			//copy orig left half
+			for (int i = 0; i < count; i++) {
+				resultVal.set(i, op1.get(regSize - count));
+			}
+		}
 		
 		
 	}
