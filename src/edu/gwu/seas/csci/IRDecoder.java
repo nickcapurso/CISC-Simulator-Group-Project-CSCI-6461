@@ -71,7 +71,11 @@ public class IRDecoder {
 			// IR.get(InstructionBitFormats.TRAP_CODE_START,
 			// InstructionBitFormats.TRAP_CODE_END+1);
 			break;
+
 		case LD_STR:
+		case LD_STR_IMD:
+		case TRANS:
+		case ARITH:
 			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
@@ -92,33 +96,45 @@ public class IRDecoder {
 					InstructionBitFormats.LD_STR_ADDR_END + 1),
 					InstructionBitFormats.LD_STR_ADDR_SIZE);
 			break;
-		case LD_STR_IMD:
+
+		case XY_ARITH:
+			cpu.setReg(CPU.RX, IR.get(
+					InstructionBitFormats.XY_ARITH_RX_START,
+					InstructionBitFormats.XY_ARITH_RX_END+1),
+					InstructionBitFormats.XY_ARITH_RX_SIZE);
+			
+			cpu.setReg(CPU.RY, IR.get(
+					InstructionBitFormats.XY_ARITH_RY_START, 
+					InstructionBitFormats.XY_ARITH_RY_END+1),
+					InstructionBitFormats.XY_ARITH_RY_SIZE);
 			break;
-		case ARITH:
-			// IR.get(InstructionBitFormats.XY_ARITH_RX_START,
-			// InstructionBitFormats.XY_ARITH_RX_END+1);
-			// IR.get(InstructionBitFormats.XY_ARITH_RY_START,
-			// InstructionBitFormats.XY_ARITH_RY_END+1);
-			break;
+			
 		case SHIFT:
-			// IR.get(InstructionBitFormats.SHIFT_R_START,
-			// InstructionBitFormats.SHIFT_R_END+1);
-			// IR.get(InstructionBitFormats.SHIFT_AL_START,
-			// InstructionBitFormats.SHIFT_AL_END+1);
-			// IR.get(InstructionBitFormats.SHIFT_LR_START,
-			// InstructionBitFormats.SHIFT_LR_END+1);
-			// IR.get(InstructionBitFormats.SHIFT_COUNT_START,
-			// InstructionBitFormats.SHIFT_COUNT_END+1);
+			cpu.setReg(CPU.R, IR.get(
+					InstructionBitFormats.SHIFT_R_START, 
+					InstructionBitFormats.SHIFT_R_END+1),
+					InstructionBitFormats.SHIFT_R_SIZE);
+			
+			cpu.setReg(CPU.AL, IR.get(
+					InstructionBitFormats.SHIFT_AL_START, 
+					InstructionBitFormats.SHIFT_AL_END+1),
+					InstructionBitFormats.SHIFT_AL_SIZE);
+			
+			cpu.setReg(CPU.LR, IR.get(
+					InstructionBitFormats.SHIFT_LR_START, 
+					InstructionBitFormats.SHIFT_LR_END+1),
+					InstructionBitFormats.SHIFT_LR_SIZE);
+			
+			cpu.setReg(CPU.COUNT, IR.get(
+					InstructionBitFormats.SHIFT_COUNT_START, 
+					InstructionBitFormats.SHIFT_COUNT_END+1),
+					InstructionBitFormats.SHIFT_COUNT_SIZE);
 			break;
 		case IO:
 			// IR.get(InstructionBitFormats.IO_R_START,
 			// InstructionBitFormats.IO_R_END+1);
 			// IR.get(InstructionBitFormats.IO_DEVID_START,
 			// InstructionBitFormats.IO_DEVID_END+1);
-			break;
-		case LOGIC:
-			break;
-		case TRANS:
 			break;
 		default:
 			break;

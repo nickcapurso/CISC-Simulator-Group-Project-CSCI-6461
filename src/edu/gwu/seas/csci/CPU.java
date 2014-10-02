@@ -19,28 +19,8 @@ import edu.gwu.seas.csci.Utils;
  * respectively access memory, parse instructions, and load the boot loader program.
  * 
  */
-public class CPU {
-	// Public constants for register names
-	public static final String R0 = "R0";
-	public static final String R1 = "R1";
-	public static final String R2 = "R2";
-	public static final String R3 = "R3";
-	public static final String X1 = "X1";
-	public static final String X2 = "X2";
-	public static final String X3 = "X3";
-	public static final String PC = "PC";
-	public static final String IR = "IR";
-	public static final String CC = "CC";
-	public static final String MAR = "MAR";
-	public static final String MDR = "MDR";
-	public static final String MSR = "MSR";
-	public static final String MFR = "MFR";
-	public static final String OPCODE = "OPCODE";
-	public static final String I = "I";
-	public static final String R = "R";
-	public static final String IX = "IX";
-	public static final String ADDR = "ADDR";
-	public static final String EA = "EA";
+public class CPU implements CPUConstants {
+
 
 	public static final byte BOOTLOADER_START = 010;
 
@@ -69,7 +49,6 @@ public class CPU {
 
 		// Special registers
 		regMap.put(PC, new Register(12));
-		// set PC to start of Program Counter
 		regMap.put(IR, new Register());
 		regMap.put(CC, new Register(4));
 		regMap.put(MAR, new Register());
@@ -77,6 +56,17 @@ public class CPU {
 		regMap.put(MSR, new Register());
 		regMap.put(MFR, new Register(4));
 
+		// Assuming EA should be as large as the MAR register
+		regMap.put(EA, new Register());
+		
+		// ALU Registers
+		regMap.put(OP1, new Register());
+		regMap.put(OP2, new Register());
+		regMap.put(OP3, new Register());
+		regMap.put(OP4, new Register());
+		regMap.put(RESULT, new Register());
+		regMap.put(RESULT2, new Register());
+		
 		// Registers for Load and Store instructions
 		regMap.put(OPCODE, new Register(InstructionBitFormats.OPCODE_SIZE));
 		regMap.put(IX, new Register(InstructionBitFormats.LD_STR_IX_SIZE));
@@ -84,15 +74,22 @@ public class CPU {
 		regMap.put(I, new Register(InstructionBitFormats.LD_STR_I_SIZE));
 		regMap.put(ADDR, new Register(InstructionBitFormats.LD_STR_ADDR_SIZE));
 
-		// Assuming EA should be as large as the MAR register?
-		regMap.put(EA, new Register());
+		// Registers for register-register instructions
+		regMap.put(RX, new Register(InstructionBitFormats.XY_ARITH_RX_SIZE));
+		regMap.put(RY, new Register(InstructionBitFormats.XY_ARITH_RY_SIZE));
+		
+		// Registers for shift instructions
+		regMap.put(AL, new Register(InstructionBitFormats.SHIFT_AL_SIZE));
+		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_START));
+		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
+		
 
 		memory = Memory.getInstance();
 		irdecoder = new IRDecoder(this);
 		romLoader = new FileLoader();
 
 
-		// Example of manually setting up memory and running LDR instruction
+		// Example of manually setting up memory
 
 		//$54 = 100 (1100100)
 		Word location54 = new Word();
@@ -190,7 +187,7 @@ public class CPU {
 			Register destination = regMap.get(destName);
 			//System.out.println("Source: " + destName + " size: "
 			//	+ destination.getNumBits());
-			Utils.bitsetDeepCopy(sourceMemory, 18, destination,
+			Utils.bitsetDeepCopy(sourceMemory, DEFAULT_BIT_SIZE, destination,
 					destination.getNumBits());
 
 			// update the GUI
@@ -406,15 +403,13 @@ public class CPU {
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
-				cycle_count++;
-				prog_step++;
-				break;
-			case 6:
+				
+				//registerFile(R) -> MDR
 				setReg(MDR, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
+			case 6:
 				//MDR -> Mem(MAR)
 				memory.put(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), getReg(MAR).getNumBits());
 				cycle_count++;
@@ -481,22 +476,535 @@ public class CPU {
 			case 5:
 				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
-				cycle_count++;
-				prog_step++;
-				break;
-			case 6:
+				
 				//indexRegFile(R) -> MDR
 				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
+			case 6:
 				//MDR -> Mem(MAR)
 				memory.put(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), regMap.get(MAR).getNumBits());
 				cycle_count++;
 				prog_step=0;
 				break;
 
+			}
+			break;
+			
+		case OpCodesList.JZ:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 6:
+				//Perform equal to zero comparison in ALU
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 7:
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+					setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.JNE:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 6:
+				//Perform not equal to zero comparison in ALU
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 7:
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+					setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.JCC:
+			//Multiple scenarios possible based on ALU implementation
+				//Could move CC to OP1 and the mask to OP2, then perform AND
+				//Could just supply a mask and use a test CC method in ALU
+				//etc..
+			//If RESULT == 1
+				//EA -> PC
+			cycle_count++;
+			prog_step = 0;
+			break;
+			
+		case OpCodesList.JMP:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//EA -> PC
+				setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.JSR:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				int temp = Utils.convertToInt(getReg(PC), getReg(PC).getNumBits()) + 1;
+				//PC+1 -> R3
+				setReg(R3, Utils.intToBitSet(temp, getReg(R3).getNumBits()), 
+						getReg(R3).getNumBits());
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 6:
+				//EA -> PC
+				setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;	
+			}
+			break;
+			
+		case OpCodesList.RFS:
+			switch(prog_step){
+			case 4:
+				//ADDR -> R0
+				setReg(R0, getReg(ADDR));
+				cycle_count++;
+				prog_step++;	
+				break;	
+			case 5:
+				//R3 -> PC 
+				setReg(PC, getReg(R3));
+				cycle_count++;
+				prog_step = 0;	
+				break;	
+			}
+			break;
+			
+		case OpCodesList.SOB:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//Perform subtract one (or need another move -1 to OP2) in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 7:
+				//Perform greater than 0 comparison in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 8:
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+					setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.JGE:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//Perform greater than/equal comparison in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 7:
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+					setReg(PC, getReg(EA));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.AMR:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//EA -> OP2 (if indirection, EA will also already be holding the data)
+				setReg(OP2, getReg(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//Perform add in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 7:
+				//RESULT -> registerFile(R) 
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.SMR:
+			switch(prog_step){
+			case 4:
+				calculateEA(true);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//EA -> OP2 (if indirection, EA will also already be holding the data)
+				setReg(OP2, getReg(EA));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//Perform subtract in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 7:
+				//RESULT -> registerFile(R) 
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.AIR:
+			switch(prog_step){
+			case 4:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//ADDR -> OP2 (ADDR contains immediate data)
+				setReg(OP2, getReg(ADDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform add in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(R) 
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.SIR:
+			switch(prog_step){
+			case 4:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//ADDR -> OP2 (ADDR contains immediate data)
+				setReg(OP2, getReg(ADDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform subtract in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(R) 
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.MLT:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				
+				//registerFile(RY) -> OP2
+				setReg(OP2, getReg(registerFile(getReg(RY))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform multiply in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RX will contain the high order word
+				setReg(registerFile(getReg(RX)), getReg(RESULT));
+				
+				//RX+1 will contain the low order word
+				//RX can only be 0 or 2
+				if(registerFile(getReg(RX)).equals(R0))
+					setReg(R1, getReg(RESULT2));
+				else
+					setReg(R3, getReg(RESULT2));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.DVD:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				
+				//registerFile(RY) -> OP2
+				setReg(OP2, getReg(registerFile(getReg(RY))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform divide in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RX will contain the quotient
+				setReg(registerFile(getReg(RX)), getReg(RESULT));
+				
+				//RX+1 will contain the remainder
+				//RX can only be 0 or 2
+				if(registerFile(getReg(RX)).equals(R0))
+					setReg(R1, getReg(RESULT2));
+				else
+					setReg(R3, getReg(RESULT2));
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.TRR:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				
+				//registerFile(RY) -> OP2
+				setReg(OP2, getReg(registerFile(getReg(RY))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform equality test in ALU (also sets the condition code)
+				cycle_count++;
+				prog_step = 0;	
+				break;
+			}
+			break;
+			
+		case OpCodesList.AND:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				
+				//registerFile(RY) -> OP2
+				setReg(OP2, getReg(registerFile(getReg(RY))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform AND in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(RX)
+				setReg(registerFile(getReg(RX)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.ORR:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				
+				//registerFile(RY) -> OP2
+				setReg(OP2, getReg(registerFile(getReg(RY))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform OR in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(RX)
+				setReg(registerFile(getReg(RX)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.NOT:
+			switch(prog_step){
+			case 4:
+				//registerFile(RX) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(RX))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform NOT in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(RX)
+				setReg(registerFile(getReg(RX)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.SRC:
+			switch(prog_step){
+			case 4:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//COUNT -> OP2
+				setReg(OP2, getReg(registerFile(getReg(COUNT))));
+				
+				//AL -> OP3
+				setReg(OP3, getReg(registerFile(getReg(AL))));
+				
+				//LR -> OP4
+				setReg(OP4, getReg(registerFile(getReg(LR))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform shift in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(R)
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;
+				break;
+			}
+			break;
+			
+		case OpCodesList.RRC:
+			switch(prog_step){
+			case 4:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//COUNT -> OP2
+				setReg(OP2, getReg(registerFile(getReg(COUNT))));
+				
+				//AL -> OP3
+				setReg(OP3, getReg(registerFile(getReg(AL))));
+				
+				//LR -> OP4
+				setReg(OP4, getReg(registerFile(getReg(LR))));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				//Perform rotate in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 6:
+				//RESULT -> registerFile(R)
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				cycle_count++;
+				prog_step = 0;
+				break;
 			}
 			break;
 
