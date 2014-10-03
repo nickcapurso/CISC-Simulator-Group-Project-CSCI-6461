@@ -170,12 +170,18 @@ public class Utils {
 	}
 	
 	public static Word StringToWord(String input) {
+		byte opcode, general_register, index_register, address, indirection,
+		register_x, register_y, count, lr, al;
+		String temp = null;
+		
+		opcode = general_register = index_register = address = indirection = register_x = 
+				register_y = count = lr = al = 0;
+		
 		try {
 			System.out.println("Test input is: " + input);
 			Word word = new Word();
 			// Read the opcode from the reader line.
-			String opcodeKeyString = input.substring(0, 3);
-			System.out.println(opcodeKeyString);
+			String opcodeKeyString = temp.substring(0, 3);
 			// Determine the class of the opcode from the Computer's
 			// context.
 			Context.InstructionClass instruction_class = context
@@ -183,47 +189,81 @@ public class Utils {
 			// Ensure the key returned a valid InstructionClass object.
 			if (instruction_class == null)
 				return null;
-			byte general_register = 0;
-			String instruction_elements[] = input.split(",");
-			byte index_register = 0;
-			byte address = 0;
-			byte indirection = 0;
-			byte opcode = 0;
+			
+			String instruction_elements[] = temp.split(",");
+			opcode = general_register = index_register = address = indirection = register_x = 
+					register_y = count = lr = al = 0;
+			
 			// Switch on the class of opcode.
-	
 			switch (instruction_class) {
-			case ARITH:
-				break;
 			case LD_STR:
+			case ARITH:
+			case TRANS:
 				// This is an example of why we need to switch on something
 				// other than opcode class.
-				if (opcodeKeyString.equals("LDX")
-						|| opcodeKeyString.equals("STX")) {
-					index_register = Byte.parseByte(input.substring(4, 5));
+				if (opcodeKeyString.equals("LDX") || opcodeKeyString.equals("STX")
+						|| opcodeKeyString.equals("JMP") || opcodeKeyString.equals("JSR")) {
+					index_register = Byte.parseByte(temp.substring(4, 5));
 					address = Byte.parseByte(instruction_elements[1]);
-					indirection = Byte.parseByte(instruction_elements[2]);
+					
+					//Optional indirection check
+					if(instruction_elements.length < 3)
+						indirection = 0;
+					else
+						indirection = Byte.parseByte(instruction_elements[2]);
 					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					
+				} else if (opcodeKeyString.equals("AIR") || opcodeKeyString.equals("SIR")) {
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					general_register = Byte.parseByte(temp.substring(4, 5));
+					address = Byte.parseByte(instruction_elements[1]);
+					
+				} else if (opcodeKeyString.equals("RFS")) {
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					address = Byte.parseByte(temp.substring(4, temp.length()));
+					
 				} else {
-					general_register = Byte.parseByte(input.substring(4, 5));
+					general_register = Byte.parseByte(temp.substring(4, 5));
 					index_register = Byte
 							.parseByte(instruction_elements[1]);
 					address = Byte.parseByte(instruction_elements[2]);
-					indirection = Byte.parseByte(instruction_elements[3]);
+					
+					//Optional indirection check
+					if(instruction_elements.length < 4)
+						indirection = 0;
+					else
+						indirection = Byte.parseByte(instruction_elements[3]);
 					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 				}
-				writer.writeInstruction(word, opcode, general_register,
+				System.out.println("Writing: opcode = " + opcode + ", R = " + general_register + ", X = " +
+						index_register + ", I = " + indirection + ", ADDR = " + address);
+				writer.writeLoadStoreFormatInstruction(word, opcode, general_register,
 						index_register, indirection, address);
 				break;
-			case LD_STR_IMD:
-				general_register = Byte.parseByte(input.substring(4, 5));
-				address = Byte.parseByte(instruction_elements[1]);
+			case XY_ARITH_LOGIC:
+				if(opcodeKeyString.equals("NOT")) {
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					register_x = Byte.parseByte(temp.substring(4, 5));
+				} else {
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					register_x = Byte.parseByte(temp.substring(4, 5));
+					register_y = Byte.parseByte(instruction_elements[1]);
+				}
+				
+				System.out.println("Writing: opcode = " + opcode + ", RX = " + register_x + ", RY = " +
+						register_y);
+				writer.writeXYArithInstruction(word, opcode, register_x, register_y);
+				break;
+			case SHIFT:
 				opcode = context.getOpCodeBytes().get(opcodeKeyString);
-				writer.writeInstruction(word, opcode, general_register,
-						index_register, indirection, address);
-				break;
-			case LOGIC:
-				break;
-			case TRANS:
+				general_register = Byte.parseByte(temp.substring(4, 5));
+				count = Byte.parseByte(instruction_elements[1]);
+				lr = Byte.parseByte(instruction_elements[2]);
+				al = Byte.parseByte(instruction_elements[3]);
+				
+				System.out.println("Writing: opcode = " + opcode + ", R = " + general_register + ", COUNT = " +
+						count + ", LR = " + lr + ", AL = " + al);
+				writer.writeShiftInstruction(word, opcode, general_register, count, lr, al);
 				break;
 			default:
 				break;

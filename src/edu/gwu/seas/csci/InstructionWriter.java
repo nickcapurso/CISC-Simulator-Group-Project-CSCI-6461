@@ -31,13 +31,40 @@ public class InstructionWriter {
 	 * @param address
 	 *            The address value to insert into the word.
 	 */
-	public void writeInstruction(Word word, byte opcode, byte general_register,
+	public void writeLoadStoreFormatInstruction(Word word, byte opcode, byte general_register,
 			byte index_register, byte indirection, byte address) {
 		setOpcode(word, opcode);
 		setGeneralRegister(word, general_register);
 		setIndexRegister(word, index_register);
 		setIndirection(word, indirection);
 		setAddress(word, address);
+	}
+	
+	/**
+	 *  Insters the internal components of a {@link Word} in an
+	 *  {@link Context.InstructionClass} XY_ARITH internal format.
+	 *  
+	 * @param word
+	 *            The word into which the elements will be inserted.
+	 * @param opcode
+	 *            The opcode value to insert into the word.
+	 * @param register_x
+	 * 			  The first register operand.
+	 * @param register_y
+	 * 			  The second register operand.
+	 */
+	public void writeXYArithInstruction(Word word, byte opcode, byte register_x, byte register_y){
+		setOpcode(word, opcode);
+		setXRegister(word, register_x);
+		setYRegister(word, register_y);
+	}
+	
+	public void writeShiftInstruction(Word word, byte opcode, byte general_register, byte count, byte lr, byte al){
+		setOpcode(word, opcode);
+		setGeneralRegister(word, general_register);
+		setCount(word, count);
+		setLR(word, lr);
+		setAL(word, al);
 	}
 
 	/**
@@ -106,5 +133,41 @@ public class InstructionWriter {
 	 */
 	private void setAddress(Word word, byte address) {
 		Utils.byteToBitSetDeepCopy(address, word, (byte) 8, (byte) 17);
+	}
+	
+	/**
+	 * Puts the first register operand in bit positions 6-7
+	 * 
+	 * @param word
+	 * 			  The unit of memory.
+	 * @param register_x
+	 * 			  The first register operand.
+	 */
+	private void setXRegister(Word word, byte register_x){
+		Utils.byteToBitSetDeepCopy(register_x, word, InstructionBitFormats.XY_ARITH_RX_SIZE, InstructionBitFormats.XY_ARITH_RX_END);
+	}
+	
+	/**
+	 * Puts the first register operand in bit positions 8-9
+	 * 
+	 * @param word
+	 * 			  The unit of memory.
+	 * @param register_x
+	 * 			  The second register operand.
+	 */
+	private void setYRegister(Word word, byte register_y){
+		Utils.byteToBitSetDeepCopy(register_y, word, InstructionBitFormats.XY_ARITH_RY_SIZE, InstructionBitFormats.XY_ARITH_RY_END);
+	}
+	
+	private void setLR(Word word, byte lr){
+		Utils.byteToBitSetDeepCopy(lr, word, InstructionBitFormats.SHIFT_LR_SIZE, InstructionBitFormats.SHIFT_LR_END);
+	}
+	
+	private void setAL(Word word, byte al){
+		Utils.byteToBitSetDeepCopy(al, word, InstructionBitFormats.SHIFT_AL_SIZE, InstructionBitFormats.SHIFT_AL_END);
+	}
+	
+	private void setCount(Word word, byte count){
+		Utils.byteToBitSetDeepCopy(count, word, InstructionBitFormats.SHIFT_COUNT_SIZE, InstructionBitFormats.SHIFT_COUNT_END);
 	}
 }

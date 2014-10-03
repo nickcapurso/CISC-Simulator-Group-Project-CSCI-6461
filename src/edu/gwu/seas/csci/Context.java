@@ -21,7 +21,7 @@ public class Context {
 	 * @author Alex Remily
 	 */
 	public enum InstructionClass {
-		LD_STR, LD_STR_IMD, TRANS, LOGIC, HALT, TRAP, ARITH, XY_ARITH, SHIFT, IO
+		LD_STR, TRANS, HALT, TRAP, ARITH, XY_ARITH_LOGIC, SHIFT, IO
 	}
 
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
@@ -64,12 +64,12 @@ public class Context {
 		opcodeClasses.put("SIR", InstructionClass.ARITH);
 		
 		//Arithmetic/logical (register-register) instructions
-		opcodeClasses.put("MLT", InstructionClass.XY_ARITH);
-		opcodeClasses.put("DVD", InstructionClass.XY_ARITH);
-		opcodeClasses.put("TRR", InstructionClass.XY_ARITH);
-		opcodeClasses.put("AND", InstructionClass.LOGIC);
-		opcodeClasses.put("ORR", InstructionClass.LOGIC);
-		opcodeClasses.put("NOT", InstructionClass.LOGIC);
+		opcodeClasses.put("MLT", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("DVD", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("TRR", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("AND", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("ORR", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("NOT", InstructionClass.XY_ARITH_LOGIC);
 		
 		//Shift/rotate instructions
 		opcodeClasses.put("SRC", InstructionClass.SHIFT);
