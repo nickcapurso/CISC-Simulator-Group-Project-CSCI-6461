@@ -6,7 +6,7 @@ import java.util.*;
 import edu.gwu.seas.csci.Utils;
 
 /**
- * The CPU class is modelled after the Von Neumann architecture, where the 
+ * The CPU class is modeled after the Von Neumann architecture, where the 
  * CPU contains various types of registers and controls the logic between them. 
  * The registers include four general purpose registers, three index registers, 
  * memory-access registers, and various special-purpose registers (for example, a 
@@ -32,6 +32,7 @@ public class CPU implements CPUConstants {
 	private Memory memory;
 	private IRDecoder irdecoder;
 	private Loader romLoader;
+	//private ALU alu = new ALU(this);
 
 	// Constructor
 	public CPU() {
