@@ -62,7 +62,7 @@ public class FileLoader implements Loader {
 	 * @see edu.gwu.seas.csci.Loader#load(java.lang.Object)
 	 */
 	@Override
-	public void load(Object input) throws ParseException {
+	public void load(BufferedReader reader) throws ParseException {
 		try {
 			String temp = null;
 			short memory_location = 8; // Locations 0-5 are reserved.
@@ -122,7 +122,7 @@ public class FileLoader implements Loader {
 				default:
 					break;
 				}
-				memory.put(word, memory_location++);
+				memory.write(word, memory_location++);
 			}
 			reader.close();
 		} catch (IOException e) {

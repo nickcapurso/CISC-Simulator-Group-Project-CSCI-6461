@@ -10,7 +10,9 @@ import javax.swing.JTextField;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.BitSet;
 import java.util.HashMap;
 
@@ -36,7 +38,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private FileLoader fileloader;
 	private CPU cpu;
 	private JLabel opcode_name;
-	private static HashMap<String, JRadioButton[]> Registers; // map of registers on gui
+	private static HashMap<String, JRadioButton[]> Registers; // map of
+																// registers on
+																// gui
 
 	/**
 	 * Create the frame.
@@ -224,7 +228,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		}
 
 		JRadioButton[] IR = new JRadioButton[6];
-		for (int i = 0; i<6; i++) {
+		for (int i = 0; i < 6; i++) {
 			IR[i] = new JRadioButton();
 			IR[i].setEnabled(false);
 			IR[i].setBounds(547 + 24 * i, 170, 20, 20);
@@ -252,7 +256,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 	}
 
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == start || e.getSource() == cont) {
@@ -260,16 +263,19 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == microstep) {
 			cpu.executeInstruction("micro step");
 		} else if (e.getSource() == macrostep) {
-			cpu.executeInstruction("macro step");		
+			cpu.executeInstruction("macro step");
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
 				File load_file = new File(filepath);
-				fileloader.load(load_file);
-			} catch (Exception ex) { //Catch exception if any
+				FileReader file_reader = new FileReader(load_file);
+				BufferedReader buffered_reader = new BufferedReader(file_reader);
+				fileloader.load(buffered_reader);
+			} catch (Exception ex) { // Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
-			//Needs to run through the FileLoader Instruction Parser to work properly
+			// Needs to run through the FileLoader Instruction Parser to work
+			// properly
 		} else if (e.getSource() == runinput) {
 			cpu.executeInstruction(textField.getText());
 		} else if (e.getSource() == reset) {

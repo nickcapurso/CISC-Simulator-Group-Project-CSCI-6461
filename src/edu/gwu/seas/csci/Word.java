@@ -24,4 +24,15 @@ public class Word extends BitSet {
 	public Word() {
 		super(18);
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Word" + super.toString() + " ";
+	}
+
 }

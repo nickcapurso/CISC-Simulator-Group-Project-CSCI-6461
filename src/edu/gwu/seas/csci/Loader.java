@@ -3,6 +3,7 @@
  */
 package edu.gwu.seas.csci;
 
+import java.io.BufferedReader;
 import java.text.ParseException;
 
 /**
@@ -20,11 +21,12 @@ public interface Loader {
 	 * 
 	 * @param input
 	 *            The resource to load. Implementing classes should specify the
-	 *            resource type that they load, e.g., a file or an input stream.
+	 *            resource type that they load, e.g., what type of Reader is
+	 *            being buffered.
 	 * @throws ParseException
 	 *             If the input cannot be parsed.
 	 */
-	public void load(Object input) throws ParseException;
+	public void load(BufferedReader reader) throws ParseException;
 
 	/**
 	 * Expects a source of input to be provided by the implementing class and
@@ -38,5 +40,5 @@ public interface Loader {
 	 *             If the input is not of the expected type.
 	 */
 	public void load() throws NullPointerException, ParseException,
-	IllegalArgumentException;
+			IllegalArgumentException;
 }

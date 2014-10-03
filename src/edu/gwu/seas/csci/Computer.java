@@ -9,12 +9,11 @@ import javax.swing.JFrame;
 public class Computer {
 
 	private CPU cpu = null;
-	private Memory memory = null;
+	private Memory memory = Memory.getInstance();;
 	private Computer_GUI gui = null;
 
 	private Computer() {
-		cpu = new CPU();
-		memory = Memory.getInstance();
+		cpu = new CPU(memory);
 		gui = new Computer_GUI(cpu, memory);
 		gui.setSize(1000, 650);
 		gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
