@@ -41,7 +41,7 @@ public class InstructionWriter {
 	}
 	
 	/**
-	 *  Insters the internal components of a {@link Word} in an
+	 *  Inserts the internal components of a {@link Word} in an
 	 *  {@link Context.InstructionClass} XY_ARITH internal format.
 	 *  
 	 * @param word
@@ -59,6 +59,23 @@ public class InstructionWriter {
 		setYRegister(word, register_y);
 	}
 	
+	/**
+	 * Inserts the internal components of a {@link Word} in an
+	 *  {@link Context.InstructionClass} SHIFT internal format.
+	 *  
+	 * @param word
+	 *            The word into which the elements will be inserted.
+	 * @param opcode
+	 *            The opcode value to insert into the word.
+	 * @param general_register
+	 * 			  The general register value to insert into the word.
+	 * @param count
+	 * 			  The amount to shift by.
+	 * @param lr
+	 * 			  Indicates left or right shift.
+	 * @param al
+	 * 			  Indicates arithmetic or logical shift.
+	 */
 	public void writeShiftInstruction(Word word, byte opcode, byte general_register, byte count, byte lr, byte al){
 		setOpcode(word, opcode);
 		setGeneralRegister(word, general_register);
@@ -159,14 +176,33 @@ public class InstructionWriter {
 		Utils.byteToBitSetDeepCopy(register_y, word, InstructionBitFormats.XY_ARITH_RY_SIZE, InstructionBitFormats.XY_ARITH_RY_END);
 	}
 	
+	/**
+	 * Puts the LR operand in bit position 11
+	 * @param word
+	 * 			  The unit of memory.
+	 * @param lr
+	 * 			  Indicates left or right shift.
+	 */
 	private void setLR(Word word, byte lr){
 		Utils.byteToBitSetDeepCopy(lr, word, InstructionBitFormats.SHIFT_LR_SIZE, InstructionBitFormats.SHIFT_LR_END);
 	}
 	
+	/**
+	 * Puts the AL operand in bit position 10.
+	 * @param word
+	 * 			  The unit of memory.
+	 * @param al
+	 * 			  Indicates arithmetic or logical shift.
+	 */
 	private void setAL(Word word, byte al){
 		Utils.byteToBitSetDeepCopy(al, word, InstructionBitFormats.SHIFT_AL_SIZE, InstructionBitFormats.SHIFT_AL_END);
 	}
 	
+	/**
+	 * Puts the COUNT operand in bit positions 13-17
+	 * @param word
+	 * @param count
+	 */
 	private void setCount(Word word, byte count){
 		Utils.byteToBitSetDeepCopy(count, word, InstructionBitFormats.SHIFT_COUNT_SIZE, InstructionBitFormats.SHIFT_COUNT_END);
 	}
