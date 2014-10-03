@@ -86,8 +86,6 @@ public class FileLoader implements Loader {
 				// Switch on the class of opcode.
 
 				switch (instruction_class) {
-				case ARITH:
-					break;
 				case LD_STR:
 					// This is an example of why we need to switch on something
 					// other than opcode class.
@@ -108,7 +106,7 @@ public class FileLoader implements Loader {
 					writer.writeInstruction(word, opcode, general_register,
 							index_register, indirection, address);
 					break;
-				case LD_STR_IMD:
+				case ARITH:
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					address = Byte.parseByte(instruction_elements[1]);
 					opcode = context.getOpCodeBytes().get(opcodeKeyString);
