@@ -690,20 +690,33 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
-				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//EA -> OP2 (if indirection, EA will also already be holding the data)
-				setReg(OP2, getReg(EA));
+				//Need to fetch the data from memory, EA -> MAR
+				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
+				//Memory(MAR) -> MDR
+				setReg(MDR, memory.get(getReg(MAR), getReg(MAR).getNumBits()));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 8:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//MDR -> OP2
+				setReg(OP2, getReg(MDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 9:
 				//Perform add in ALU
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
+			case 10:
 				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
@@ -720,20 +733,33 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
-				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//EA -> OP2 (if indirection, EA will also already be holding the data)
-				setReg(OP2, getReg(EA));
+				//Need to fetch the data from memory, EA -> MAR
+				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
+				//Memory(MAR) -> MDR
+				setReg(MDR, memory.get(getReg(MAR), getReg(MAR).getNumBits()));
+				cycle_count++;
+				prog_step++;
+				break;
+				
+			case 8:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//MDR -> OP2
+				setReg(OP2, getReg(MDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 9:
 				//Perform subtract in ALU
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
+			case 10:
 				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
