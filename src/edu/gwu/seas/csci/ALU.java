@@ -274,7 +274,7 @@ public class ALU implements CPUConstants{
 		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
 		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
 		
-		if ((op1Val - op2Val) == 0) {
+		if (op1Val == op2Val) {
 			setCC(EQUALORNOT);
 		}
 		
@@ -441,6 +441,28 @@ public class ALU implements CPUConstants{
 		}
 		*/
 		
+	}
+	
+	/**
+	 * Greater than or equal comparison.  Given the contents of OP1 and OP2, a greater than or equal to check
+	 * is performed (OP1 >= OP2).  If the check is true, then RESULT will contain a positive value.  If false, then
+	 * result will contain the value 0.
+	 */
+	
+	public static void GTE() {
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
+		
+		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
+		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
+		
+		BitSet result = new BitSet(DEFAULT_BIT_SIZE);
+		
+		if (op1Val >= op2Val) {
+			result.set(0);
+		}
+		
+		cpu.setReg(RESULT, result, DEFAULT_BIT_SIZE);
 	}
 
 }
