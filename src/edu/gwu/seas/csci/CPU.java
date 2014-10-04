@@ -60,11 +60,12 @@ public class CPU implements CPUConstants {
 
 	private static class L1Cache {
 
+		private static final int CACHE_LENGTH = 16;
 		/**
 		 * Contains the contents of the L1 cache. We have 2<sup>4</sup> cache
 		 * lines.
 		 */
-		private static final L1CacheLine[] cache = new L1CacheLine[16];
+		private static final L1CacheLine[] cache = new L1CacheLine[CACHE_LENGTH];
 
 		/**
 		 * 
@@ -77,17 +78,32 @@ public class CPU implements CPUConstants {
 		private static byte cache_adds_counter = 0;
 
 		/**
-		 * TODO: Test Me.
+		 * Checks the cache for the contents of a given memory address. Iterates
+		 * through the tags of each line in the cache, and checks whether that
+		 * cache line contains the search address by checking whether the value
+		 * of the search address is between the value of the tag line address
+		 * and the tag line address plus the number of words in the cache line.
 		 * 
 		 * @param address
-		 * @return
+		 *            The memory address to search for in the cache, i.e., the
+		 *            search address.
+		 * @return The contents of the specified address or null if the
+		 *         specified memory address is not in the cache.
 		 */
 		public static Word read(int address) {
 			for (L1CacheLine line : cache) {
-				if (line != null)
-					if (line.getTag() >= address && address < line.getTag() + 6)
+				if (line != null) {
+					if (address >= line.getTag()
+							&& address < line.getTag()
+									+ L1CacheLine.WORDS_PER_LINE) {
+						System.out.println("Cache hit.  Found address "
+								+ address + " in cache line with tag "
+								+ line.getTag() + ".");
 						return line.getWord(address - line.getTag());
+					}
+				}
 			}
+			System.out.println("Cache miss.");
 			return null;
 		}
 
@@ -101,16 +117,28 @@ public class CPU implements CPUConstants {
 
 		/**
 		 * Adds a cache line to the cache. If the cache is full, it evicts a
-		 * random cache line to make room for the new cache line.
+		 * cache line at random to make room for the new cache line. Will not
+		 * evict a "dirty" cache line.
 		 * 
 		 * @param line
 		 *            The line to add to the cache.
 		 */
 		public static void add(L1CacheLine line) {
-			if (cache_adds_counter < 16)
+			if (cache_adds_counter < CACHE_LENGTH) {
+				System.out.println("Adding cache line with tag "
+						+ line.getTag() + " to cache at position "
+						+ cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
-			else
-				cache[generator.nextInt(cache.length)] = line;
+			} else {
+				int cache_position = 0;
+				do {
+					cache_position = generator.nextInt(cache.length);
+				} while (cache[cache_position].isDirty());
+				System.out.println("Adding cache line with tag "
+						+ line.getTag() + " to cache at position "
+						+ cache_position + ".");
+				cache[cache_position] = line;
+			}
 		}
 	}
 
@@ -124,6 +152,8 @@ public class CPU implements CPUConstants {
 	 * @author Alex Remily
 	 */
 	private static class L1CacheLine {
+
+		public static final int WORDS_PER_LINE = 6;
 
 		public static final byte DIRTY = 0x1;
 
@@ -198,6 +228,30 @@ public class CPU implements CPUConstants {
 		 */
 		public void setWords(Word[] words) {
 			this.words = words;
+		}
+
+		/**
+		 * Checks to see if a value in the cache line differs from the value
+		 * that was originally fetched from memory. This would occur if the CPU
+		 * has written to the cache and the memory controller has not yet
+		 * updated the value in main memory,
+		 * 
+		 * @return true if a value in the cache line differs from that in its
+		 *         corresponding address location in main memory.
+		 */
+		public boolean isDirty() {
+			return flags == DIRTY;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Object#toString()
+		 */
+		@Override
+		public String toString() {
+			return "L1CacheLine [tag=" + tag + ", words="
+					+ Arrays.toString(words) + ", flags=" + flags + "]";
 		}
 	}
 
