@@ -60,70 +60,60 @@ public class FileLoader implements Loader {
 		try {
 			String temp = null;
 			short memory_location = 8; // Locations 0-5 are reserved.
-			byte opcode, general_register, index_register, address, indirection,
-			register_x, register_y, count, lr, al;
-			
+			byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al;
+
 			while ((temp = reader.readLine()) != null) {
 				Word word = new Word();
 				// Read the opcode from the reader line.
 				String opcodeKeyString = temp.substring(0, 3);
-				// Determine the class of the opcode from the Computer's
+				// Determine the instruction's format from the Computer's
 				// context.
 				Context.InstructionFormat instruction_format = context
 						.getInstructionFormats().get(opcodeKeyString);
 				// Ensure the key returned a valid InstructionClass object.
 				if (instruction_format == null)
 					continue;
-				
+
 				String instruction_elements[] = temp.split(",");
-				opcode = general_register = index_register = address = indirection = register_x = 
-						register_y = count = lr = al = 0;
+				opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = 0;
+				opcode = context.getOpCodeBytes().get(opcodeKeyString);
 				
 				switch (instruction_format) {
 				case ONE:
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					index_register = Byte.parseByte(instruction_elements[1]);
 					address = Byte.parseByte(instruction_elements[2]);
-					//Optional indirection check
-					if(instruction_elements.length < 4)
+					// Optional indirection check
+					if (instruction_elements.length < 4)
 						indirection = 0;
 					else
 						indirection = Byte.parseByte(instruction_elements[3]);
-					
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					break;
 				case TWO:
 					index_register = Byte.parseByte(temp.substring(4, 5));
 					address = Byte.parseByte(instruction_elements[1]);
-					
-					//Optional indirection check
-					if(instruction_elements.length < 3)
+
+					// Optional indirection check
+					if (instruction_elements.length < 3)
 						indirection = 0;
 					else
 						indirection = Byte.parseByte(instruction_elements[2]);
-					
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					break;
 				case THREE:
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					address = Byte.parseByte(instruction_elements[1]);
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					break;
 				case FOUR:
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					address = Byte.parseByte(temp.substring(4, temp.length()));
 					break;
 				case FIVE:
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					register_x = Byte.parseByte(temp.substring(4, 5));
 					break;
 				case SIX:
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					register_x = Byte.parseByte(temp.substring(4, 5));
 					register_y = Byte.parseByte(instruction_elements[1]);
 					break;
 				case SEVEN:
-					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					count = Byte.parseByte(instruction_elements[1]);
 					lr = Byte.parseByte(instruction_elements[2]);
@@ -132,31 +122,37 @@ public class FileLoader implements Loader {
 				default:
 					break;
 				}
-				
-				switch(instruction_format){
+
+				switch (instruction_format) {
 				case ONE:
 				case TWO:
 				case THREE:
 				case FOUR:
-					System.out.println("Writing: opcode = " + opcode + ", R = " + general_register + ", X = " +
-							index_register + ", I = " + indirection + ", ADDR = " + address);
-					writer.writeLoadStoreFormatInstruction(word, opcode, general_register,
-							index_register, indirection, address);
+					System.out.println("Writing: opcode = " + opcode + ", R = "
+							+ general_register + ", X = " + index_register
+							+ ", I = " + indirection + ", ADDR = " + address);
+					writer.writeLoadStoreFormatInstruction(word, opcode,
+							general_register, index_register, indirection,
+							address);
 					break;
 				case FIVE:
 				case SIX:
-					System.out.println("Writing: opcode = " + opcode + ", RX = " + register_x + ", RY = " +
+					System.out.println("Writing: opcode = " + opcode
+							+ ", RX = " + register_x + ", RY = " + register_y);
+					writer.writeXYArithInstruction(word, opcode, register_x,
 							register_y);
-					writer.writeXYArithInstruction(word, opcode, register_x, register_y);
 					break;
 				case SEVEN:
-					System.out.println("Writing: opcode = " + opcode + ", R = " + general_register + ", COUNT = " +
-							count + ", LR = " + lr + ", AL = " + al);
-					writer.writeShiftInstruction(word, opcode, general_register, count, lr, al);
+					System.out.println("Writing: opcode = " + opcode + ", R = "
+							+ general_register + ", COUNT = " + count
+							+ ", LR = " + lr + ", AL = " + al);
+					writer.writeShiftInstruction(word, opcode,
+							general_register, count, lr, al);
+					break;
+				default:
 					break;
 				}
-					
-				
+
 				memory.write(word, memory_location++);
 			}
 			reader.close();
