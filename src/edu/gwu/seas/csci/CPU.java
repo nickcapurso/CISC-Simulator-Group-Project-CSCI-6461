@@ -84,8 +84,9 @@ public class CPU implements CPUConstants {
 		 */
 		public static Word read(int address) {
 			for (L1CacheLine line : cache) {
-				if (line.getTag() >= address && address < line.getTag() + 6)
-					return line.getWord(address - line.getTag());
+				if (line != null)
+					if (line.getTag() >= address && address < line.getTag() + 6)
+						return line.getWord(address - line.getTag());
 			}
 			return null;
 		}

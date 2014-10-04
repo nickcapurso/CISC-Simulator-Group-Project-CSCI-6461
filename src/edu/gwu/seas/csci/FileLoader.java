@@ -78,8 +78,6 @@ public class FileLoader implements Loader {
 				byte indirection = 0;
 				byte opcode = 0;
 				switch (instruction_format) {
-				case ZERO:
-					break;
 				case ONE:
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					index_register = Byte.parseByte(instruction_elements[1]);
