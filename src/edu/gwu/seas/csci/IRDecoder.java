@@ -73,9 +73,9 @@ public class IRDecoder {
 			break;
 
 		case LD_STR:
-		case LD_STR_IMD:
 		case TRANS:
 		case ARITH:
+			System.out.println("ARITH");
 			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
@@ -97,7 +97,7 @@ public class IRDecoder {
 					InstructionBitFormats.LD_STR_ADDR_SIZE);
 			break;
 
-		case XY_ARITH:
+		case XY_ARITH_LOGIC:
 			cpu.setReg(CPU.RX, IR.get(
 					InstructionBitFormats.XY_ARITH_RX_START,
 					InstructionBitFormats.XY_ARITH_RX_END+1),

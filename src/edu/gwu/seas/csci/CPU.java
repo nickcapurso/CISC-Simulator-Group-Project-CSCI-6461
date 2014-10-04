@@ -477,7 +477,7 @@ public class CPU implements CPUConstants {
 		if (word != null)
 			return word;
 		else {
-			Word[] block = memory.read(address);
+			Word[] block = memory.getMemoryBlock(address);
 			word = block[0];
 			L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
 			L1Cache.add(line);
@@ -658,7 +658,6 @@ public class CPU implements CPUConstants {
 		Register ix = regMap.get(IX);
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
-		Word[] words = null;
 
 		if (Utils.convertToByte(i, i.getNumBits()) == 0) { // No indirect
 															// addressing
@@ -699,8 +698,7 @@ public class CPU implements CPUConstants {
 			setReg(MAR, getReg(EA));
 
 			// Memory(MAR) -> MDR
-			words = memory.read(getReg(MAR), getReg(MAR).getNumBits());
-			setReg(MDR, words[0]);
+			setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
 
 			// MDR -> EA
 			setReg(EA, getReg(MDR));
@@ -729,21 +727,20 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Branch Logic for individual opcodes - at end of any opcode logic it
-	 * should reset prog_step counter - This will make singleInstruction
-	 * restart, thus reaching the next PC - Currently Opcodes not properly setup
+	 * Branch Logic for individual opcodes
+	 *  - at end of any opcode logic it should reset prog_step counter
+	 *    - This will make singleInstruction restart, thus reaching the next PC
+	 *  - Currently Opcodes not properly setup
 	 * 
 	 * @param op_byte
-	 *            Opcode to do case branching
+	 * 		Opcode to do case branching
 	 */
 	private void opcodeInstruction(byte op_byte) {
 
-		Word[] words = null;
-
-		switch (op_byte) {
+		switch(op_byte){
 
 		case OpCodesList.LDR:
-			switch (prog_step) {
+			switch(prog_step) {
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -751,33 +748,31 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				// EA -> MAR
+				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 
 			case 6:
-				// Mem(MAR) -> MDR
-				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
-						.getNumBits());
-				words = memory.read(mar_addr);
-				setReg(MDR, words[0]);
+				//Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+				setReg(MDR, memory.read(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
 
 			case 7:
-				// MDR -> registerFile(R)
+				//MDR -> registerFile(R)
 				setReg(registerFile(getReg(R)), regMap.get(MDR));
 				cycle_count++;
-				prog_step = 0;
+				prog_step=0;
 				break;
 			}
 			break;
 
 		case OpCodesList.STR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -785,26 +780,25 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				// EA -> MAR
+				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
-
-				// registerFile(R) -> MDR
+				
+				//registerFile(R) -> MDR
 				setReg(MDR, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// MDR -> Mem(MAR)
-				memory.write(Utils.registerToWord(getReg(MDR), getReg(MDR)
-						.getNumBits()), getReg(MAR), getReg(MAR).getNumBits());
+				//MDR -> Mem(MAR)
+				memory.setWord(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), getReg(MAR).getNumBits());
 				cycle_count++;
-				prog_step = 0;
+				prog_step=0;
 				break;
 			}
 			break;
 
 		case OpCodesList.LDA:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -812,16 +806,16 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				// EA -> regFile(R)
+				//EA -> regFile(R)
 				setReg(registerFile(getReg(R)), getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step=0;
 				break;
 			}
 			break;
 
 		case OpCodesList.LDX:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
@@ -829,31 +823,29 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				// EA -> MAR
+				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// Mem(MAR) -> MDR
-				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
-						.getNumBits());
-				words = memory.read(mar_addr);
-				setReg(MDR, words[0]);
+				//Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
+				setReg(MDR, memory.read(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				// MDR -> indexRegFile(R)
-				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));
+				//MDR -> indexRegFile(R)
+				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));	
 				cycle_count++;
-				prog_step = 0;
+				prog_step=0;
 				break;
-			}
+			}	
 			break;
 
 		case OpCodesList.STX:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
@@ -861,542 +853,559 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				// EA -> MAR
+				//EA -> MAR
 				setReg(MAR, regMap.get(EA));
-
-				// indexRegFile(R) -> MDR
+				
+				//indexRegFile(R) -> MDR
 				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// MDR -> Mem(MAR)
-				memory.write(Utils.registerToWord(getReg(MDR), getReg(MDR)
-						.getNumBits()), getReg(MAR), regMap.get(MAR)
-						.getNumBits());
+				//MDR -> Mem(MAR)
+				memory.setWord(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), regMap.get(MAR).getNumBits());
 				cycle_count++;
-				prog_step = 0;
+				prog_step=0;
 				break;
 
 			}
 			break;
-
+			
 		case OpCodesList.JZ:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 6:
-				// Perform equal to zero comparison in ALU
+				//Perform equal to zero comparison in ALU
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 7:
-				// If RESULT == 1
-				// EA -> PC
-				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.JNE:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 6:
-				// Perform not equal to zero comparison in ALU
+				//Perform not equal to zero comparison in ALU
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 7:
-				// If RESULT == 1
-				// EA -> PC
-				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.JCC:
-			// Multiple scenarios possible based on ALU implementation
-			// Could move CC to OP1 and the mask to OP2, then perform AND
-			// Could just supply a mask and use a test CC method in ALU
-			// etc..
-			// If RESULT == 1
-			// EA -> PC
+			//Multiple scenarios possible based on ALU implementation
+				//Could move CC to OP1 and the mask to OP2, then perform AND
+				//Could just supply a mask and use a test CC method in ALU
+				//etc..
+			//If RESULT == 1
+				//EA -> PC
 			cycle_count++;
 			prog_step = 0;
 			break;
-
+			
 		case OpCodesList.JMP:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// EA -> PC
+				//EA -> PC
 				setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.JSR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				int temp = Utils.convertToInt(getReg(PC), getReg(PC)
-						.getNumBits()) + 1;
-				// PC+1 -> R3
-				setReg(R3, Utils.intToBitSet(temp, getReg(R3).getNumBits()),
+				int temp = Utils.convertToInt(getReg(PC), getReg(PC).getNumBits()) + 1;
+				//PC+1 -> R3
+				setReg(R3, Utils.intToBitSet(temp, getReg(R3).getNumBits()), 
 						getReg(R3).getNumBits());
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 6:
-				// EA -> PC
+				//EA -> PC
 				setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
-				break;
+				prog_step = 0;	
+				break;	
 			}
 			break;
-
+			
 		case OpCodesList.RFS:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// ADDR -> R0
+				//ADDR -> R0
 				setReg(R0, getReg(ADDR));
 				cycle_count++;
-				prog_step++;
-				break;
+				prog_step++;	
+				break;	
 			case 5:
-				// R3 -> PC
+				//R3 -> PC 
 				setReg(PC, getReg(R3));
 				cycle_count++;
-				prog_step = 0;
-				break;
+				prog_step = 0;	
+				break;	
 			}
 			break;
-
+			
 		case OpCodesList.SOB:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// Perform subtract one (or need another move -1 to OP2) in ALU
+				//Perform subtract one (or need another move -1 to OP2) in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				// Perform greater than 0 comparison in ALU
+				//Perform greater than 0 comparison in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 8:
-				// If RESULT == 1
-				// EA -> PC
-				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.JGE:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// Perform greater than/equal comparison in ALU
+				//Perform greater than/equal comparison in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				// If RESULT == 1
-				// EA -> PC
-				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+				//If RESULT == 1
+					//EA -> PC
+				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.AMR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
-				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// EA -> OP2 (if indirection, EA will also already be holding
-				// the data)
-				setReg(OP2, getReg(EA));
+				//Need to fetch the data from memory, EA -> MAR
+				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// Perform add in ALU
+				//Memory(MAR) -> MDR
+				setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
-				// RESULT -> registerFile(R)
+				
+			case 8:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//MDR -> OP2
+				setReg(OP2, getReg(MDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 9:
+				//Perform add in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 10:
+				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.SMR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// registerFile(R) -> OP1
-				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// EA -> OP2 (if indirection, EA will also already be holding
-				// the data)
-				setReg(OP2, getReg(EA));
+				//Need to fetch the data from memory, EA -> MAR
+				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// Perform subtract in ALU
+				//Memory(MAR) -> MDR
+				setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
 				cycle_count++;
 				prog_step++;
 				break;
-			case 7:
-				// RESULT -> registerFile(R)
+				
+			case 8:
+				//registerFile(R) -> OP1
+				setReg(OP1, getReg(registerFile(getReg(R))));
+				
+				//MDR -> OP2
+				setReg(OP2, getReg(MDR));
+				cycle_count++;
+				prog_step++;
+				break;
+			case 9:
+				//Perform subtract in ALU
+				cycle_count++;
+				prog_step++;
+				break;
+			case 10:
+				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.AIR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// ADDR -> OP2 (ADDR contains immediate data)
+				
+				//ADDR -> OP2 (ADDR contains immediate data)
 				setReg(OP2, getReg(ADDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform add in ALU
+				//Perform add in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(R)
+				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.SIR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// ADDR -> OP2 (ADDR contains immediate data)
+				
+				//ADDR -> OP2 (ADDR contains immediate data)
 				setReg(OP2, getReg(ADDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform subtract in ALU
+				//Perform subtract in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(R)
+				//RESULT -> registerFile(R) 
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.MLT:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-
-				// registerFile(RY) -> OP2
+				
+				//registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform multiply in ALU
+				//Perform multiply in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RX will contain the high order word
+				//RX will contain the high order word
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
-
-				// RX+1 will contain the low order word
-				// RX can only be 0 or 2
-				if (registerFile(getReg(RX)).equals(R0))
+				
+				//RX+1 will contain the low order word
+				//RX can only be 0 or 2
+				if(registerFile(getReg(RX)).equals(R0))
 					setReg(R1, getReg(RESULT2));
 				else
 					setReg(R3, getReg(RESULT2));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.DVD:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-
-				// registerFile(RY) -> OP2
+				
+				//registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform divide in ALU
+				//Perform divide in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RX will contain the quotient
+				//RX will contain the quotient
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
-
-				// RX+1 will contain the remainder
-				// RX can only be 0 or 2
-				if (registerFile(getReg(RX)).equals(R0))
+				
+				//RX+1 will contain the remainder
+				//RX can only be 0 or 2
+				if(registerFile(getReg(RX)).equals(R0))
 					setReg(R1, getReg(RESULT2));
 				else
 					setReg(R3, getReg(RESULT2));
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.TRR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-
-				// registerFile(RY) -> OP2
+				
+				//registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform equality test in ALU (also sets the condition code)
+				//Perform equality test in ALU (also sets the condition code)
 				cycle_count++;
-				prog_step = 0;
+				prog_step = 0;	
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.AND:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-
-				// registerFile(RY) -> OP2
+				
+				//registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform AND in ALU
+				//Perform AND in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(RX)
+				//RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.ORR:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-
-				// registerFile(RY) -> OP2
+				
+				//registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform OR in ALU
+				//Perform OR in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(RX)
+				//RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.NOT:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(RX) -> OP1
+				//registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform NOT in ALU
+				//Perform NOT in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(RX)
+				//RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.SRC:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// COUNT -> OP2
+				
+				//COUNT -> OP2
 				setReg(OP2, getReg(registerFile(getReg(COUNT))));
-
-				// AL -> OP3
+				
+				//AL -> OP3
 				setReg(OP3, getReg(registerFile(getReg(AL))));
-
-				// LR -> OP4
+				
+				//LR -> OP4
 				setReg(OP4, getReg(registerFile(getReg(LR))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform shift in ALU
+				//Perform shift in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(R)
+				//RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-
+			
 		case OpCodesList.RRC:
-			switch (prog_step) {
+			switch(prog_step){
 			case 4:
-				// registerFile(R) -> OP1
+				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-
-				// COUNT -> OP2
+				
+				//COUNT -> OP2
 				setReg(OP2, getReg(registerFile(getReg(COUNT))));
-
-				// AL -> OP3
+				
+				//AL -> OP3
 				setReg(OP3, getReg(registerFile(getReg(AL))));
-
-				// LR -> OP4
+				
+				//LR -> OP4
 				setReg(OP4, getReg(registerFile(getReg(LR))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				// Perform rotate in ALU
+				//Perform rotate in ALU
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				// RESULT -> registerFile(R)
+				//RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
@@ -1407,7 +1416,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.HLT:
 			System.out.println("End of the program");
 			cont_execution = false;
-			prog_step = 0;
+			prog_step=0;
 			Computer_GUI.disable_btns();
 			break;
 		}
@@ -1468,7 +1477,6 @@ public class CPU implements CPUConstants {
 	 * prog_step counter tracking step progress
 	 */
 	private void singleInstruction() {
-		Word[] words = null;
 		switch (prog_step) {
 		case 0:
 			setReg(MAR, regMap.get(PC));
@@ -1479,8 +1487,7 @@ public class CPU implements CPUConstants {
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
 					.getNumBits());
-			words = memory.read(mar_addr);
-			setReg(MDR, words[0]);
+			setReg(MDR, memory.read(mar_addr));
 			cycle_count++;
 			prog_step++;
 			break;

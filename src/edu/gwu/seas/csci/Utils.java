@@ -11,7 +11,9 @@ import java.util.BitSet;
  * @author Nick Capurso, Alex Remily
  */
 public class Utils {
-
+	private static Context context = Context.getInstance();
+	private static InstructionWriter writer = new InstructionWriter();
+	
 	/**
 	 * Converts a BitSet to its numeric equivalent, stored in a byte. The return
 	 * value can be used for numeric based comparisons.

@@ -21,7 +21,7 @@ public class Context {
 	 * @author Alex Remily
 	 */
 	public enum InstructionClass {
-		LD_STR, LD_STR_IMD, TRANS, LOGIC, HALT, TRAP, ARITH, XY_ARITH, SHIFT, IO
+		LD_STR, TRANS, HALT, TRAP, ARITH, XY_ARITH_LOGIC, SHIFT, IO
 	}
 
 	/**
@@ -31,7 +31,7 @@ public class Context {
 	 * @author Alex Remily
 	 */
 	public enum InstructionFormat {
-		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX
+		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN
 	}
 
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
@@ -47,16 +47,49 @@ public class Context {
 		/**
 		 * InstructionFormats setup
 		 */
+		
+		//HALT
 		instructionFormats.put("HLT", InstructionFormat.ZERO);
+		
+		//OPCODE R,X,ADDR[,I]
 		instructionFormats.put("LDR", InstructionFormat.ONE);
 		instructionFormats.put("STR", InstructionFormat.ONE);
 		instructionFormats.put("LDA", InstructionFormat.ONE);
 		instructionFormats.put("AMR", InstructionFormat.ONE);
 		instructionFormats.put("SMR", InstructionFormat.ONE);
+		instructionFormats.put("JZ", InstructionFormat.ONE);
+		instructionFormats.put("JNE", InstructionFormat.ONE);
+		instructionFormats.put("JCC", InstructionFormat.ONE);
+		instructionFormats.put("SOB", InstructionFormat.ONE);
+		instructionFormats.put("JGE", InstructionFormat.ONE);
+		
+		//OPCODE X,ADDR[,I]
 		instructionFormats.put("LDX", InstructionFormat.TWO);
 		instructionFormats.put("STX", InstructionFormat.TWO);
+		instructionFormats.put("JMR", InstructionFormat.TWO);
+		instructionFormats.put("JSR", InstructionFormat.TWO);
+		
+		//OPCODE R,IMMED
 		instructionFormats.put("AIR", InstructionFormat.THREE);
 		instructionFormats.put("SIR", InstructionFormat.THREE);
+		
+		//OPCODE IMMED
+		instructionFormats.put("RFS", InstructionFormat.FOUR);
+		
+		//OPCODE RX
+		instructionFormats.put("NOT", InstructionFormat.FIVE);
+		
+		//OPCODE RX,RY
+		instructionFormats.put("MLT", InstructionFormat.SIX);
+		instructionFormats.put("DVD", InstructionFormat.SIX);
+		instructionFormats.put("TRR", InstructionFormat.SIX);
+		instructionFormats.put("AND", InstructionFormat.SIX);
+		instructionFormats.put("ORR", InstructionFormat.SIX);
+		
+		//OPCODE R,COUNT,L/R,A/L
+		instructionFormats.put("SRC", InstructionFormat.SEVEN);
+		instructionFormats.put("RRC", InstructionFormat.SEVEN);
+		
 
 		/**
 		 * opcodeClasses setup
@@ -89,12 +122,12 @@ public class Context {
 		opcodeClasses.put("SIR", InstructionClass.ARITH);
 
 		// Arithmetic/logical (register-register) instructions
-		opcodeClasses.put("MLT", InstructionClass.XY_ARITH);
-		opcodeClasses.put("DVD", InstructionClass.XY_ARITH);
-		opcodeClasses.put("TRR", InstructionClass.XY_ARITH);
-		opcodeClasses.put("AND", InstructionClass.LOGIC);
-		opcodeClasses.put("ORR", InstructionClass.LOGIC);
-		opcodeClasses.put("NOT", InstructionClass.LOGIC);
+		opcodeClasses.put("MLT", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("DVD", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("TRR", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("AND", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("ORR", InstructionClass.XY_ARITH_LOGIC);
+		opcodeClasses.put("NOT", InstructionClass.XY_ARITH_LOGIC);
 
 		// Shift/rotate instructions
 		opcodeClasses.put("SRC", InstructionClass.SHIFT);

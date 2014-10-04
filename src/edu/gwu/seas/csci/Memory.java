@@ -67,6 +67,14 @@ public class Memory {
 	public static void setWord(Word word, int address) {
 		memory[address] = word;
 	}
+	
+	public static void setWord(Word word, BitSet register, int numBits) {
+		int address = Utils.convertToInt(register, numBits);
+
+		memory[address] = word;
+	}
+	
+	
 
 	/**
 	 * TODO: Update the JavaDocs Retrieves the {@link Word} at the address
@@ -80,13 +88,14 @@ public class Memory {
 	 *         BitSet.
 	 * @throws IndexOutOfBoundsException
 	 */
-	public Word[] read(BitSet register, int numBits)
+	public Word read(BitSet register, int numBits)
 			throws IndexOutOfBoundsException {
 		int address = Utils.convertToInt(register, numBits);
 
 		if (address > length)
 			throw new IndexOutOfBoundsException();
-		return getMemoryBlock(address);
+		Word[] words = getMemoryBlock(address);
+		return words[0];
 	}
 
 	/**
@@ -97,10 +106,11 @@ public class Memory {
 	 *            The memory address of the contents to retrieve.
 	 * @return The contents of the specified memory address.
 	 */
-	public Word[] read(int address) throws IndexOutOfBoundsException {
+	public Word read(int address) throws IndexOutOfBoundsException {
 		if (address > length)
 			throw new IndexOutOfBoundsException();
-		return getMemoryBlock(address);
+		Word[] words = getMemoryBlock(address);
+		return words[0];
 	}
 
 	/**
