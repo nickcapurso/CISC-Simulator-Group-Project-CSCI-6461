@@ -15,13 +15,7 @@ import java.text.ParseException;
  * instruction per line, and elements of the instruction separated by a comma.
  * The expected line format varies with the type of instruction.
  * 
- * TODO: Need to change the switch categories in the load method because the
- * instruction format does not correspond directly to class of opcode. Create
- * categories that uniquely identify a common format of opcode instructions and
- * use them instead.
- * 
- * TODO: Fix the architecture to reflect a resource stream vs a file object
- * load. This is just a quick fix to get the project to run for Part 1.
+ * TODO: Document the InstructionFormat switching.
  * 
  * @author Alex Remily
  */
@@ -72,10 +66,10 @@ public class FileLoader implements Loader {
 				String opcodeKeyString = temp.substring(0, 3);
 				// Determine the class of the opcode from the Computer's
 				// context.
-				Context.InstructionClass instruction_class = context
-						.getOpcodeClasses().get(opcodeKeyString);
+				Context.InstructionFormat instruction_format = context
+						.getInstructionFormats().get(opcodeKeyString);
 				// Ensure the key returned a valid InstructionClass object.
-				if (instruction_class == null)
+				if (instruction_format == null)
 					continue;
 				byte general_register = 0;
 				String instruction_elements[] = temp.split(",");
@@ -83,45 +77,36 @@ public class FileLoader implements Loader {
 				byte address = 0;
 				byte indirection = 0;
 				byte opcode = 0;
-				// Switch on the class of opcode.
-
-				switch (instruction_class) {
-				case ARITH:
+				switch (instruction_format) {
+				case ZERO:
 					break;
-				case LD_STR:
-					// This is an example of why we need to switch on something
-					// other than opcode class.
-					if (opcodeKeyString.equals("LDX")
-							|| opcodeKeyString.equals("STX")) {
-						index_register = Byte.parseByte(temp.substring(4, 5));
-						address = Byte.parseByte(instruction_elements[1]);
-						indirection = Byte.parseByte(instruction_elements[2]);
-						opcode = context.getOpCodeBytes().get(opcodeKeyString);
-					} else {
-						general_register = Byte.parseByte(temp.substring(4, 5));
-						index_register = Byte
-								.parseByte(instruction_elements[1]);
-						address = Byte.parseByte(instruction_elements[2]);
-						indirection = Byte.parseByte(instruction_elements[3]);
-						opcode = context.getOpCodeBytes().get(opcodeKeyString);
-					}
-					writer.writeInstruction(word, opcode, general_register,
-							index_register, indirection, address);
+				case ONE:
+					general_register = Byte.parseByte(temp.substring(4, 5));
+					index_register = Byte.parseByte(instruction_elements[1]);
+					address = Byte.parseByte(instruction_elements[2]);
+					indirection = Byte.parseByte(instruction_elements[3]);
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					break;
-				case LD_STR_IMD:
+				case TWO:
+					index_register = Byte.parseByte(temp.substring(4, 5));
+					address = Byte.parseByte(instruction_elements[1]);
+					indirection = Byte.parseByte(instruction_elements[2]);
+					opcode = context.getOpCodeBytes().get(opcodeKeyString);
+					break;
+				case THREE:
 					general_register = Byte.parseByte(temp.substring(4, 5));
 					address = Byte.parseByte(instruction_elements[1]);
 					opcode = context.getOpCodeBytes().get(opcodeKeyString);
 					writer.writeInstruction(word, opcode, general_register,
 							index_register, indirection, address);
 					break;
-				case LOGIC:
-					break;
-				case TRANS:
+				case FOUR:
 					break;
 				default:
 					break;
 				}
+				writer.writeInstruction(word, opcode, general_register,
+						index_register, indirection, address);
 				memory.write(word, memory_location++);
 			}
 			reader.close();
@@ -132,7 +117,7 @@ public class FileLoader implements Loader {
 
 	@Override
 	public void load() throws NullPointerException, ParseException,
-	IllegalArgumentException {
+			IllegalArgumentException {
 		this.load(reader);
 	}
 }
