@@ -55,6 +55,11 @@ public class FileLoader implements Loader {
 		InputStream in = getClass().getResourceAsStream("/input.txt");
 		reader = new BufferedReader(new InputStreamReader(in));
 	}
+	
+	public void Load_File(String file) {
+		InputStream in = getClass().getResourceAsStream("/" + file);
+		reader = new BufferedReader(new InputStreamReader(in));
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -124,6 +129,7 @@ public class FileLoader implements Loader {
 				}
 				memory.put(word, memory_location++);
 			}
+			System.out.println(memory_location);
 			reader.close();
 		} catch (IOException e) {
 			//Illegal Operation Fault

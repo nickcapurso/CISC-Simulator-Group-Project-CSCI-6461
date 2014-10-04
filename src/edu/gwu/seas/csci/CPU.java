@@ -1146,7 +1146,7 @@ public class CPU implements CPUConstants {
 
 	public void loadROM() {
 		try {
-			romLoader.load();
+			/*romLoader.load();*/
 			startBootloader();
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
@@ -1154,9 +1154,9 @@ public class CPU implements CPUConstants {
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (ParseException e) {
+		} /*catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 }

@@ -29,10 +29,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private static JTextField textField;
 	private static JTextPane terminal;
-	private JButton load;
-	private static JButton cont, start, microstep, macrostep, runinput;
+	private static JButton cont, start, microstep, macrostep, runinput, enter, load;
 	private JButton reset;
-	private FileLoader fileloader;
+	private FileLoader fileloader = new FileLoader();
 	private CPU cpu;
 	private JLabel opcode_name;
 	private static HashMap<String, JRadioButton[]> Registers; // map of registers on gui
@@ -70,7 +69,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 * rest of the Program
 		 */
 		start = new JButton("Start");
-		start.setBounds(426, 523, 97, 25);
+		start.setBounds(426, 462, 97, 25);
 		contentPane.add(start);
 		start.addActionListener(this);
 
@@ -95,7 +94,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		runinput.addActionListener(this);
 
 		reset = new JButton("Reset");
-		reset.setBounds(426, 484, 97, 25);
+		reset.setBounds(426, 424, 97, 25);
 		contentPane.add(reset);
 		reset.addActionListener(this);
 
@@ -103,6 +102,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		cont.setBounds(426, 386, 97, 25);
 		contentPane.add(cont);
 		cont.addActionListener(this);
+		
+		enter = new JButton("Enter");
+		enter.setBounds(426, 523, 97, 25);
+		contentPane.add(enter);
 
 		/*
 		 * Register Label Creation - If there is time should create in a loop
@@ -247,8 +250,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
 
-		load.setEnabled(false);
-
 	}
 
 
@@ -263,16 +264,14 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
-				File load_file = new File(filepath);
-				fileloader.load(load_file);
+				fileloader.Load_File(filepath);
+				fileloader.load();
 			} catch (Exception ex) { //Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
 			//Needs to run through the FileLoader Instruction Parser to work properly
 		} else if (e.getSource() == runinput) {
-			System.out.println("User Input");
 			String user_input = textField.getText();
-			System.out.println(user_input);
 			cpu.executeInstruction(user_input);
 			
 		} else if (e.getSource() == reset) {
@@ -282,7 +281,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			macrostep.setEnabled(true);
 			microstep.setEnabled(true);
 		} 
-		System.out.println("ldjfksdl");
 	}
 
 	// By giving a string value for register, and a value, registers can be
