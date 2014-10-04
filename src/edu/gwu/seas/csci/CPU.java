@@ -378,6 +378,8 @@ public class CPU implements CPUConstants {
 	private IRDecoder irdecoder;
 
 	private Loader romLoader;
+	
+	private ALU alu;
 
 	/**
 	 * The memory write buffer with a fast FIFO algorithm.
@@ -449,7 +451,9 @@ public class CPU implements CPUConstants {
 		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
 
 		irdecoder = new IRDecoder(this);
+		alu = new ALU(this);
 		romLoader = new FileLoader();
+		this.memory = Memory.getInstance();
 	}
 
 	/**
@@ -736,7 +740,7 @@ public class CPU implements CPUConstants {
 	 * 		Opcode to do case branching
 	 */
 	private void opcodeInstruction(byte op_byte) {
-
+		//memory = Memory.getInstance();
 		switch(op_byte){
 
 		case OpCodesList.LDR:
@@ -881,18 +885,20 @@ public class CPU implements CPUConstants {
 			case 5:
 				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
+				getReg(OP2).clear();
 				cycle_count++;
 				prog_step++;	
 				break;	
 			case 6:
 				//Perform equal to zero comparison in ALU
+				alu.TRR();
 				cycle_count++;
 				prog_step++;	
 				break;	
 			case 7:
 				//If RESULT == 1
 					//EA -> PC
-				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+				if(!getReg(CC).get(EQUALORNOT))
 					setReg(PC, getReg(EA));
 				cycle_count++;
 				prog_step = 0;	
@@ -910,18 +916,20 @@ public class CPU implements CPUConstants {
 			case 5:
 				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
+				getReg(OP2).clear();
 				cycle_count++;
 				prog_step++;	
 				break;	
 			case 6:
 				//Perform not equal to zero comparison in ALU
+				alu.TRR();
 				cycle_count++;
 				prog_step++;	
 				break;	
 			case 7:
-				//If RESULT == 1
+				//If RESULT == 0
 					//EA -> PC
-				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+				if(!getReg(CC).get(EQUALORNOT))
 					setReg(PC, getReg(EA));
 				cycle_count++;
 				prog_step = 0;	
@@ -930,12 +938,11 @@ public class CPU implements CPUConstants {
 			break;
 			
 		case OpCodesList.JCC:
-			//Multiple scenarios possible based on ALU implementation
-				//Could move CC to OP1 and the mask to OP2, then perform AND
-				//Could just supply a mask and use a test CC method in ALU
-				//etc..
 			//If RESULT == 1
-				//EA -> PC
+			//EA -> PC
+			if(getReg(CC).get(Utils.convertToByte(getReg(R), getReg(R).getNumBits())))
+				setReg(EA, getReg(PC), getReg(PC).getNumBits());
+			
 			cycle_count++;
 			prog_step = 0;
 			break;
@@ -1011,12 +1018,16 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 			case 6:
-				//Perform subtract one (or need another move -1 to OP2) in ALU
+				//Perform subtract one in ALU
+				//alu.SOB();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
+				//Clearing OP2 in preparation for GTE comparison
+				getReg(OP2).clear();
 				//Perform greater than 0 comparison in ALU
+				alu.GTE();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1041,11 +1052,13 @@ public class CPU implements CPUConstants {
 			case 5:
 				//registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
+				getReg(OP2).clear();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
 				//Perform greater than/equal comparison in ALU
+				alu.GTE();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1091,6 +1104,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 9:
 				//Perform add in ALU
+				alu.AMR();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1134,6 +1148,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 9:
 				//Perform subtract in ALU
+				alu.SMR();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1159,6 +1174,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform add in ALU
+				alu.AIR();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1184,6 +1200,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform subtract in ALU
+				alu.SIR();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1209,6 +1226,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform multiply in ALU
+				alu.MLT();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1241,6 +1259,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform divide in ALU
+				alu.DVD();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1273,6 +1292,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform equality test in ALU (also sets the condition code)
+				alu.TRR();
 				cycle_count++;
 				prog_step = 0;	
 				break;
@@ -1292,6 +1312,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform AND in ALU
+				alu.AND();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1317,6 +1338,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform OR in ALU
+				alu.ORR();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1339,6 +1361,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform NOT in ALU
+				alu.NOT();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1370,6 +1393,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform shift in ALU
+				alu.SRC();
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1401,6 +1425,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 5:
 				//Perform rotate in ALU
+				alu.RRC();
 				cycle_count++;
 				prog_step++;
 				break;
