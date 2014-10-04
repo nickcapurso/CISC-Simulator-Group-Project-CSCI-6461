@@ -153,8 +153,15 @@ public class CPU implements CPUConstants {
 	 */
 	private static class L1CacheLine {
 
+		/**
+		 * The number of words in each cache line.
+		 */
 		public static final int WORDS_PER_LINE = 6;
 
+		/**
+		 * The dirty flag for the cache line. Indicates that the value differs
+		 * from it's corresponding value in memory.
+		 */
 		public static final byte DIRTY = 0x1;
 
 		/**
