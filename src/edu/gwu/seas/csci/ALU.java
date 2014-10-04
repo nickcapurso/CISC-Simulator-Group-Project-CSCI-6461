@@ -172,11 +172,24 @@ public class ALU implements CPUConstants{
 		int newBitSize = DEFAULT_BIT_SIZE * 2;
 		result = result >>> (64 - newBitSize);
 		
+		//Separate high from low order bits
+		int highBits = (int) (result >>> DEFAULT_BIT_SIZE);
+		int lowBits = (int) result;
+		
+		BitSet high = Utils.intToBitSet(highBits, DEFAULT_BIT_SIZE);
+		BitSet low = Utils.intToBitSet(lowBits, DEFAULT_BIT_SIZE);
+		
+		cpu.setReg(RESULT, high, DEFAULT_BIT_SIZE);
+		cpu.setReg(RESULT2, low, DEFAULT_BIT_SIZE);
+		
 		//BitSet totalResult = Utils.longToBitSet(result, newBitSize);
 		
+		//cpu.setReg(destName, sourceSet, sourceBits);
+		
+		
+		
+		/*
 		//Attempt 2: binary multiplication
-		
-		
 		
 		List<BitSet> addList = new ArrayList<BitSet>();
 		BitSet finalResult = new BitSet();
@@ -217,15 +230,34 @@ public class ALU implements CPUConstants{
 			}
 		}
 		
-		
-
+		*/
+	
 	}
 	
 	
 
-	/* Division instructions */
+	/* Division of register by register.  OP1 should contain the dividend and OP2 the divisor.
+	 * After the operation, RESULT will contain the quotient and RESULT2 the remainder.  */
 	public static void DVD() {
-		//do a for loop at subtracts from a value
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
+		
+		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
+		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
+		
+		if (op2Val == 0) {
+			setCC(DIVZERO);
+			return;
+		}
+		
+		int quotient = op1Val / op2Val;
+		int remainders = op1Val % op2Val;
+		
+		BitSet quotSet = Utils.intToBitSet(quotient, DEFAULT_BIT_SIZE);
+		BitSet remainSet = Utils.intToBitSet(remainders, DEFAULT_BIT_SIZE);
+		
+		cpu.setReg(RESULT, quotSet, DEFAULT_BIT_SIZE);
+		cpu.setReg(RESULT2, remainSet, DEFAULT_BIT_SIZE);
 		
 	}
 
@@ -242,7 +274,7 @@ public class ALU implements CPUConstants{
 		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
 		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
 		
-		if ((op1Val - op2Val) == 0) {
+		if (op1Val == op2Val) {
 			setCC(EQUALORNOT);
 		}
 		
@@ -373,6 +405,7 @@ public class ALU implements CPUConstants{
 		int regSize = op1.getNumBits();
 		int origVal = Utils.convertToInt(op1, regSize);
 		int count = Utils.convertToInt(op2, op2.getNumBits());
+		int result = 0;
 		
 		if (op3.isEmpty()) {
 			left_shift = false;
@@ -382,6 +415,18 @@ public class ALU implements CPUConstants{
 		}
 		
 		//Rotate bits
+		if (left_shift) {
+			result = (origVal << count) | (origVal >> (DEFAULT_BIT_SIZE - count));
+		} else {
+			result = (origVal >> count) | (origVal << (DEFAULT_BIT_SIZE - count));
+		}
+		
+		BitSet resultVal = Utils.intToBitSet(result, regSize);
+		cpu.setReg(RESULT, resultVal, regSize);
+		
+		
+		/*
+		//manual rotation
 		BitSet resultVal = new BitSet(regSize);
 		
 		if (left_shift) {
@@ -394,8 +439,30 @@ public class ALU implements CPUConstants{
 				resultVal.set(i, op1.get(regSize - count));
 			}
 		}
+		*/
 		
+	}
+	
+	/**
+	 * Greater than or equal comparison.  Given the contents of OP1 and OP2, a greater than or equal to check
+	 * is performed (OP1 >= OP2).  If the check is true, then RESULT will contain a positive value.  If false, then
+	 * result will contain the value 0.
+	 */
+	
+	public static void GTE() {
+		Register op1 = cpu.getReg(OP1);
+		Register op2 = cpu.getReg(OP2);
 		
+		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
+		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
+		
+		BitSet result = new BitSet(DEFAULT_BIT_SIZE);
+		
+		if (op1Val >= op2Val) {
+			result.set(0);
+		}
+		
+		cpu.setReg(RESULT, result, DEFAULT_BIT_SIZE);
 	}
 
 }
