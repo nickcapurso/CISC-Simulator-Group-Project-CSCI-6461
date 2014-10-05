@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
-import edu.gwu.seas.csci.CPU.WriteBuffer.WriteBufferContents;
 import edu.gwu.seas.csci.Utils;
 
 /**
@@ -70,7 +69,7 @@ public class CPU implements CPUConstants {
 		 */
 		public void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
-				System.out.println("Adding cache line with tag "
+				System.out.println(Thread.currentThread().getName().toString() + ": Adding cache line with tag "
 						+ line.getTag() + " to cache at position "
 						+ cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
@@ -79,55 +78,11 @@ public class CPU implements CPUConstants {
 				do {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
-				System.out.println("Adding cache line with tag "
+				System.out.println(Thread.currentThread().getName().toString() + ": Adding cache line with tag "
 						+ line.getTag() + " to cache at position "
 						+ cache_position + ".");
 				cache[cache_position] = line;
 			}
-		}
-
-		/**
-		 * Checks the cache for the contents of a given memory address. Iterates
-		 * through the tags of each line in the cache, and checks whether that
-		 * cache line contains the search address by checking whether the value
-		 * of the search address is between the value of the tag line address
-		 * and the tag line address plus the number of words in the cache line.
-		 * 
-		 * @param address
-		 *            The memory address to search for in the cache, i.e., the
-		 *            search address.
-		 * @return The contents of the specified address or null if the
-		 *         specified memory address is not in the cache.
-		 */
-		public Word read(int address) {
-			for (L1CacheLine line : cache) {
-				if (line != null) {
-					if (address >= line.getTag()
-							&& address < line.getTag()
-									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println("Cache read hit.  Found address "
-								+ address + " in cache line with tag "
-								+ line.getTag() + ".");
-						return line.getWord(address - line.getTag());
-					}
-				}
-			}
-			System.out.println("Cache read miss.");
-			return null;
-		}
-
-		/**
-		 * TODO: Need to modify the dirty flag to reflect the write_buffer
-		 * contents write to memory.
-		 * 
-		 * @param address
-		 * @param flag
-		 */
-		public void toggleFlag(int address, byte flag) {
-			L1CacheLine line = l1_cache.getCacheLine(address);
-			byte flags = line.getFlags();
-			flags = (byte) (flags - flag);
-			line.setFlags(flags);
 		}
 
 		/**
@@ -151,27 +106,99 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * @param word
+		 * Checks the cache for the contents of a given memory address. Iterates
+		 * through the tags of each line in the cache, and checks whether that
+		 * cache line contains the search address by checking whether the value
+		 * of the search address is between the value of the tag line address
+		 * and the tag line address plus the number of words in the cache line.
+		 * 
 		 * @param address
-		 * @param flag
+		 *            The memory address to search for in the cache, i.e., the
+		 *            search address.
+		 * @return The contents of the specified address or null if the
+		 *         specified memory address is not in the cache.
 		 */
-		public void write(Word word, byte address) {
+		public Word read(int address) {
 			for (L1CacheLine line : cache) {
 				if (line != null) {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println("Cache write hit.  Found address "
+						System.out.println(Thread.currentThread().getName().toString() + ": Cache read hit.  Found address "
+								+ address + " in cache line with tag "
+								+ line.getTag() + ".");
+						return line.getWord(address - line.getTag());
+					}
+				}
+			}
+			System.out.println("Cache read miss.");
+			return null;
+		}
+
+		/**
+		 * Updates the flag on the cache line that contains the specified
+		 * address. If the value of the add parameter is true, this method adds
+		 * the value of the flag parameter to the cache line flags byte,
+		 * otherwise it subtracts the value of the flag parameter from the cache
+		 * line flags byte.
+		 * 
+		 * @param address
+		 *            The address whose cache line flags byte to update.
+		 * @param flag
+		 *            The value to add or subtract from the cache line flags
+		 *            byte.
+		 * @param add
+		 *            Whether to add or subtract the value of flag from the
+		 *            cache line flags byte.
+		 */
+		public void upadteFlag(int address, byte flag, boolean add) {
+			L1CacheLine line = l1_cache.getCacheLine(address);
+			byte flags = line.getFlags();
+			if (add)
+				flags = (byte) (flags + flag);
+			else
+				flags = (byte) (flags - flag);
+			line.setFlags(flags);
+		}
+
+		/**
+		 * Writes the value of the specified word to the cache at the specified
+		 * address location. This method handles two cases:
+		 * <ol>
+		 * <li>Cache Hit.</li>
+		 * <li>Cache Miss.</li>
+		 * </ol>
+		 * For a cache hit, this method updates the value in the cache with the
+		 * value of the word parameter, sets the appropriate dirty flag on the
+		 * cache line, and adds the value of the word parameter to the write
+		 * buffer. For a cache miss, this method returns false.
+		 * 
+		 * @param word
+		 *            The content to write to the cache.
+		 * @param address
+		 *            The main memory address of the content to write to the
+		 *            cache.
+		 * @return TODO
+		 */
+		public boolean write(Word word, byte address) {
+			for (L1CacheLine line : cache) {
+				if (line != null) {
+					if (address >= line.getTag()
+							&& address < line.getTag()
+									+ L1CacheLine.WORDS_PER_LINE) {
+						System.out.println(Thread.currentThread().getName().toString() + ": Cache write hit.  Found address "
 								+ address + " in cache line with tag "
 								+ line.getTag() + ".");
 						int index = address - line.getTag();
 						byte flag = Utils.l1IndexToFlag(index);
-						line.setWord(word, address - line.getTag());
-						write_buffer.addToBuffer(word, address, flag);
+						line.updateFlags(flag, true);
+						line.setWord(word, index);
+						return write_buffer.addToBuffer(word, address, flag);
 					}
 				}
 			}
 			System.out.println("Cache write miss.");
+			return false;
 		}
 	}
 
@@ -297,6 +324,17 @@ public class CPU implements CPUConstants {
 			return "L1CacheLine [tag=" + tag + ", words="
 					+ Arrays.toString(words) + ", flags=" + flags + "]";
 		}
+
+		/**
+		 * @param flag
+		 * @param add
+		 */
+		public void updateFlags(byte flag, boolean add) {
+			if (add)
+				this.flags = (byte) (flags + flag);
+			else
+				this.flags = (byte) (flags - flag);			
+		}
 	}
 
 	/**
@@ -323,9 +361,9 @@ public class CPU implements CPUConstants {
 								.println(Thread.currentThread().getName()
 										.toString()
 										+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
-						write_buffer.writeToMemory(Memory.getInstance());
+						write_buffer.writeToMemory();
 					} else {
-						write_buffer.writeToMemory(Memory.getInstance());
+						write_buffer.writeToMemory();
 					}
 				}
 			}
@@ -454,6 +492,13 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
+		 * @return the write_buffer
+		 */
+		public Queue<WriteBufferContents> getBuffer() {
+			return buffer;
+		}
+
+		/**
 		 * Returns true if this WriteBuffer contains no elements.
 		 * 
 		 * @return true if this WriteBuffer contains no elements.
@@ -464,34 +509,26 @@ public class CPU implements CPUConstants {
 
 		/**
 		 * Retrieves and writes the head of this FIFO queue to main memory.
+		 * Updates the flag on the cache line to reflect the synchronization
+		 * between the cache and main memory of the address that was written to.
 		 * 
-		 * @param memory
-		 *            The main memory to write the head of the FIFO queue.
 		 * @return true if successful, otherwise false;
 		 */
-		public boolean writeToMemory(Memory memory) {
+		public boolean writeToMemory() {
 			boolean success = true;
 			try {
-
 				WriteBufferContents line = buffer.remove();
 				System.out.println(Thread.currentThread().getName().toString()
 						+ ": Removing line " + line + " From write_buffer.");
 				Word word = line.getWord();
 				int address = line.getAddress();
 				byte flag = line.getFlag();
-				memory.write(word, address);
-				l1_cache.toggleFlag(address, flag);
+				Memory.getInstance().write(word, address);
+				l1_cache.upadteFlag(address, flag, false);
 			} catch (NoSuchElementException | IndexOutOfBoundsException e) {
 				success = false;
 			}
 			return success;
-		}
-
-		/**
-		 * @return the write_buffer
-		 */
-		public Queue<WriteBufferContents> getBuffer() {
-			return buffer;
 		}
 	}
 
@@ -523,8 +560,6 @@ public class CPU implements CPUConstants {
 	 */
 	private static Thread memory_controller_thread = new Thread(
 			memory_controller, "memory_controller");
-
-	private static boolean kill_thread = false;
 
 	/**
 	 * 
@@ -666,21 +701,23 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * @param memory
-	 *            The main memory to target.
 	 * @param address
 	 *            The address in main memory to target.
+	 * @param override
+	 *            TODO
 	 * @return the contents of the specified address in the specified memory.
 	 */
-	public Word readFromMemory(Memory memory, int address) {
-		Word word = l1_cache.read(address);
-		if (word != null)
-			return word;
+	public Word readFromMemory(int address, boolean override) {
+		Word word = null;
+		if (override)
+			word = readFromMemory(address);
 		else {
-			Word[] block = memory.getMemoryBlock(address);
-			word = block[0];
-			L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
-			l1_cache.add(line);
+			word = l1_cache.read(address);
+			if (word != null)
+				return word;
+			else {
+				word = readFromMemory(address);
+			}
 		}
 		return word;
 	}
@@ -762,17 +799,36 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * @param memory
-	 *            The main memory to target.
-	 * @param address
-	 *            The address in main memory to target.
+	 * Writes the value of the specified word to the cache at the specified
+	 * address location. The memory controller handles the synchronization
+	 * between the cache and main memory. This method handles two cases:
+	 * <ol>
+	 * <li>Cache Hit.</li>
+	 * <li>Cache Miss.</li>
+	 * </ol>
+	 * For a cache hit, this method updates the value in the cache with the
+	 * value of the word parameter, sets the appropriate dirty flag on the cache
+	 * line, and adds the value of the word parameter to the write buffer. For a
+	 * cache miss, this method first fetches the appropriate block from memory,
+	 * loads it into the cache, evicting an existing cache line if necessary,
+	 * and then executes the logic for a cache hit.
+	 * 
 	 * @param word
 	 *            The contents to write.
+	 * @param address
+	 *            The address in main memory to target.
+	 * 
 	 * @return true if successful, false otherwise.
 	 */
-	public boolean writeToMemory(Memory memory, byte address, Word word) {
-		l1_cache.write(word, address);
-		return true;
+	public boolean writeToMemory(Word word, byte address) {
+		if (l1_cache.write(word, address)) {
+			// Cache Hit.
+			return true;
+		} else {
+			// Cache Miss.
+			this.readFromMemory(address, false);
+			return this.writeToMemory(word, address);
+		}
 	}
 
 	private void advancePC() {
@@ -1623,6 +1679,24 @@ public class CPU implements CPUConstants {
 		Utils.bitsetToString(I, getReg(I), getReg(I).getNumBits());
 		Utils.bitsetToString(ADDR, getReg(ADDR), getReg(ADDR).getNumBits());
 		Utils.bitsetToString(EA, getReg(EA), getReg(EA).getNumBits());
+	}
+
+	/**
+	 * Omits a check to the cache and fetches contents directly from memory.
+	 * Used when a cache check would be redundant. Updates the cache with the
+	 * block fetched from memory via a call to
+	 * {@link L1Cache#add(L1CacheLine line)} .
+	 * 
+	 * @param address
+	 *            The address of the contents to fetch from mmain memory.
+	 * @return The contents of the specified address in main memory.
+	 */
+	private Word readFromMemory(int address) {
+		Word[] block = Memory.getInstance().getMemoryBlock(address);
+		Word word = block[0];
+		L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
+		l1_cache.add(line);
+		return word;
 	}
 
 	/**

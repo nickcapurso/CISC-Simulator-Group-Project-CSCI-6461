@@ -38,12 +38,12 @@ public class Context {
 	 * The dirty flag bitmask for the cache line. Indicates that the value
 	 * differs from it's corresponding value in memory.
 	 */
-	public static final byte ONE = 0x1;
-	public static final byte TWO = 0x2;
-	public static final byte THREE = 0x4;
-	public static final byte FOUR = 0x8;
-	public static final byte FIVE = 0x16;
-	public static final byte SIX = 0x32;
+	public static final byte ONE = 1;
+	public static final byte TWO = 2;
+	public static final byte THREE = 4;
+	public static final byte FOUR = 8;
+	public static final byte FIVE = 16;
+	public static final byte SIX = 32;
 
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
 	private Map<String, InstructionFormat> instructionFormats = new HashMap<String, InstructionFormat>();

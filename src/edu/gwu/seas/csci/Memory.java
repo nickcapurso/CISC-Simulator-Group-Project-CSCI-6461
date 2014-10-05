@@ -55,7 +55,7 @@ public class Memory {
 	 * @param address
 	 * @return
 	 */
-	public static Word[] getMemoryBlock(int address) {
+	public Word[] getMemoryBlock(int address) {
 		Word[] words = Arrays.copyOfRange(memory, address, address + 6);
 		return words;
 	}
@@ -67,14 +67,12 @@ public class Memory {
 	public static void setWord(Word word, int address) {
 		memory[address] = word;
 	}
-	
+
 	public static void setWord(Word word, BitSet register, int numBits) {
 		int address = Utils.convertToInt(register, numBits);
 
 		memory[address] = word;
 	}
-	
-	
 
 	/**
 	 * TODO: Update the JavaDocs Retrieves the {@link Word} at the address
@@ -144,10 +142,7 @@ public class Memory {
 	public void write(Word word, int address) throws IndexOutOfBoundsException {
 		if (address > length)
 			throw new IndexOutOfBoundsException();
-		synchronized (this) {
-			setWord(word, address);
-			this.notify();
-		}
+		setWord(word, address);
 	}
 
 	/*
