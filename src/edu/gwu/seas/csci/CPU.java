@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import edu.gwu.seas.csci.CPU.WriteBuffer.WriteBufferContents;
 import edu.gwu.seas.csci.Utils;
 
 /**
@@ -34,7 +35,7 @@ public class CPU implements CPUConstants {
 	 * 
 	 * @author Alex Remily
 	 */
-	private static class L1Cache {
+	static class L1Cache {
 
 		private static final int CACHE_LENGTH = 16;
 		/**
@@ -116,8 +117,8 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * TODO: Need to modify the dirty flag to reflect the buffer contents
-		 * write to memory.
+		 * TODO: Need to modify the dirty flag to reflect the write_buffer
+		 * contents write to memory.
 		 * 
 		 * @param address
 		 * @param flag
@@ -166,7 +167,7 @@ public class CPU implements CPUConstants {
 						int index = address - line.getTag();
 						byte flag = Utils.l1IndexToFlag(index);
 						line.setWord(word, address - line.getTag());
-						buffer.addToBuffer(word, address, flag);
+						write_buffer.addToBuffer(word, address, flag);
 					}
 				}
 			}
@@ -183,7 +184,7 @@ public class CPU implements CPUConstants {
 	 * 
 	 * @author Alex Remily
 	 */
-	private static class L1CacheLine {
+	static class L1CacheLine {
 
 		/**
 		 * The number of words in each cache line.
@@ -301,21 +302,31 @@ public class CPU implements CPUConstants {
 	/**
 	 * @author Alex Remily
 	 */
-	private static class MemoryController implements Runnable {
+	static class MemoryController implements Runnable {
+
 		@Override
 		public void run() {
 			while (true) {
-				synchronized (buffer) {
-					try {
-						buffer.wait();
-						System.out
-								.println("Memory controller has been notified that an element has been added to the write buffer.");
+				synchronized (write_buffer) {
+					if (write_buffer.isEmpty()) {
+						try {
+							System.out
+									.println(Thread.currentThread().getName()
+											.toString()
+											+ ":  Memory controller is waiting for an element to be added to the write write_buffer.");
+							write_buffer.wait();
 
-					} catch (InterruptedException e) {
-						e.printStackTrace();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						System.out
+								.println(Thread.currentThread().getName()
+										.toString()
+										+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
+						write_buffer.writeToMemory(Memory.getInstance());
+					} else {
+						write_buffer.writeToMemory(Memory.getInstance());
 					}
-					while (!buffer.isEmpty())
-						buffer.writeToMemory(Memory.getInstance());
 				}
 			}
 		}
@@ -327,9 +338,9 @@ public class CPU implements CPUConstants {
 	 * 
 	 * @author Alex Remily
 	 */
-	private static class WriteBuffer {
+	static class WriteBuffer {
 
-		private class WriteBufferContents {
+		public class WriteBufferContents {
 			private int address;
 			private Word word;
 			private byte flag;
@@ -388,10 +399,21 @@ public class CPU implements CPUConstants {
 			public void setWord(Word word) {
 				this.word = word;
 			}
+
+			/*
+			 * (non-Javadoc)
+			 * 
+			 * @see java.lang.Object#toString()
+			 */
+			@Override
+			public String toString() {
+				return "WriteBufferContents [address=" + address + ", word="
+						+ word + ", flag=" + flag + "]";
+			}
 		}
 
 		/**
-		 * FIFO queue of size 4 serves as a write buffer. Holds the dirty
+		 * FIFO queue of size 4 serves as a write write_buffer. Holds the dirty
 		 * L1CacheLines as elements in the queue. L1CacheLines flag bits are
 		 * ignored, and the L1CacheLine word is written to the main memory
 		 * address specified by the L1CacheLine tag value.
@@ -403,9 +425,10 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * Adds a dirty cache value to the write buffer for synchronization with
-		 * main memory. If the buffer is full, the add is blocked and the CPU
-		 * sill stall until there is room in the buffer.
+		 * Adds a dirty cache value to the write write_buffer for
+		 * synchronization with main memory. If the write_buffer is full, the
+		 * add is blocked and the CPU sill stall until there is room in the
+		 * write_buffer.
 		 * 
 		 * @param line
 		 *            An L1CacheLine element with the dirty bit set, indicating
@@ -416,27 +439,17 @@ public class CPU implements CPUConstants {
 			WriteBufferContents contents = new WriteBufferContents(address,
 					word, flag);
 			boolean success = false;
-
-			try {
-				synchronized (this) {
-					if (success = buffer.add(contents))
-						System.out
-								.println("Element added to write buffer.  Notifying memory controller.");
-					notify();
-				}
-			} catch (IllegalStateException e) {
-				try {
-					synchronized (memory_controller) {
-						memory_controller.wait();
-						System.out
-								.println("Write buffer is waiting for memory controller to finish processing write buffer.");
-					}
-					success = buffer.add(contents);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
+			synchronized (this) {
+				success = buffer.add(contents);
+				System.out
+						.println(Thread.currentThread().getName().toString()
+								+ ": Element added to write write_buffer.  Notifying memory controller.");
+				notify();
 			}
 
+			System.out.println(Thread.currentThread().getName().toString()
+					+ ": Write write_buffer is returning with value of: "
+					+ success + ".");
 			return success;
 		}
 
@@ -459,7 +472,10 @@ public class CPU implements CPUConstants {
 		public boolean writeToMemory(Memory memory) {
 			boolean success = true;
 			try {
+
 				WriteBufferContents line = buffer.remove();
+				System.out.println(Thread.currentThread().getName().toString()
+						+ ": Removing line " + line + " From write_buffer.");
 				Word word = line.getWord();
 				int address = line.getAddress();
 				byte flag = line.getFlag();
@@ -469,6 +485,13 @@ public class CPU implements CPUConstants {
 				success = false;
 			}
 			return success;
+		}
+
+		/**
+		 * @return the write_buffer
+		 */
+		public Queue<WriteBufferContents> getBuffer() {
+			return buffer;
 		}
 	}
 
@@ -486,9 +509,9 @@ public class CPU implements CPUConstants {
 	private ALU alu;
 
 	/**
-	 * The memory write buffer with a fast FIFO algorithm.
+	 * The memory write write_buffer with a fast FIFO algorithm.
 	 */
-	private static WriteBuffer buffer = new WriteBuffer();
+	private static WriteBuffer write_buffer = new WriteBuffer();
 	/**
 	 * Maintains memory state by managing the reads and writes amongst the
 	 * components of memory.
