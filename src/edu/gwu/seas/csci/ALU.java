@@ -1,8 +1,8 @@
 package edu.gwu.seas.csci;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
+//import java.util.List;
 
 /**
  * The ALU class contains the implementation for the arithmetical and logical instructions.
@@ -28,6 +28,10 @@ public class ALU implements CPUConstants{
 	 */
 	
 	private static void setCC(int code) {
+		
+		//clear out any old CC values
+		cpu.getReg(CC).clear();
+		
 		int numBits = cpu.getReg(CC).getNumBits();
 		BitSet ccValue = new BitSet(numBits);
 		
@@ -57,6 +61,15 @@ public class ALU implements CPUConstants{
 		
 		orig = Utils.intToBitSet(before, DEFAULT_BIT_SIZE);
 		result = Utils.intToBitSet(after, DEFAULT_BIT_SIZE);
+
+		System.out.printf("before value: %d\n", before);
+		System.out.printf("before value as bitset %s\n", orig.toString());
+		
+		System.out.printf("after value: %d\n", after);
+		System.out.printf("after value as bitset %s\n", result.toString());
+		
+		System.out.printf("before has a bit size of %d\n", orig.length());
+		System.out.printf("after has a bit size of %d\n", result.length());
 		
 		if (orig.length() > result.length()) {
 			setCC(OVERFLOW);
@@ -91,14 +104,14 @@ public class ALU implements CPUConstants{
 			return;
 		}
 		
-		Register dest = cpu.getReg(OP1);
-		int regValue = Utils.convertToInt(dest, dest.getNumBits());
+		Register op1 = cpu.getReg(OP1);
+		int regValue = Utils.convertToInt(op1, op1.getNumBits());
 		int newRegValue = valToBeAdded + regValue;
 		
 		checkOverflow(regValue, newRegValue);
 		
 		BitSet newVal = new BitSet();
-		newVal = Utils.intToBitSet(newRegValue, dest.getNumBits());
+		newVal = Utils.intToBitSet(newRegValue, op1.getNumBits());
 		
 		//Set RESULT register with sum
 		cpu.setReg(RESULT, newVal, 18);
@@ -113,7 +126,7 @@ public class ALU implements CPUConstants{
 		
 		Register dest = cpu.getReg(OP1);
 		int regValue = Utils.convertToInt(dest, dest.getNumBits());
-		int newRegValue = valToBeSubtracted - regValue;
+		int newRegValue = regValue - valToBeSubtracted;
 		
 		checkUnderflow(regValue, newRegValue);
 		
@@ -144,13 +157,13 @@ public class ALU implements CPUConstants{
 	/**
 	 * Subtract immediate from register.
 	 */
-	public static void SIR() {
+	public void SIR() {
 		Register i = cpu.getReg(OP2);
 		int immedVal = Utils.convertToInt(i, i.getNumBits());
 		
 		subtract(immedVal);
 	}
-	public static void SMR() {
+	public void SMR() {
 		SIR();
 	}
 
@@ -160,24 +173,51 @@ public class ALU implements CPUConstants{
 	 * to multiple.  RESULT then holds the high order bits and RESULT2 contains
 	 * the low order bits.
 	 */
-	public static void MLT() {
+	public void MLT() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		
 		int op1Val = Utils.convertToInt(op1, op1.getNumBits());
 		int op2Val = Utils.convertToInt(op2, op2.getNumBits());
 		
-		long result = op1Val * op2Val;
+		long result = Integer.toUnsignedLong(op1Val) * Integer.toUnsignedLong(op2Val);
 		
-		int newBitSize = DEFAULT_BIT_SIZE * 2;
-		result = result >>> (64 - newBitSize);
+		//maybe i can keep shifting left until i hit a number....
+		while (result == (result >>> 1)) {
+			result >>>= 1;
+		}
 		
-		//Separate high from low order bits
-		int highBits = (int) (result >>> DEFAULT_BIT_SIZE);
-		int lowBits = (int) result;
+		long highestBitVal = Long.highestOneBit(result);
+		int resultSize = 0;
 		
-		BitSet high = Utils.intToBitSet(highBits, DEFAULT_BIT_SIZE);
-		BitSet low = Utils.intToBitSet(lowBits, DEFAULT_BIT_SIZE);
+		while (highestBitVal != 0 && highestBitVal != 1) {
+			highestBitVal >>>= 1;
+			resultSize++;
+		}
+		
+		
+		int maxBitSize = DEFAULT_BIT_SIZE * 2;
+
+		
+		while (resultSize > maxBitSize) {
+			result >>>= 1;
+			resultSize = (int)Long.highestOneBit(result);
+		}
+		
+		//determine high/low bit separation
+		long highBits = 0;
+		long lowBits = 0;
+		
+		if (resultSize < DEFAULT_BIT_SIZE) {
+			lowBits = 0;
+			highBits = result;
+		} else {
+			highBits = (result >>> DEFAULT_BIT_SIZE);
+			lowBits = (result << 64 - DEFAULT_BIT_SIZE);
+		}
+				
+		BitSet high = Utils.intToBitSet((int)highBits, DEFAULT_BIT_SIZE);
+		BitSet low = Utils.intToBitSet((int)lowBits, DEFAULT_BIT_SIZE);
 		
 		cpu.setReg(RESULT, high, DEFAULT_BIT_SIZE);
 		cpu.setReg(RESULT2, low, DEFAULT_BIT_SIZE);
@@ -234,11 +274,9 @@ public class ALU implements CPUConstants{
 	
 	}
 	
-	
-
 	/* Division of register by register.  OP1 should contain the dividend and OP2 the divisor.
 	 * After the operation, RESULT will contain the quotient and RESULT2 the remainder.  */
-	public static void DVD() {
+	public void DVD() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		
@@ -260,6 +298,8 @@ public class ALU implements CPUConstants{
 		cpu.setReg(RESULT2, remainSet, DEFAULT_BIT_SIZE);
 		
 	}
+	
+	
 
 	
 	/* Logical Unit */
@@ -267,7 +307,7 @@ public class ALU implements CPUConstants{
 	/**
 	 * Equality test of registers 
 	 */
-	public static void TRR() {
+	public void TRR() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		
@@ -303,21 +343,21 @@ public class ALU implements CPUConstants{
 	/**
 	 * Logical AND of Register and Register
 	 */
-	public static void AND() {
+	public void AND() {
 		bitwiseOp(AND_OP);
 	}
 
 	/**
 	 * Logical OR of Register and Register
 	 */
-	public static void ORR() {
+	public void ORR() {
 		bitwiseOp(OR_OP);
 	}
 
 	/**
 	 * Logical NOT of register OP1
 	 */
-	public static void NOT() {
+	public void NOT() {
 		Register op1 = cpu.getReg(OP1);
 		int regSize = op1.getNumBits();
 		
@@ -333,7 +373,7 @@ public class ALU implements CPUConstants{
 	 * If left shifting, then OP3 should hold a value of 1.  If right shifting is specified, then OP3 should be empty.
 	 * If logically shifting, then OP4 should have a value of 1.  If arithmetic shifting, OP4 should be empty.
 	 */
-	public static void SRC() {
+	public void SRC() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		Register op3 = cpu.getReg(OP3);
@@ -394,7 +434,7 @@ public class ALU implements CPUConstants{
 	 * If left shifting, then OP3 should hold a value of 1.  If right shifting is specified, then OP3 should be empty.
 	 * If logically shifting, then OP4 should have a value of 1.  If arithmetic shifting, OP4 should be empty.
 	 */
-	public static void RRC() {
+	public void RRC() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		Register op3 = cpu.getReg(OP3);
@@ -445,11 +485,11 @@ public class ALU implements CPUConstants{
 	
 	/**
 	 * Greater than or equal comparison.  Given the contents of OP1 and OP2, a greater than or equal to check
-	 * is performed (OP1 >= OP2).  If the check is true, then RESULT will contain a positive value.  If false, then
+	 * is performed (OP1 >= OP2).  If the check is true, then RESULT will contain a positive value.  If false, then the
 	 * result will contain the value 0.
 	 */
 	
-	public static void GTE() {
+	public void GTE() {
 		Register op1 = cpu.getReg(OP1);
 		Register op2 = cpu.getReg(OP2);
 		
@@ -464,5 +504,9 @@ public class ALU implements CPUConstants{
 		
 		cpu.setReg(RESULT, result, DEFAULT_BIT_SIZE);
 	}
+	
+	
+	
 
 }
+
