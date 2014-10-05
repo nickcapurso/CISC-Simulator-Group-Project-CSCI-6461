@@ -34,10 +34,22 @@ public class Context {
 		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN
 	}
 
+	/**
+	 * The dirty flag bitmask for the cache line. Indicates that the value
+	 * differs from it's corresponding value in memory.
+	 */
+	public static final byte ONE = 0x1;
+	public static final byte TWO = 0x2;
+	public static final byte THREE = 0x4;
+	public static final byte FOUR = 0x8;
+	public static final byte FIVE = 0x16;
+	public static final byte SIX = 0x32;
+
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
 	private Map<String, InstructionFormat> instructionFormats = new HashMap<String, InstructionFormat>();
 	private Map<String, Byte> opCodeBytes = new HashMap<String, Byte>();
 	private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
+	private Map<Integer, Byte> indexToFlags = new HashMap<Integer, Byte>();
 
 	/**
 	 * 
@@ -47,11 +59,11 @@ public class Context {
 		/**
 		 * InstructionFormats setup
 		 */
-		
-		//HALT
+
+		// HALT
 		instructionFormats.put("HLT", InstructionFormat.ZERO);
-		
-		//OPCODE R,X,ADDR[,I]
+
+		// OPCODE R,X,ADDR[,I]
 		instructionFormats.put("LDR", InstructionFormat.ONE);
 		instructionFormats.put("STR", InstructionFormat.ONE);
 		instructionFormats.put("LDA", InstructionFormat.ONE);
@@ -62,34 +74,33 @@ public class Context {
 		instructionFormats.put("JCC", InstructionFormat.ONE);
 		instructionFormats.put("SOB", InstructionFormat.ONE);
 		instructionFormats.put("JGE", InstructionFormat.ONE);
-		
-		//OPCODE X,ADDR[,I]
+
+		// OPCODE X,ADDR[,I]
 		instructionFormats.put("LDX", InstructionFormat.TWO);
 		instructionFormats.put("STX", InstructionFormat.TWO);
 		instructionFormats.put("JMR", InstructionFormat.TWO);
 		instructionFormats.put("JSR", InstructionFormat.TWO);
-		
-		//OPCODE R,IMMED
+
+		// OPCODE R,IMMED
 		instructionFormats.put("AIR", InstructionFormat.THREE);
 		instructionFormats.put("SIR", InstructionFormat.THREE);
-		
-		//OPCODE IMMED
+
+		// OPCODE IMMED
 		instructionFormats.put("RFS", InstructionFormat.FOUR);
-		
-		//OPCODE RX
+
+		// OPCODE RX
 		instructionFormats.put("NOT", InstructionFormat.FIVE);
-		
-		//OPCODE RX,RY
+
+		// OPCODE RX,RY
 		instructionFormats.put("MLT", InstructionFormat.SIX);
 		instructionFormats.put("DVD", InstructionFormat.SIX);
 		instructionFormats.put("TRR", InstructionFormat.SIX);
 		instructionFormats.put("AND", InstructionFormat.SIX);
 		instructionFormats.put("ORR", InstructionFormat.SIX);
-		
-		//OPCODE R,COUNT,L/R,A/L
+
+		// OPCODE R,COUNT,L/R,A/L
 		instructionFormats.put("SRC", InstructionFormat.SEVEN);
 		instructionFormats.put("RRC", InstructionFormat.SEVEN);
-		
 
 		/**
 		 * opcodeClasses setup
@@ -216,6 +227,13 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeStrings.put(OpCodesList.SRC, "SRC");
 		opCodeStrings.put(OpCodesList.RRC, "RRC");
+
+		indexToFlags.put(0, ONE);
+		indexToFlags.put(1, TWO);
+		indexToFlags.put(2, THREE);
+		indexToFlags.put(3, FOUR);
+		indexToFlags.put(4, FIVE);
+		indexToFlags.put(5, SIX);
 	}
 
 	public static Context getInstance() {
@@ -248,5 +266,12 @@ public class Context {
 	 */
 	public Map<String, Byte> getOpCodeBytes() {
 		return opCodeBytes;
+	}
+
+	/**
+	 * @return the indexToFlags
+	 */
+	public Map<Integer, Byte> getIndexToFlags() {
+		return indexToFlags;
 	}
 }

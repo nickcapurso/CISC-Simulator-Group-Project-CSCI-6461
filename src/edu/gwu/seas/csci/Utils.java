@@ -1,19 +1,23 @@
 package edu.gwu.seas.csci;
 
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * The Utils class contains a variety of utility methods that various other classes 
- * make use of. It contains various conversion methods - for instance, to convert 
- * back and forth a BitSet and its numeric equivalent. It also includes deep copy 
- * methods to copy the contents of one Register or BitSet to another.
+ * The Utils class contains a variety of utility methods that various other
+ * classes make use of. It contains various conversion methods - for instance,
+ * to convert back and forth a BitSet and its numeric equivalent. It also
+ * includes deep copy methods to copy the contents of one Register or BitSet to
+ * another.
  * 
  * @author Nick Capurso, Alex Remily
  */
 public class Utils {
+
 	private static Context context = Context.getInstance();
 	private static InstructionWriter writer = new InstructionWriter();
-	
+
 	/**
 	 * Converts a BitSet to its numeric equivalent, stored in a byte. The return
 	 * value can be used for numeric based comparisons.
@@ -31,7 +35,7 @@ public class Utils {
 
 		for (int i = numBits - 1; i >= 0; i--)
 			value += set.get(i) ? (byte) (1 << (numBits - 1 - i)) : 0;
-			return value;
+		return value;
 	}
 
 	/**
@@ -52,7 +56,7 @@ public class Utils {
 		for (int i = numBits - 1; i >= 0; i--)
 			value += set.get(i) ? (1 << (numBits - 1 - i)) : 0;
 
-			return value;
+		return value;
 	}
 
 	/**
@@ -130,31 +134,36 @@ public class Utils {
 	}
 
 	/**
-	 * Converts a int value into a BitSet. If the value cannot
-	 * fit into a BitSet of size setSize, it should be truncated.
-	 *  
-	 * @param value The value to convert into a BitSet representation.
-	 * @param setSize The number of bits the BitSet will hold.
+	 * Converts a int value into a BitSet. If the value cannot fit into a BitSet
+	 * of size setSize, it should be truncated.
+	 * 
+	 * @param value
+	 *            The value to convert into a BitSet representation.
+	 * @param setSize
+	 *            The number of bits the BitSet will hold.
 	 * @return
 	 */
-	public static BitSet intToBitSet(int value, int setSize){
+	public static BitSet intToBitSet(int value, int setSize) {
 		BitSet set = new BitSet(setSize);
-		for(int i = setSize-1; i > 0; i--){
-			set.set(i, (value & 1) == 1? true:false);
+		for (int i = setSize - 1; i > 0; i--) {
+			set.set(i, (value & 1) == 1 ? true : false);
 			value >>>= 1;
 		}
 		return set;
 	}
 
 	/**
-	 * Converts a Register (casted to it's superclass, BitSet)
-	 * to a Word (since subclasses can't be casted to subclasses)
+	 * Converts a Register (casted to it's superclass, BitSet) to a Word (since
+	 * subclasses can't be casted to subclasses)
 	 * 
-	 * @param set The Register
-	 * @param numBits The number of bits represented by the Register (a Word is 18-bits)
+	 * @param set
+	 *            The Register
+	 * @param numBits
+	 *            The number of bits represented by the Register (a Word is
+	 *            18-bits)
 	 * @return
 	 */
-	public static Word registerToWord(BitSet set, int numBits){
+	public static Word registerToWord(BitSet set, int numBits) {
 		Word word = new Word();
 		if (numBits <= 18) {
 			for (int i = 18 - numBits, j = 0; i < 18; i++, j++)
@@ -166,5 +175,13 @@ public class Utils {
 				word.set(j, set.get(i));
 		}
 		return word;
+	}
+
+	/**
+	 * @param index
+	 * @return
+	 */
+	public static byte l1IndexToFlag(int index) {
+		return context.getIndexToFlags().get(index);
 	}
 }

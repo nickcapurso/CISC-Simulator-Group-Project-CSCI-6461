@@ -20,8 +20,8 @@ import edu.gwu.seas.csci.Utils;
  * keeps references to the Memory, IRDecoder, and Loader classes to respectively
  * access memory, parse instructions, and load the boot loader program.
  * 
- * This CPU implements a simple unified (instructions and data)
- * write-through memory cache.
+ * This CPU implements a unified (instructions and data)
+ * buffered write-through memory cache.
  */
 /**
  * @author Alex Remily
@@ -29,35 +29,11 @@ import edu.gwu.seas.csci.Utils;
 public class CPU implements CPUConstants {
 
 	/**
-	 * @author Alex Remily
-	 */
-	private class MemoryController implements Runnable {
-
-		Memory memory = Memory.getInstance();
-
-		@Override
-		public void run() {
-			synchronized (memory) {
-				try {
-					// Wait for notification from Memory that an event needs to
-					// be handled.
-					memory.wait();
-					System.out.println("Notify has been called.");
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	/**
 	 * We have an address space of 2KB. We have 16 cache lines. Each cache line
-	 * contains 4 Words (18 bits each).
+	 * contains 6 Words (18 bits each).
 	 * 
 	 * @author Alex Remily
 	 */
-
 	private static class L1Cache {
 
 		private static final int CACHE_LENGTH = 16;
@@ -65,54 +41,22 @@ public class CPU implements CPUConstants {
 		 * Contains the contents of the L1 cache. We have 2<sup>4</sup> cache
 		 * lines.
 		 */
-		private static final L1CacheLine[] cache = new L1CacheLine[CACHE_LENGTH];
+		private final L1CacheLine[] cache = new L1CacheLine[CACHE_LENGTH];
 
 		/**
 		 * 
 		 */
-		private static final Random generator = new Random();
+		private final Random generator = new Random();
 
 		/**
 		 * 
 		 */
-		private static byte cache_adds_counter = 0;
+		private byte cache_adds_counter = 0;
 
 		/**
-		 * Checks the cache for the contents of a given memory address. Iterates
-		 * through the tags of each line in the cache, and checks whether that
-		 * cache line contains the search address by checking whether the value
-		 * of the search address is between the value of the tag line address
-		 * and the tag line address plus the number of words in the cache line.
-		 * 
-		 * @param address
-		 *            The memory address to search for in the cache, i.e., the
-		 *            search address.
-		 * @return The contents of the specified address or null if the
-		 *         specified memory address is not in the cache.
+		 * Zero-arg contstructor.
 		 */
-		public static Word read(int address) {
-			for (L1CacheLine line : cache) {
-				if (line != null) {
-					if (address >= line.getTag()
-							&& address < line.getTag()
-									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println("Cache hit.  Found address "
-								+ address + " in cache line with tag "
-								+ line.getTag() + ".");
-						return line.getWord(address - line.getTag());
-					}
-				}
-			}
-			System.out.println("Cache miss.");
-			return null;
-		}
-
-		/**
-		 * @param word
-		 * @param address
-		 */
-		public static void write(Word word, byte address) {
-
+		public L1Cache() {
 		}
 
 		/**
@@ -123,7 +67,7 @@ public class CPU implements CPUConstants {
 		 * @param line
 		 *            The line to add to the cache.
 		 */
-		public static void add(L1CacheLine line) {
+		public void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
 				System.out.println("Adding cache line with tag "
 						+ line.getTag() + " to cache at position "
@@ -139,6 +83,94 @@ public class CPU implements CPUConstants {
 						+ cache_position + ".");
 				cache[cache_position] = line;
 			}
+		}
+
+		/**
+		 * Checks the cache for the contents of a given memory address. Iterates
+		 * through the tags of each line in the cache, and checks whether that
+		 * cache line contains the search address by checking whether the value
+		 * of the search address is between the value of the tag line address
+		 * and the tag line address plus the number of words in the cache line.
+		 * 
+		 * @param address
+		 *            The memory address to search for in the cache, i.e., the
+		 *            search address.
+		 * @return The contents of the specified address or null if the
+		 *         specified memory address is not in the cache.
+		 */
+		public Word read(int address) {
+			for (L1CacheLine line : cache) {
+				if (line != null) {
+					if (address >= line.getTag()
+							&& address < line.getTag()
+									+ L1CacheLine.WORDS_PER_LINE) {
+						System.out.println("Cache read hit.  Found address "
+								+ address + " in cache line with tag "
+								+ line.getTag() + ".");
+						return line.getWord(address - line.getTag());
+					}
+				}
+			}
+			System.out.println("Cache read miss.");
+			return null;
+		}
+
+		/**
+		 * TODO: Need to modify the dirty flag to reflect the buffer contents
+		 * write to memory.
+		 * 
+		 * @param address
+		 * @param flag
+		 */
+		public void toggleFlag(int address, byte flag) {
+			L1CacheLine line = l1_cache.getCacheLine(address);
+			byte flags = line.getFlags();
+			flags = (byte) (flags - flag);
+			line.setFlags(flags);
+		}
+
+		/**
+		 * Locates the index of the cache line containing a given address.
+		 * 
+		 * @param address
+		 *            The address for which to find the corresponding cache
+		 *            line.
+		 * @return the index of the cache line, or null if the address is not in
+		 *         the cache.
+		 */
+		public L1CacheLine getCacheLine(int address) {
+			L1CacheLine line = null;
+			for (int i = 0; i < CACHE_LENGTH; i++) {
+				line = cache[i];
+				if (line != null && address >= line.getTag()
+						&& address < line.getTag() + L1CacheLine.WORDS_PER_LINE)
+					return line;
+			}
+			return null;
+		}
+
+		/**
+		 * @param word
+		 * @param address
+		 * @param flag
+		 */
+		public void write(Word word, byte address) {
+			for (L1CacheLine line : cache) {
+				if (line != null) {
+					if (address >= line.getTag()
+							&& address < line.getTag()
+									+ L1CacheLine.WORDS_PER_LINE) {
+						System.out.println("Cache write hit.  Found address "
+								+ address + " in cache line with tag "
+								+ line.getTag() + ".");
+						int index = address - line.getTag();
+						byte flag = Utils.l1IndexToFlag(index);
+						line.setWord(word, address - line.getTag());
+						buffer.addToBuffer(word, address, flag);
+					}
+				}
+			}
+			System.out.println("Cache write miss.");
 		}
 	}
 
@@ -159,12 +191,6 @@ public class CPU implements CPUConstants {
 		public static final int WORDS_PER_LINE = 6;
 
 		/**
-		 * The dirty flag for the cache line. Indicates that the value differs
-		 * from it's corresponding value in memory.
-		 */
-		public static final byte DIRTY = 0x1;
-
-		/**
 		 * The main memory address of this cache line.
 		 */
 		private int tag;
@@ -178,6 +204,8 @@ public class CPU implements CPUConstants {
 		 * A bitmask for cache operations.
 		 */
 		private byte flags;
+
+		private byte index;
 
 		/**
 		 * Creates a new cache line from the given parameters.
@@ -214,6 +242,19 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
+		 * Checks to see if a value in the cache line differs from the value
+		 * that was originally fetched from memory. This would occur if the CPU
+		 * has written to the cache and the memory controller has not yet
+		 * updated the value in main memory,
+		 * 
+		 * @return true if a value in the cache line differs from that in its
+		 *         corresponding address location in main memory.
+		 */
+		public boolean isDirty() {
+			return flags > 0;
+		}
+
+		/**
 		 * @param flags
 		 *            the flags to set
 		 */
@@ -230,24 +271,19 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
+		 * @param word
+		 * @param index
+		 */
+		public void setWord(Word word, int index) {
+			words[index] = word;
+		}
+
+		/**
 		 * @param words
 		 *            the words to set
 		 */
 		public void setWords(Word[] words) {
 			this.words = words;
-		}
-
-		/**
-		 * Checks to see if a value in the cache line differs from the value
-		 * that was originally fetched from memory. This would occur if the CPU
-		 * has written to the cache and the memory controller has not yet
-		 * updated the value in main memory,
-		 * 
-		 * @return true if a value in the cache line differs from that in its
-		 *         corresponding address location in main memory.
-		 */
-		public boolean isDirty() {
-			return flags == DIRTY;
 		}
 
 		/*
@@ -263,6 +299,29 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
+	 * @author Alex Remily
+	 */
+	private static class MemoryController implements Runnable {
+		@Override
+		public void run() {
+			while (true) {
+				synchronized (buffer) {
+					try {
+						buffer.wait();
+						System.out
+								.println("Memory controller has been notified that an element has been added to the write buffer.");
+
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					while (!buffer.isEmpty())
+						buffer.writeToMemory(Memory.getInstance());
+				}
+			}
+		}
+	}
+
+	/**
 	 * Used to hold data being written back from the cache to main memory. This
 	 * is a variation of write-through caching called buffered write-through.
 	 * 
@@ -270,15 +329,40 @@ public class CPU implements CPUConstants {
 	 */
 	private static class WriteBuffer {
 
-		static class WriteBufferContents {
+		private class WriteBufferContents {
 			private int address;
 			private Word word;
+			private byte flag;
+
+			/**
+			 * @param address
+			 * @param word
+			 */
+			public WriteBufferContents(int address, Word word, byte flag) {
+				this.address = address;
+				this.word = word;
+				this.flag = flag;
+			}
 
 			/**
 			 * @return the address
 			 */
 			public int getAddress() {
 				return address;
+			}
+
+			/**
+			 * @return the flag
+			 */
+			public byte getFlag() {
+				return flag;
+			}
+
+			/**
+			 * @return the word
+			 */
+			public Word getWord() {
+				return word;
 			}
 
 			/**
@@ -290,10 +374,11 @@ public class CPU implements CPUConstants {
 			}
 
 			/**
-			 * @return the word
+			 * @param flag
+			 *            the flag to set
 			 */
-			public Word getWord() {
-				return word;
+			public void setFlag(byte flag) {
+				this.flag = flag;
 			}
 
 			/**
@@ -311,8 +396,11 @@ public class CPU implements CPUConstants {
 		 * ignored, and the L1CacheLine word is written to the main memory
 		 * address specified by the L1CacheLine tag value.
 		 */
-		private static final Queue<WriteBufferContents> buffer = new ArrayBlockingQueue<WriteBufferContents>(
+		private final Queue<WriteBufferContents> buffer = new ArrayBlockingQueue<WriteBufferContents>(
 				4);
+
+		public WriteBuffer() {
+		}
 
 		/**
 		 * Adds a dirty cache value to the write buffer for synchronization with
@@ -324,14 +412,31 @@ public class CPU implements CPUConstants {
 		 *            that it has been written to in the cache and must be
 		 *            synchronized with main memory.
 		 */
-		public boolean addToBuffer(WriteBufferContents contents) {
+		public boolean addToBuffer(Word word, int address, byte flag) {
+			WriteBufferContents contents = new WriteBufferContents(address,
+					word, flag);
 			boolean success = false;
+
 			try {
-				success = buffer.add(contents);
+				synchronized (this) {
+					if (success = buffer.add(contents))
+						System.out
+								.println("Element added to write buffer.  Notifying memory controller.");
+					notify();
+				}
 			} catch (IllegalStateException e) {
-				// TODO Handle the Exception. Halt the CPU thread until the
-				// memory_controller_thread makes room for more elements.
+				try {
+					synchronized (memory_controller) {
+						memory_controller.wait();
+						System.out
+								.println("Write buffer is waiting for memory controller to finish processing write buffer.");
+					}
+					success = buffer.add(contents);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 			}
+
 			return success;
 		}
 
@@ -357,7 +462,9 @@ public class CPU implements CPUConstants {
 				WriteBufferContents line = buffer.remove();
 				Word word = line.getWord();
 				int address = line.getAddress();
+				byte flag = line.getFlag();
 				memory.write(word, address);
+				l1_cache.toggleFlag(address, flag);
 			} catch (NoSuchElementException | IndexOutOfBoundsException e) {
 				success = false;
 			}
@@ -372,31 +479,34 @@ public class CPU implements CPUConstants {
 	public static int cycle_count = 0;
 	private Map<String, Register> regMap = new HashMap<String, Register>();
 
-	// TODO: Refactor this class variable out and replace with method args.
-	private Memory memory;
-
 	private IRDecoder irdecoder;
 
 	private Loader romLoader;
-	
+
 	private ALU alu;
 
 	/**
 	 * The memory write buffer with a fast FIFO algorithm.
 	 */
-	private final WriteBuffer buffer = new WriteBuffer();
-
+	private static WriteBuffer buffer = new WriteBuffer();
 	/**
 	 * Maintains memory state by managing the reads and writes amongst the
 	 * components of memory.
 	 */
-	private final MemoryController memory_controller = new MemoryController();
+	private static MemoryController memory_controller = new MemoryController();
 
 	/**
 	 * Runs the memory_controller asynchronously in a separate dedicated thread.
 	 */
-	private final Thread memory_controller_thread = new Thread(
+	private static Thread memory_controller_thread = new Thread(
 			memory_controller, "memory_controller");
+
+	private static boolean kill_thread = false;
+
+	/**
+	 * 
+	 */
+	private static final L1Cache l1_cache = new L1Cache();
 
 	// Constructor
 	public CPU(Memory memory) {
@@ -453,40 +563,6 @@ public class CPU implements CPUConstants {
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
 		romLoader = new FileLoader();
-		this.memory = Memory.getInstance();
-	}
-
-	/**
-	 * @param memory
-	 *            The main memory to target.
-	 * @param address
-	 *            The address in main memory to target.
-	 * @param word
-	 *            The contents to write.
-	 * @return true if successful, false otherwise.
-	 */
-	public boolean writeToMemory(Memory memory, byte address, Word word) {
-		return true;
-	}
-
-	/**
-	 * @param memory
-	 *            The main memory to target.
-	 * @param address
-	 *            The address in main memory to target.
-	 * @return the contents of the specified address in the specified memory.
-	 */
-	public Word readFromMemory(Memory memory, int address) {
-		Word word = L1Cache.read(address);
-		if (word != null)
-			return word;
-		else {
-			Word[] block = memory.getMemoryBlock(address);
-			word = block[0];
-			L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
-			L1Cache.add(line);
-		}
-		return word;
 	}
 
 	/**
@@ -567,6 +643,26 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
+	 * @param memory
+	 *            The main memory to target.
+	 * @param address
+	 *            The address in main memory to target.
+	 * @return the contents of the specified address in the specified memory.
+	 */
+	public Word readFromMemory(Memory memory, int address) {
+		Word word = l1_cache.read(address);
+		if (word != null)
+			return word;
+		else {
+			Word[] block = memory.getMemoryBlock(address);
+			word = block[0];
+			L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
+			l1_cache.add(line);
+		}
+		return word;
+	}
+
+	/**
 	 * Sets a register with a BitSet value.
 	 * 
 	 * @param destName
@@ -642,6 +738,20 @@ public class CPU implements CPUConstants {
 		// executeInstruction("continue");
 	}
 
+	/**
+	 * @param memory
+	 *            The main memory to target.
+	 * @param address
+	 *            The address in main memory to target.
+	 * @param word
+	 *            The contents to write.
+	 * @return true if successful, false otherwise.
+	 */
+	public boolean writeToMemory(Memory memory, byte address, Word word) {
+		l1_cache.write(word, address);
+		return true;
+	}
+
 	private void advancePC() {
 		int pcContents = Utils
 				.convertToInt(getReg(PC), getReg(PC).getNumBits());
@@ -702,7 +812,9 @@ public class CPU implements CPUConstants {
 			setReg(MAR, getReg(EA));
 
 			// Memory(MAR) -> MDR
-			setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
+			setReg(MDR,
+					Memory.getInstance().read(getReg(MAR),
+							getReg(MAR).getNumBits()));
 
 			// MDR -> EA
 			setReg(EA, getReg(MDR));
@@ -731,20 +843,19 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Branch Logic for individual opcodes
-	 *  - at end of any opcode logic it should reset prog_step counter
-	 *    - This will make singleInstruction restart, thus reaching the next PC
-	 *  - Currently Opcodes not properly setup
+	 * Branch Logic for individual opcodes - at end of any opcode logic it
+	 * should reset prog_step counter - This will make singleInstruction
+	 * restart, thus reaching the next PC - Currently Opcodes not properly setup
 	 * 
 	 * @param op_byte
-	 * 		Opcode to do case branching
+	 *            Opcode to do case branching
 	 */
 	private void opcodeInstruction(byte op_byte) {
-		//memory = Memory.getInstance();
-		switch(op_byte){
+		// memory = Memory.getInstance();
+		switch (op_byte) {
 
 		case OpCodesList.LDR:
-			switch(prog_step) {
+			switch (prog_step) {
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -752,31 +863,32 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				//EA -> MAR
+				// EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 
 			case 6:
-				//Mem(MAR) -> MDR
-				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
-				setReg(MDR, memory.read(mar_addr));
+				// Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
+						.getNumBits());
+				setReg(MDR, Memory.getInstance().read(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
 
 			case 7:
-				//MDR -> registerFile(R)
+				// MDR -> registerFile(R)
 				setReg(registerFile(getReg(R)), regMap.get(MDR));
 				cycle_count++;
-				prog_step=0;
+				prog_step = 0;
 				break;
 			}
 			break;
 
 		case OpCodesList.STR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -784,25 +896,28 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				//EA -> MAR
+				// EA -> MAR
 				setReg(MAR, regMap.get(EA));
-				
-				//registerFile(R) -> MDR
+
+				// registerFile(R) -> MDR
 				setReg(MDR, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//MDR -> Mem(MAR)
-				memory.setWord(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), getReg(MAR).getNumBits());
+				// MDR -> Mem(MAR)
+				Memory.getInstance().setWord(
+						Utils.registerToWord(getReg(MDR), getReg(MDR)
+								.getNumBits()), getReg(MAR),
+						getReg(MAR).getNumBits());
 				cycle_count++;
-				prog_step=0;
+				prog_step = 0;
 				break;
 			}
 			break;
 
 		case OpCodesList.LDA:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(false);
 				cycle_count++;
@@ -810,16 +925,16 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				//EA -> regFile(R)
+				// EA -> regFile(R)
 				setReg(registerFile(getReg(R)), getReg(EA));
 				cycle_count++;
-				prog_step=0;
+				prog_step = 0;
 				break;
 			}
 			break;
 
 		case OpCodesList.LDX:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
@@ -827,29 +942,30 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				//EA -> MAR
+				// EA -> MAR
 				setReg(MAR, regMap.get(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//Mem(MAR) -> MDR
-				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR).getNumBits());
-				setReg(MDR, memory.read(mar_addr));
+				// Mem(MAR) -> MDR
+				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
+						.getNumBits());
+				setReg(MDR, Memory.getInstance().read(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				//MDR -> indexRegFile(R)
-				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));	
+				// MDR -> indexRegFile(R)
+				setReg(indexRegisterFile(getReg(IX)), getReg(MDR));
 				cycle_count++;
-				prog_step=0;
+				prog_step = 0;
 				break;
-			}	
+			}
 			break;
 
 		case OpCodesList.STX:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
@@ -857,580 +973,591 @@ public class CPU implements CPUConstants {
 				break;
 
 			case 5:
-				//EA -> MAR
+				// EA -> MAR
 				setReg(MAR, regMap.get(EA));
-				
-				//indexRegFile(R) -> MDR
+
+				// indexRegFile(R) -> MDR
 				setReg(MDR, getReg(indexRegisterFile(getReg(IX))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//MDR -> Mem(MAR)
-				memory.setWord(Utils.registerToWord(getReg(MDR), getReg(MDR).getNumBits()), getReg(MAR), regMap.get(MAR).getNumBits());
+				// MDR -> Mem(MAR)
+				Memory.getInstance().setWord(
+						Utils.registerToWord(getReg(MDR), getReg(MDR)
+								.getNumBits()), getReg(MAR),
+						regMap.get(MAR).getNumBits());
 				cycle_count++;
-				prog_step=0;
+				prog_step = 0;
 				break;
 
 			}
 			break;
-			
+
 		case OpCodesList.JZ:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				getReg(OP2).clear();
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 6:
-				//Perform equal to zero comparison in ALU
+				// Perform equal to zero comparison in ALU
 				alu.TRR();
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 7:
-				//If RESULT == 1
-					//EA -> PC
-				if(!getReg(CC).get(EQUALORNOT))
+				// If RESULT == 1
+				// EA -> PC
+				if (!getReg(CC).get(EQUALORNOT))
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.JNE:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				getReg(OP2).clear();
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 6:
-				//Perform not equal to zero comparison in ALU
+				// Perform not equal to zero comparison in ALU
 				alu.TRR();
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 7:
-				//If RESULT == 0
-					//EA -> PC
-				if(!getReg(CC).get(EQUALORNOT))
+				// If RESULT == 0
+				// EA -> PC
+				if (!getReg(CC).get(EQUALORNOT))
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.JCC:
-			//If RESULT == 1
-			//EA -> PC
-			if(getReg(CC).get(Utils.convertToByte(getReg(R), getReg(R).getNumBits())))
+			// If RESULT == 1
+			// EA -> PC
+			if (getReg(CC).get(
+					Utils.convertToByte(getReg(R), getReg(R).getNumBits())))
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
-			
+
 			cycle_count++;
 			prog_step = 0;
 			break;
-			
+
 		case OpCodesList.JMP:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//EA -> PC
+				// EA -> PC
 				setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.JSR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				int temp = Utils.convertToInt(getReg(PC), getReg(PC).getNumBits()) + 1;
-				//PC+1 -> R3
-				setReg(R3, Utils.intToBitSet(temp, getReg(R3).getNumBits()), 
+				int temp = Utils.convertToInt(getReg(PC), getReg(PC)
+						.getNumBits()) + 1;
+				// PC+1 -> R3
+				setReg(R3, Utils.intToBitSet(temp, getReg(R3).getNumBits()),
 						getReg(R3).getNumBits());
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 6:
-				//EA -> PC
+				// EA -> PC
 				setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
-				break;	
+				prog_step = 0;
+				break;
 			}
 			break;
-			
+
 		case OpCodesList.RFS:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//ADDR -> R0
+				// ADDR -> R0
 				setReg(R0, getReg(ADDR));
 				cycle_count++;
-				prog_step++;	
-				break;	
+				prog_step++;
+				break;
 			case 5:
-				//R3 -> PC 
+				// R3 -> PC
 				setReg(PC, getReg(R3));
 				cycle_count++;
-				prog_step = 0;	
-				break;	
+				prog_step = 0;
+				break;
 			}
 			break;
-			
+
 		case OpCodesList.SOB:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//Perform subtract one in ALU
-				//alu.SOB();
+				// Perform subtract one in ALU
+				// alu.SOB();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				//Clearing OP2 in preparation for GTE comparison
+				// Clearing OP2 in preparation for GTE comparison
 				getReg(OP2).clear();
-				//Perform greater than 0 comparison in ALU
+				// Perform greater than 0 comparison in ALU
 				alu.GTE();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 8:
-				//If RESULT == 1
-					//EA -> PC
-				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+				// If RESULT == 1
+				// EA -> PC
+				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
+						.getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.JGE:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 				getReg(OP2).clear();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//Perform greater than/equal comparison in ALU
+				// Perform greater than/equal comparison in ALU
 				alu.GTE();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
-				//If RESULT == 1
-					//EA -> PC
-				if(Utils.convertToInt(getReg(RESULT), getReg(RESULT).getNumBits()) == 1)
+				// If RESULT == 1
+				// EA -> PC
+				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
+						.getNumBits()) == 1)
 					setReg(PC, getReg(EA));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.AMR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Need to fetch the data from memory, EA -> MAR
+				// Need to fetch the data from memory, EA -> MAR
 				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//Memory(MAR) -> MDR
-				setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
+				// Memory(MAR) -> MDR
+				setReg(MDR,
+						Memory.getInstance().read(getReg(MAR),
+								getReg(MAR).getNumBits()));
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 8:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//MDR -> OP2
+
+				// MDR -> OP2
 				setReg(OP2, getReg(MDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 9:
-				//Perform add in ALU
+				// Perform add in ALU
 				alu.AMR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 10:
-				//RESULT -> registerFile(R) 
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.SMR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
 				calculateEA(true);
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Need to fetch the data from memory, EA -> MAR
+				// Need to fetch the data from memory, EA -> MAR
 				setReg(MAR, getReg(EA));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//Memory(MAR) -> MDR
-				setReg(MDR, memory.read(getReg(MAR), getReg(MAR).getNumBits()));
+				// Memory(MAR) -> MDR
+				setReg(MDR,
+						Memory.getInstance().read(getReg(MAR),
+								getReg(MAR).getNumBits()));
 				cycle_count++;
 				prog_step++;
 				break;
-				
+
 			case 8:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//MDR -> OP2
+
+				// MDR -> OP2
 				setReg(OP2, getReg(MDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 9:
-				//Perform subtract in ALU
+				// Perform subtract in ALU
 				alu.SMR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 10:
-				//RESULT -> registerFile(R) 
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.AIR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//ADDR -> OP2 (ADDR contains immediate data)
+
+				// ADDR -> OP2 (ADDR contains immediate data)
 				setReg(OP2, getReg(ADDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform add in ALU
+				// Perform add in ALU
 				alu.AIR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(R) 
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.SIR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//ADDR -> OP2 (ADDR contains immediate data)
+
+				// ADDR -> OP2 (ADDR contains immediate data)
 				setReg(OP2, getReg(ADDR));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform subtract in ALU
+				// Perform subtract in ALU
 				alu.SIR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(R) 
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.MLT:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-				
-				//registerFile(RY) -> OP2
+
+				// registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform multiply in ALU
+				// Perform multiply in ALU
 				alu.MLT();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RX will contain the high order word
+				// RX will contain the high order word
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
-				
-				//RX+1 will contain the low order word
-				//RX can only be 0 or 2
-				if(registerFile(getReg(RX)).equals(R0))
+
+				// RX+1 will contain the low order word
+				// RX can only be 0 or 2
+				if (registerFile(getReg(RX)).equals(R0))
 					setReg(R1, getReg(RESULT2));
 				else
 					setReg(R3, getReg(RESULT2));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.DVD:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-				
-				//registerFile(RY) -> OP2
+
+				// registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform divide in ALU
+				// Perform divide in ALU
 				alu.DVD();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RX will contain the quotient
+				// RX will contain the quotient
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
-				
-				//RX+1 will contain the remainder
-				//RX can only be 0 or 2
-				if(registerFile(getReg(RX)).equals(R0))
+
+				// RX+1 will contain the remainder
+				// RX can only be 0 or 2
+				if (registerFile(getReg(RX)).equals(R0))
 					setReg(R1, getReg(RESULT2));
 				else
 					setReg(R3, getReg(RESULT2));
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.TRR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-				
-				//registerFile(RY) -> OP2
+
+				// registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform equality test in ALU (also sets the condition code)
+				// Perform equality test in ALU (also sets the condition code)
 				alu.TRR();
 				cycle_count++;
-				prog_step = 0;	
+				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.AND:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-				
-				//registerFile(RY) -> OP2
+
+				// registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform AND in ALU
+				// Perform AND in ALU
 				alu.AND();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(RX)
+				// RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.ORR:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
-				
-				//registerFile(RY) -> OP2
+
+				// registerFile(RY) -> OP2
 				setReg(OP2, getReg(registerFile(getReg(RY))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform OR in ALU
+				// Perform OR in ALU
 				alu.ORR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(RX)
+				// RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.NOT:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(RX) -> OP1
+				// registerFile(RX) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(RX))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform NOT in ALU
+				// Perform NOT in ALU
 				alu.NOT();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(RX)
+				// RESULT -> registerFile(RX)
 				setReg(registerFile(getReg(RX)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.SRC:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//COUNT -> OP2
+
+				// COUNT -> OP2
 				setReg(OP2, getReg(registerFile(getReg(COUNT))));
-				
-				//AL -> OP3
+
+				// AL -> OP3
 				setReg(OP3, getReg(registerFile(getReg(AL))));
-				
-				//LR -> OP4
+
+				// LR -> OP4
 				setReg(OP4, getReg(registerFile(getReg(LR))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform shift in ALU
+				// Perform shift in ALU
 				alu.SRC();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(R)
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
 				break;
 			}
 			break;
-			
+
 		case OpCodesList.RRC:
-			switch(prog_step){
+			switch (prog_step) {
 			case 4:
-				//registerFile(R) -> OP1
+				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				
-				//COUNT -> OP2
+
+				// COUNT -> OP2
 				setReg(OP2, getReg(registerFile(getReg(COUNT))));
-				
-				//AL -> OP3
+
+				// AL -> OP3
 				setReg(OP3, getReg(registerFile(getReg(AL))));
-				
-				//LR -> OP4
+
+				// LR -> OP4
 				setReg(OP4, getReg(registerFile(getReg(LR))));
 				cycle_count++;
 				prog_step++;
 				break;
 			case 5:
-				//Perform rotate in ALU
+				// Perform rotate in ALU
 				alu.RRC();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
-				//RESULT -> registerFile(R)
+				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
 				prog_step = 0;
@@ -1441,7 +1568,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.HLT:
 			System.out.println("End of the program");
 			cont_execution = false;
-			prog_step=0;
+			prog_step = 0;
 			Computer_GUI.disable_btns();
 			break;
 		}
@@ -1512,7 +1639,7 @@ public class CPU implements CPUConstants {
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
 					.getNumBits());
-			setReg(MDR, memory.read(mar_addr));
+			setReg(MDR, Memory.getInstance().read(mar_addr));
 			cycle_count++;
 			prog_step++;
 			break;
