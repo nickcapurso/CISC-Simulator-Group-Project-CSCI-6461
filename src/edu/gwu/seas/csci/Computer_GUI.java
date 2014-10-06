@@ -31,13 +31,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextPane terminal;
-<<<<<<< HEAD
-	private JButton load;
-	private static JButton cont, start, microstep, macrostep;
-	private JButton runinput;
-=======
 	private static JButton cont, start, microstep, macrostep, runinput, enter, load;
->>>>>>> gui_user_input
 	private JButton reset;
 	private FileLoader fileloader = new FileLoader();
 	private CPU cpu;
@@ -98,9 +92,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.add(microstep);
 		microstep.addActionListener(this);
 
-		JButton runinput = new JButton("Run Input");
+		runinput = new JButton("Run Input");
 		runinput.setBounds(310, 523, 97, 25);
 		contentPane.add(runinput);
+		runinput.addActionListener(this);
 
 		reset = new JButton("Reset");
 		reset.setBounds(426, 424, 97, 25);
@@ -259,12 +254,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
 
-<<<<<<< HEAD
-		load.setEnabled(false);
-		runinput.setEnabled(false);
-
-=======
->>>>>>> gui_user_input
 	}
 
 	@Override
@@ -278,42 +267,25 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
-<<<<<<< HEAD
-				File load_file = new File(filepath);
-				FileReader file_reader = new FileReader(load_file);
-				BufferedReader buffered_reader = new BufferedReader(file_reader);
-				fileloader.load(buffered_reader);
-			} catch (Exception ex) { // Catch exception if any
-=======
 				fileloader.Load_File(filepath);
 				fileloader.load();
 			} catch (Exception ex) { //Catch exception if any
->>>>>>> gui_user_input
 				System.err.println("Error: " + ex.getMessage());
 			}
 			// Needs to run through the FileLoader Instruction Parser to work
 			// properly
 		} else if (e.getSource() == runinput) {
-<<<<<<< HEAD
-			cpu.executeInstruction(textField.getText());
-=======
 			String user_input = textField.getText();
 			cpu.executeInstruction(user_input);
-			
->>>>>>> gui_user_input
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
 			start.setEnabled(true);
 			cont.setEnabled(true);
 			macrostep.setEnabled(true);
 			microstep.setEnabled(true);
-<<<<<<< HEAD
-		}
-=======
 			runinput.setEnabled(true);
 			load.setEnabled(true);
 		} 
->>>>>>> gui_user_input
 	}
 
 	// By giving a string value for register, and a value, registers can be
@@ -345,8 +317,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		macrostep.setEnabled(false);
 		microstep.setEnabled(false);
 	}
-<<<<<<< HEAD
-=======
 	
 	public static void toggle_button(String Button, Boolean toggle) {
 		switch(Button) {
@@ -359,7 +329,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			break;
 		}
 	}
->>>>>>> gui_user_input
 
 	public void append_to_terminal(String value) {
 		StyledDocument document = (StyledDocument) terminal.getDocument();
