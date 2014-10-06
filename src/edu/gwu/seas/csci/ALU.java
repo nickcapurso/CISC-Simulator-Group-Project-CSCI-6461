@@ -1,8 +1,8 @@
 package edu.gwu.seas.csci;
 
-//import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.BitSet;
-//import java.util.List;
+import java.util.List;
 
 /**
  * The ALU class contains the implementation for the arithmetical and logical instructions.
@@ -55,7 +55,13 @@ public class ALU implements CPUConstants{
 	 * @param int before
 	 * @param int after
 	 */
-	private static void checkOverflow(int before, int after) {
+	private static void checkOverflow(long before, long after) {
+		
+		if (before > after) {
+			setCC(OVERFLOW);
+		}
+		
+		/*
 		BitSet orig = new BitSet();
 		BitSet result = new BitSet();
 		
@@ -74,6 +80,8 @@ public class ALU implements CPUConstants{
 		if (orig.length() > result.length()) {
 			setCC(OVERFLOW);
 		}
+		
+		*/
 	}
 	
 	/**
@@ -83,15 +91,26 @@ public class ALU implements CPUConstants{
 	 * @param int after
 	 */
 	private static void checkUnderflow(int before, int after) {
+		
+		if (after > before) {
+			setCC(UNDERFLOW);
+		}
+		
+		/*
+		
 		BitSet orig = new BitSet();
 		BitSet result = new BitSet();
 		
 		orig = Utils.intToBitSet(before, DEFAULT_BIT_SIZE);
 		result = Utils.intToBitSet(after, DEFAULT_BIT_SIZE);
 		
+		
+		
 		if (orig.length() < result.length()) {
 			setCC(UNDERFLOW);
-		}	
+		}
+		
+		*/
 	}
 	
 	/*Arithmetic Unit */
@@ -108,7 +127,7 @@ public class ALU implements CPUConstants{
 		int regValue = Utils.convertToInt(op1, op1.getNumBits());
 		int newRegValue = valToBeAdded + regValue;
 		
-		checkOverflow(regValue, newRegValue);
+		checkOverflow(Integer.toUnsignedLong(regValue), Integer.toUnsignedLong(newRegValue));
 		
 		BitSet newVal = new BitSet();
 		newVal = Utils.intToBitSet(newRegValue, op1.getNumBits());
@@ -182,6 +201,7 @@ public class ALU implements CPUConstants{
 		
 		long result = Integer.toUnsignedLong(op1Val) * Integer.toUnsignedLong(op2Val);
 		
+		
 		//maybe i can keep shifting left until i hit a number....
 		while (result == (result >>> 1)) {
 			result >>>= 1;
@@ -195,9 +215,12 @@ public class ALU implements CPUConstants{
 			resultSize++;
 		}
 		
-		
 		int maxBitSize = DEFAULT_BIT_SIZE * 2;
 
+		
+		if (resultSize > maxBitSize) {
+			setCC(OVERFLOW);
+		}
 		
 		while (resultSize > maxBitSize) {
 			result >>>= 1;
@@ -446,13 +469,15 @@ public class ALU implements CPUConstants{
 		int origVal = Utils.convertToInt(op1, regSize);
 		int count = Utils.convertToInt(op2, op2.getNumBits());
 		int result = 0;
-		
-		if (op3.isEmpty()) {
+				
+		if (op3.isEmpty()) { //right shift
 			left_shift = false;
 		}
 		if (op4.isEmpty()) {
 			logical_shift = false;
 		}
+		
+		
 		
 		//Rotate bits
 		if (left_shift) {
@@ -460,6 +485,7 @@ public class ALU implements CPUConstants{
 		} else {
 			result = (origVal >> count) | (origVal << (DEFAULT_BIT_SIZE - count));
 		}
+		
 		
 		BitSet resultVal = Utils.intToBitSet(result, regSize);
 		cpu.setReg(RESULT, resultVal, regSize);
@@ -509,4 +535,3 @@ public class ALU implements CPUConstants{
 	
 
 }
-
