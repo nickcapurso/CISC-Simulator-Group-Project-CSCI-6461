@@ -228,6 +228,7 @@ public class CPU implements CPUConstants {
 	public void executeInstruction(String step_type){
 		switch (step_type){
 		case "continue":
+			Computer_GUI.toggle_button("load", false);
 			System.out.println("Continue");
 			while (cont_execution) {
 				singleInstruction();
@@ -242,19 +243,22 @@ public class CPU implements CPUConstants {
 			break;
 
 		case "micro step":
+			Computer_GUI.toggle_button("load", false);
 			System.out.println("Micro Step");
-			Computer_GUI.toggle_runinput(false);
+			Computer_GUI.toggle_button("runinput", false);
 			singleInstruction();
 
 			if(prog_step == 0){
 				System.out.println("--------- Instruction Done ---------");
 				printAllRegisters();
 				advancePC();
-				Computer_GUI.toggle_runinput(true);
+				Computer_GUI.toggle_button("runinput", true);
 			}
 			break;
 
 		case "macro step":
+			System.out.println("diable load");
+			Computer_GUI.toggle_button("load", false);
 			System.out.println("Macro Step");
 			do {
 				singleInstruction();
@@ -263,7 +267,7 @@ public class CPU implements CPUConstants {
 			System.out.println("--------- Instruction Done ---------");
 			printAllRegisters();
 			advancePC();
-			Computer_GUI.toggle_runinput(true);
+			Computer_GUI.toggle_button("runinput", true);
 			break;
 
 		//Logic for machine fault
@@ -302,7 +306,6 @@ public class CPU implements CPUConstants {
 				//Does not advance PC
 				//setReg(IR, BitSet(from step_type));
 			} catch (IllegalArgumentException e) {
-				//null passed as word
 				e.printStackTrace();
 			}
 		}
@@ -1013,6 +1016,7 @@ public class CPU implements CPUConstants {
 			cont_execution = false;
 			prog_step=0;
 			Computer_GUI.disable_btns();
+			Computer_GUI.toggle_button("load", true);
 			break;
 		}
 	}

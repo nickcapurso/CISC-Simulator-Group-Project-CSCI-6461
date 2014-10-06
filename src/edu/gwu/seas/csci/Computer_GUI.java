@@ -280,6 +280,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cont.setEnabled(true);
 			macrostep.setEnabled(true);
 			microstep.setEnabled(true);
+			runinput.setEnabled(true);
+			load.setEnabled(true);
 		} 
 	}
 
@@ -313,8 +315,16 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		microstep.setEnabled(false);
 	}
 	
-	public static void toggle_runinput(Boolean toggle) {
-		runinput.setEnabled(toggle);
+	public static void toggle_button(String Button, Boolean toggle) {
+		switch(Button) {
+		case "runinput":
+			runinput.setEnabled(toggle);
+			break;
+			
+		case "load":
+			load.setEnabled(toggle);
+			break;
+		}
 	}
 
 	public void append_to_terminal(String value) {
