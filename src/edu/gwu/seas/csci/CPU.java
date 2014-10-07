@@ -826,10 +826,10 @@ public class CPU implements CPUConstants {
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
 
-		if (Utils.convertToByte(i, i.getNumBits()) == 0) { // No indirect
+		if (Utils.convertToUnsignedByte(i, i.getNumBits()) == 0) { // No indirect
 															// addressing
 			if (LDXSTXInstruction
-					|| Utils.convertToByte(ix, ix.getNumBits()) == 0) { // No
+					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
 																		// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
@@ -845,7 +845,7 @@ public class CPU implements CPUConstants {
 
 		} else { // Indirect addressing
 			if (LDXSTXInstruction
-					|| Utils.convertToByte(ix, ix.getNumBits()) == 0) { // No
+					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
 																		// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
@@ -948,7 +948,7 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String indexRegisterFile(BitSet IX) {
-		switch (Utils.convertToByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
+		switch (Utils.convertToUnsignedByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
 		case 1:
 			return X1;
 		case 2:
@@ -1178,7 +1178,7 @@ public class CPU implements CPUConstants {
 			// If RESULT == 1
 			// EA -> PC
 			if (getReg(CC).get(
-					Utils.convertToByte(getReg(R), getReg(R).getNumBits())))
+					Utils.convertToUnsignedByte(getReg(R), getReg(R).getNumBits())))
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
 
 			cycle_count++;
@@ -1759,7 +1759,7 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String registerFile(BitSet R) {
-		switch (Utils.convertToByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
+		switch (Utils.convertToUnsignedByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
 		case 0:
 			return R0;
 		case 1:
@@ -1805,7 +1805,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		default:
-			opcodeInstruction(Utils.convertToByte(getReg(OPCODE),
+			opcodeInstruction(Utils.convertToUnsignedByte(getReg(OPCODE),
 					InstructionBitFormats.OPCODE_SIZE));
 		}
 	}
