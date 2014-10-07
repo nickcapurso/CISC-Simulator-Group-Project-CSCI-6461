@@ -31,11 +31,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextPane terminal;
-	private JButton load;
-	private static JButton cont, start, microstep, macrostep;
-	private JButton runinput;
+	private static JButton cont, start, microstep, macrostep, runinput, enter, load;
 	private JButton reset;
-	private FileLoader fileloader;
+	private FileLoader fileloader = new FileLoader();
 	private CPU cpu;
 	private JLabel opcode_name;
 	private static HashMap<String, JRadioButton[]> Registers; // map of
@@ -75,7 +73,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 * rest of the Program
 		 */
 		start = new JButton("Start");
-		start.setBounds(426, 523, 97, 25);
+		start.setBounds(426, 462, 97, 25);
 		contentPane.add(start);
 		start.addActionListener(this);
 
@@ -94,12 +92,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.add(microstep);
 		microstep.addActionListener(this);
 
-		JButton runinput = new JButton("Run Input");
+		runinput = new JButton("Run Input");
 		runinput.setBounds(310, 523, 97, 25);
 		contentPane.add(runinput);
+		runinput.addActionListener(this);
 
 		reset = new JButton("Reset");
-		reset.setBounds(426, 484, 97, 25);
+		reset.setBounds(426, 424, 97, 25);
 		contentPane.add(reset);
 		reset.addActionListener(this);
 
@@ -107,6 +106,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		cont.setBounds(426, 386, 97, 25);
 		contentPane.add(cont);
 		cont.addActionListener(this);
+		
+		enter = new JButton("Enter");
+		enter.setBounds(426, 523, 97, 25);
+		contentPane.add(enter);
 
 		/*
 		 * Register Label Creation - If there is time should create in a loop
@@ -251,9 +254,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
 
-		load.setEnabled(false);
-		runinput.setEnabled(false);
-
 	}
 
 	@Override
@@ -267,24 +267,25 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == load) {
 			String filepath = textField.getText();
 			try {
-				File load_file = new File(filepath);
-				FileReader file_reader = new FileReader(load_file);
-				BufferedReader buffered_reader = new BufferedReader(file_reader);
-				fileloader.load(buffered_reader);
-			} catch (Exception ex) { // Catch exception if any
+				fileloader.Load_File(filepath);
+				fileloader.load();
+			} catch (Exception ex) { //Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
 			// Needs to run through the FileLoader Instruction Parser to work
 			// properly
 		} else if (e.getSource() == runinput) {
-			cpu.executeInstruction(textField.getText());
+			String user_input = textField.getText();
+			cpu.executeInstruction(user_input);
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
 			start.setEnabled(true);
 			cont.setEnabled(true);
 			macrostep.setEnabled(true);
 			microstep.setEnabled(true);
-		}
+			runinput.setEnabled(true);
+			load.setEnabled(true);
+		} 
 	}
 
 	// By giving a string value for register, and a value, registers can be
@@ -315,6 +316,18 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		cont.setEnabled(false);
 		macrostep.setEnabled(false);
 		microstep.setEnabled(false);
+	}
+	
+	public static void toggle_button(String Button, Boolean toggle) {
+		switch(Button) {
+		case "runinput":
+			runinput.setEnabled(toggle);
+			break;
+			
+		case "load":
+			load.setEnabled(toggle);
+			break;
+		}
 	}
 
 	public void append_to_terminal(String value) {

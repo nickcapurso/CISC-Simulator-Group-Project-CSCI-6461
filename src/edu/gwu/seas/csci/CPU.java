@@ -664,49 +664,7 @@ public class CPU implements CPUConstants {
 	 * @param cont
 	 *            Branch logic for continous processing or macro/micro step
 	 */
-	public void executeInstruction(String step_type) {
-		switch (step_type) {
-		case "continue":
-			System.out.println("Continue");
-			while (cont_execution) {
-				singleInstruction();
-
-				if (prog_step == 0) {
-					System.out.println("--------- Instruction Done ---------");
-					printAllRegisters();
-					advancePC();
-				}
-			}
-			cont_execution = true;
-			break;
-
-		case "micro step":
-			System.out.println("Micro Step");
-			singleInstruction();
-
-			if (prog_step == 0) {
-				System.out.println("--------- Instruction Done ---------");
-				printAllRegisters();
-				advancePC();
-			}
-			break;
-
-		case "macro step":
-			System.out.println("Macro Step");
-			do {
-				singleInstruction();
-			} while (prog_step != 0);
-
-			System.out.println("--------- Instruction Done ---------");
-			printAllRegisters();
-			advancePC();
-			break;
-
-		default:
-			System.out.println("Direct Exectuion");
-			// setReg(IR, BitSet(from step_type));
-		}
-	}
+	//executeinstruction
 
 	/**
 	 * Gets a register from the map.
@@ -719,21 +677,6 @@ public class CPU implements CPUConstants {
 		return regMap.get(regName);
 	}
 
-	public void loadROM() {
-		try {
-			romLoader.load();
-			startBootloader();
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Reads the contents of a specified address from memory. The default
@@ -955,14 +898,79 @@ public class CPU implements CPUConstants {
 			// Taking care of the indirect part
 			// EA -> MAR
 			setReg(MAR, getReg(EA));
-
+			
 			// Memory(MAR) -> MDR
 			setReg(MDR,
 					Memory.getInstance().read(getReg(MAR),
 							getReg(MAR).getNumBits()));
-
 			// MDR -> EA
 			setReg(EA, getReg(MDR));
+		}
+	}
+
+	public void executeInstruction(String step_type){
+		switch (step_type){
+		case "continue":
+			Computer_GUI.toggle_button("load", false);
+			System.out.println("Continue");
+			while (cont_execution) {
+				singleInstruction();
+				if(prog_step == 0){
+					System.out.println("--------- Instruction Done ---------");
+					printAllRegisters();
+					advancePC();
+				}
+			}
+			cont_execution = true;
+			break;
+
+		case "micro step":
+			Computer_GUI.toggle_button("load", false);
+			//Computer_GUI.toggle_button("runinput", false);
+			System.out.println("Micro Step");
+			singleInstruction();
+
+			if(prog_step == 0){
+				System.out.println("--------- Instruction Done ---------");
+				printAllRegisters();
+				advancePC();
+				Computer_GUI.toggle_button("runinput", true);
+			}
+			break;
+
+		case "macro step":
+			Computer_GUI.toggle_button("load", false);
+			System.out.println("Macro Step");
+			do {
+				singleInstruction();
+			} while(prog_step != 0);
+
+			System.out.println("--------- Instruction Done ---------");
+			printAllRegisters();
+			advancePC();
+			Computer_GUI.toggle_button("runinput", true);
+			break;
+			
+		//Direct Execution - Does not advance PC
+		default:
+			System.out.println("Running user input");
+			try {
+				Word word_command = Utils.StringToWord(step_type);
+				Utils.bitsetToString("input", word_command, 18);
+				setReg(MDR, word_command);
+				cycle_count++;
+				prog_step = prog_step + 2;
+				do {
+					singleInstruction();
+				} while(prog_step != 0);
+				
+				System.out.println("--------- Instruction Done ---------");
+				printAllRegisters();
+				//Does not advance PC
+				//setReg(IR, BitSet(from step_type));
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -1715,6 +1723,7 @@ public class CPU implements CPUConstants {
 			cont_execution = false;
 			prog_step = 0;
 			Computer_GUI.disable_btns();
+			Computer_GUI.toggle_button("load", true);
 			break;
 		}
 	}
@@ -1823,5 +1832,21 @@ public class CPU implements CPUConstants {
 			opcodeInstruction(Utils.convertToByte(getReg(OPCODE),
 					InstructionBitFormats.OPCODE_SIZE));
 		}
+	}
+		
+	public void loadROM() {
+		try {
+			/*romLoader.load();*/
+			startBootloader();
+		} catch (NullPointerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} /*catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 	}
 }
