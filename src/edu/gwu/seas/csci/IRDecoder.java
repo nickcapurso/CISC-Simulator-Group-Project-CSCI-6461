@@ -75,7 +75,6 @@ public class IRDecoder {
 		case LD_STR:
 		case TRANS:
 		case ARITH:
-			System.out.println("ARITH");
 			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
