@@ -64,6 +64,10 @@ public interface CPUConstants {
 	public static final int DIVZERO = 2;
 	public static final int EQUALORNOT = 3;
 	
+	/*
+	 * IO Constants
+	 */
+	public static final String DEVID = "DEVID";
 
 	
 	

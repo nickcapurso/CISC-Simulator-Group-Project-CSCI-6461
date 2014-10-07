@@ -31,7 +31,7 @@ public class Context {
 	 * @author Alex Remily
 	 */
 	public enum InstructionFormat {
-		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN
+		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT
 	}
 
 	/**
@@ -44,6 +44,7 @@ public class Context {
 	public static final byte FOUR = 8;
 	public static final byte FIVE = 16;
 	public static final byte SIX = 32;
+	public static final byte SEVEN = 64;
 
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
 	private Map<String, InstructionFormat> instructionFormats = new HashMap<String, InstructionFormat>();
@@ -101,6 +102,10 @@ public class Context {
 		// OPCODE R,COUNT,L/R,A/L
 		instructionFormats.put("SRC", InstructionFormat.SEVEN);
 		instructionFormats.put("RRC", InstructionFormat.SEVEN);
+		
+		// OPCODE R,DEVID
+		instructionFormats.put("IN", InstructionFormat.EIGHT);
+		instructionFormats.put("OUT", InstructionFormat.EIGHT);
 
 		/**
 		 * opcodeClasses setup
@@ -185,6 +190,10 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeBytes.put("SRC", OpCodesList.SRC);
 		opCodeBytes.put("RRC", OpCodesList.RRC);
+		
+		// IO Instructions
+		opCodeBytes.put("IN", OpCodesList.IN);
+		opCodeBytes.put("OUT", OpCodesList.OUT);
 
 		/**
 		 * opCodeStrings setup
@@ -227,6 +236,9 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeStrings.put(OpCodesList.SRC, "SRC");
 		opCodeStrings.put(OpCodesList.RRC, "RRC");
+		
+		opCodeStrings.put(OpCodesList.IN, "IN");
+		opCodeStrings.put(OpCodesList.OUT, "OUT");
 
 		indexToFlags.put(0, ONE);
 		indexToFlags.put(1, TWO);

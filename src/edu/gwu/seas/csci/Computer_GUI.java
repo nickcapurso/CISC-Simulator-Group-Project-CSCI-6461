@@ -110,6 +110,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		enter = new JButton("Enter");
 		enter.setBounds(426, 523, 97, 25);
 		contentPane.add(enter);
+		enter.addActionListener(this);
 
 		/*
 		 * Register Label Creation - If there is time should create in a loop
@@ -285,7 +286,11 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			microstep.setEnabled(true);
 			runinput.setEnabled(true);
 			load.setEnabled(true);
-		} 
+		} else if (e.getSource() == enter) {
+			cpu.input_buffer = textField.getText();
+			cpu.wait_on_buffer = false;
+			System.out.println(cpu.input_buffer);
+		}
 	}
 
 	// By giving a string value for register, and a value, registers can be
@@ -330,7 +335,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		}
 	}
 
-	public void append_to_terminal(String value) {
+	public static void append_to_terminal(String value) {
 		StyledDocument document = (StyledDocument) terminal.getDocument();
 		try {
 			document.insertString(document.getLength(), value, null);
