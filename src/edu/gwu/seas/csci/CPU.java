@@ -1,6 +1,5 @@
 package edu.gwu.seas.csci;
 
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -20,44 +19,38 @@ import edu.gwu.seas.csci.Utils;
  * keeps references to the Memory, IRDecoder, and Loader classes to respectively
  * access memory, parse instructions, and load the boot loader program.
  * 
- * This CPU implements a unified (instructions and data)
- * buffered write-through memory cache.
- */
-/**
- * @author Alex Remily
+ * This CPU implements a unified, buffered write-through memory cache. All reads
+ * and writes are done from and to the cache, respectively, and the memory
+ * controller maintains the synchronization between the values in the cache and
+ * the values in main memory by the use of an intermediary write buffer.
  */
 public class CPU implements CPUConstants {
 
 	/**
-	 * We have an address space of 2KB. We have 16 cache lines. Each cache line
-	 * contains 6 Words (18 bits each).
-	 * 
-	 * @author Alex Remily
+	 * This is a 16 {@link L1CacheLine} unified, buffered write-through, L1
+	 * cache. All interaction between the CPU and memory occurs via the cache.
 	 */
 	static class L1Cache {
 
-		private static final int CACHE_LENGTH = 16;
 		/**
-		 * Contains the contents of the L1 cache. We have 2<sup>4</sup> cache
-		 * lines.
+		 * The number of {@link L1CacheLine}s in this cache.
+		 */
+		private static final int CACHE_LENGTH = 16;
+
+		/**
+		 * The array of {@link L1CacheLine}s that form the L1 cache.
 		 */
 		private final L1CacheLine[] cache = new L1CacheLine[CACHE_LENGTH];
 
 		/**
-		 * 
+		 * A random number generator used for the cache eviction algorithm.
 		 */
 		private final Random generator = new Random();
 
 		/**
-		 * 
+		 * Used to simplify cache initialization.
 		 */
 		private byte cache_adds_counter = 0;
-
-		/**
-		 * Zero-arg contstructor.
-		 */
-		public L1Cache() {
-		}
 
 		/**
 		 * Adds a cache line to the cache. If the cache is full, it evicts a
@@ -67,7 +60,7 @@ public class CPU implements CPUConstants {
 		 * @param line
 		 *            The line to add to the cache.
 		 */
-		public void add(L1CacheLine line) {
+		private void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
 				System.out.println(Thread.currentThread().getName().toString()
 						+ ": Adding cache line with tag " + line.getTag()
@@ -94,7 +87,7 @@ public class CPU implements CPUConstants {
 		 * @return the index of the cache line, or null if the address is not in
 		 *         the cache.
 		 */
-		public L1CacheLine getCacheLine(int address) {
+		private L1CacheLine getCacheLine(int address) {
 			L1CacheLine line = null;
 			for (int i = 0; i < CACHE_LENGTH; i++) {
 				line = cache[i];
@@ -107,10 +100,10 @@ public class CPU implements CPUConstants {
 
 		/**
 		 * Checks the cache for the contents of a given memory address. Iterates
-		 * through the tags of each line in the cache, and checks whether that
-		 * cache line contains the search address by checking whether the value
-		 * of the search address is between the value of the tag line address
-		 * and the tag line address plus the number of words in the cache line.
+		 * through the tags of each line in the cache, and checks whether the
+		 * value of the search address is between the value of the tag line
+		 * address and the tag line address plus the number of words in the
+		 * cache line, inclusive.
 		 * 
 		 * @param address
 		 *            The memory address to search for in the cache, i.e., the
@@ -118,7 +111,7 @@ public class CPU implements CPUConstants {
 		 * @return The contents of the specified address or null if the
 		 *         specified memory address is not in the cache.
 		 */
-		public Word read(int address) {
+		private Word read(int address) {
 			for (L1CacheLine line : cache) {
 				if (line != null) {
 					if (address >= line.getTag()
@@ -140,22 +133,22 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * Updates the flag on the cache line that contains the specified
-		 * address. If the value of the add parameter is true, this method adds
-		 * the value of the flag parameter to the cache line flags byte,
-		 * otherwise it subtracts the value of the flag parameter from the cache
-		 * line flags byte.
+		 * Updates the flags bitmask on the cache line that contains the
+		 * specified address. If the value of the add parameter is true, this
+		 * method adds the value of the flag parameter to the cache line flags
+		 * bitmask, otherwise it subtracts the value of the flag parameter from
+		 * the cache line flags bitmask.
 		 * 
 		 * @param address
-		 *            The address whose cache line flags byte to update.
+		 *            The address whose cache line flags bitmask to update.
 		 * @param flag
 		 *            The value to add or subtract from the cache line flags
-		 *            byte.
+		 *            bitmask.
 		 * @param add
 		 *            Whether to add or subtract the value of flag from the
-		 *            cache line flags byte.
+		 *            cache line flags bitmask.
 		 */
-		public void upadteFlag(int address, byte flag, boolean add) {
+		private void upadteFlags(int address, byte flag, boolean add) {
 			L1CacheLine line = l1_cache.getCacheLine(address);
 			byte flags = line.getFlags();
 			if (add)
@@ -182,9 +175,9 @@ public class CPU implements CPUConstants {
 		 * @param address
 		 *            The main memory address of the content to write to the
 		 *            cache.
-		 * @return TODO
+		 * @return true if a cache hit; otherwise false.
 		 */
-		public boolean write(Word word, byte address) {
+		private boolean write(Word word, int address) {
 			for (L1CacheLine line : cache) {
 				if (line != null) {
 					if (address >= line.getTag()
@@ -210,13 +203,10 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Need to research the structure of cache lines, and develop a mapping
-	 * system to map main memory addresses to locations in the cache. We have
-	 * not been directed to use a specific cache line structure, so for our case
-	 * each line is 8 bytes: 1 address tag (18 bits), 6 Words (108 bits), 2 flag
-	 * bits. This puts our total cache contents at 16 x 6 = 96 Words.
-	 * 
-	 * @author Alex Remily
+	 * Represents the structure of each line in the L1 cache. We have not been
+	 * directed to use a specific cache line structure, so for our case each
+	 * line contains 1 address tag, 6 Words, and 1 flags bitmask. This puts our
+	 * total L1 cache contents at 96 Words (16 lines x 6 words per line).
 	 */
 	static class L1CacheLine {
 
@@ -235,12 +225,11 @@ public class CPU implements CPUConstants {
 		 * address.
 		 */
 		private Word[] words;
+
 		/**
 		 * A bitmask for cache operations.
 		 */
 		private byte flags;
-
-		private byte index;
 
 		/**
 		 * Creates a new cache line from the given parameters.
@@ -249,7 +238,7 @@ public class CPU implements CPUConstants {
 		 * @param block
 		 * @param flags
 		 */
-		public L1CacheLine(int address, Word[] block, byte flags) {
+		private L1CacheLine(int address, Word[] block, byte flags) {
 			this.tag = address;
 			this.words = block;
 			this.flags = flags;
@@ -258,21 +247,21 @@ public class CPU implements CPUConstants {
 		/**
 		 * @return the flags
 		 */
-		public byte getFlags() {
+		private byte getFlags() {
 			return flags;
 		}
 
 		/**
 		 * @return the tag
 		 */
-		public int getTag() {
+		private int getTag() {
 			return tag;
 		}
 
 		/**
 		 * @return the words
 		 */
-		public Word getWord(int index) {
+		private Word getWord(int index) {
 			return words[index];
 		}
 
@@ -285,7 +274,7 @@ public class CPU implements CPUConstants {
 		 * @return true if a value in the cache line differs from that in its
 		 *         corresponding address location in main memory.
 		 */
-		public boolean isDirty() {
+		private boolean isDirty() {
 			return flags > 0;
 		}
 
@@ -293,23 +282,15 @@ public class CPU implements CPUConstants {
 		 * @param flags
 		 *            the flags to set
 		 */
-		public void setFlags(byte flags) {
+		private void setFlags(byte flags) {
 			this.flags = flags;
-		}
-
-		/**
-		 * @param tag
-		 *            the tag to set
-		 */
-		public void setTag(int tag) {
-			this.tag = tag;
 		}
 
 		/**
 		 * @param word
 		 * @param index
 		 */
-		public void setWord(Word word, int index) {
+		private void setWord(Word word, int index) {
 			words[index] = word;
 		}
 
@@ -317,7 +298,7 @@ public class CPU implements CPUConstants {
 		 * @param words
 		 *            the words to set
 		 */
-		public void setWords(Word[] words) {
+		private void setWords(Word[] words) {
 			this.words = words;
 		}
 
@@ -333,10 +314,19 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
+		 * Updates the flags bitmask. If the value of the add parameter is true,
+		 * this method adds the value of the flag parameter to the cache line
+		 * flags bitmask, otherwise it subtracts the value of the flag parameter
+		 * from the cache line flags bitmask.
+		 * 
 		 * @param flag
+		 *            The value to add or subtract from the cache line flags
+		 *            bitmask.
 		 * @param add
+		 *            Whether to add or subtract the value of flag from the
+		 *            cache line flags bitmask.
 		 */
-		public void updateFlags(byte flag, boolean add) {
+		private void updateFlags(byte flag, boolean add) {
 			if (add)
 				this.flags = (byte) (flags + flag);
 			else
@@ -345,15 +335,21 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * @author Alex Remily
+	 * Maintains synchronization of the memory contents between the L1 cache and
+	 * main memory by use of an intermediary write buffer. Runs as a separate
+	 * Runnable to simulate the hardware separation between the CPU and the
+	 * memory controller. Waits for the CPU to write to the write buffer and
+	 * then processes the contents of the buffer until the buffer is empty
+	 * again, at which time it returns to the waiting state until the CPU makes
+	 * another write to the write buffer.
 	 */
 	static class MemoryController implements Runnable {
 
-		private boolean exit = false;
+		private boolean terminate = false;
 
 		@Override
 		public void run() {
-			while (!exit) {
+			while (!terminate) {
 				synchronized (write_buffer) {
 					if (write_buffer.isEmpty()) {
 						try {
@@ -382,25 +378,31 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * Tells this runnable to exit the run method.
+		 * Tells this runnable to terminate the run method.
 		 */
 		public void terminate() {
 			synchronized (write_buffer) {
-				exit = true;
+				terminate = true;
 				write_buffer.notify();
 			}
 		}
 	}
 
 	/**
-	 * Used to hold data being written back from the cache to main memory. This
-	 * is a variation of write-through caching called buffered write-through.
-	 * 
-	 * @author Alex Remily
+	 * Holds data being written back from the cache to main memory. This is a
+	 * variation of write-through caching called buffered write-through.
+	 * Implements a simple FIFO queue. Notifies the memory controller when the
+	 * write buffer has elements to process.
 	 */
 	static class WriteBuffer {
 
-		public class WriteBufferContents {
+		/**
+		 * Represents the structure of each element in the write buffer queue.
+		 * Each element contains the main memory address, the contents of that
+		 * address, and a flag value that indicates the index of the address on
+		 * its cache line in the L1 cache.
+		 */
+		private class WriteBufferContents {
 			private int address;
 			private Word word;
 			private byte flag;
@@ -409,7 +411,7 @@ public class CPU implements CPUConstants {
 			 * @param address
 			 * @param word
 			 */
-			public WriteBufferContents(int address, Word word, byte flag) {
+			private WriteBufferContents(int address, Word word, byte flag) {
 				this.address = address;
 				this.word = word;
 				this.flag = flag;
@@ -436,30 +438,6 @@ public class CPU implements CPUConstants {
 				return word;
 			}
 
-			/**
-			 * @param address
-			 *            the address to set
-			 */
-			public void setAddress(int address) {
-				this.address = address;
-			}
-
-			/**
-			 * @param flag
-			 *            the flag to set
-			 */
-			public void setFlag(byte flag) {
-				this.flag = flag;
-			}
-
-			/**
-			 * @param word
-			 *            the word to set
-			 */
-			public void setWord(Word word) {
-				this.word = word;
-			}
-
 			/*
 			 * (non-Javadoc)
 			 * 
@@ -481,21 +459,17 @@ public class CPU implements CPUConstants {
 		private final Queue<WriteBufferContents> buffer = new ArrayBlockingQueue<WriteBufferContents>(
 				4);
 
-		public WriteBuffer() {
-		}
-
 		/**
-		 * Adds a dirty cache value to the write write_buffer for
-		 * synchronization with main memory. If the write_buffer is full, the
-		 * add is blocked and the CPU sill stall until there is room in the
-		 * write_buffer.
+		 * Adds a dirty cache value to the write buffer for synchronization with
+		 * main memory. If the write_buffer is full, the add is blocked and the
+		 * CPU will stall until there is room in the write_buffer.
 		 * 
-		 * @param line
-		 *            An L1CacheLine element with the dirty bit set, indicating
-		 *            that it has been written to in the cache and must be
-		 *            synchronized with main memory.
+		 * @param word
+		 * @param address
+		 * @param flag
+		 * @return
 		 */
-		public boolean addToBuffer(Word word, int address, byte flag) {
+		private boolean addToBuffer(Word word, int address, byte flag) {
 			WriteBufferContents contents = new WriteBufferContents(address,
 					word, flag);
 			boolean success = false;
@@ -529,7 +503,7 @@ public class CPU implements CPUConstants {
 		/**
 		 * @return the write_buffer
 		 */
-		public Queue<WriteBufferContents> getBuffer() {
+		private Queue<WriteBufferContents> getBuffer() {
 			return buffer;
 		}
 
@@ -538,7 +512,7 @@ public class CPU implements CPUConstants {
 		 * 
 		 * @return true if this WriteBuffer contains no elements.
 		 */
-		public boolean isEmpty() {
+		private boolean isEmpty() {
 			return buffer.isEmpty();
 		}
 
@@ -549,7 +523,7 @@ public class CPU implements CPUConstants {
 		 * 
 		 * @return true if successful, otherwise false;
 		 */
-		public boolean writeToMainMemory() {
+		private boolean writeToMainMemory() {
 			boolean success = true;
 			try {
 				WriteBufferContents line = buffer.remove();
@@ -559,7 +533,7 @@ public class CPU implements CPUConstants {
 				int address = line.getAddress();
 				byte flag = line.getFlag();
 				Memory.getInstance().write(word, address);
-				l1_cache.upadteFlag(address, flag, false);
+				l1_cache.upadteFlags(address, flag, false);
 			} catch (NoSuchElementException | IndexOutOfBoundsException e) {
 				success = false;
 			}
@@ -568,16 +542,11 @@ public class CPU implements CPUConstants {
 	}
 
 	public static final byte BOOTLOADER_START = 010;
-
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
 	private Map<String, Register> regMap = new HashMap<String, Register>();
-
 	private IRDecoder irdecoder;
-
-	private Loader romLoader;
-
 	private ALU alu;
 
 	/**
@@ -655,7 +624,6 @@ public class CPU implements CPUConstants {
 
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
-		romLoader = new FileLoader();
 	}
 
 	/**
@@ -664,7 +632,6 @@ public class CPU implements CPUConstants {
 	 * @param cont
 	 *            Branch logic for continous processing or macro/micro step
 	 */
-	//executeinstruction
 
 	/**
 	 * Gets a register from the map.
@@ -677,15 +644,13 @@ public class CPU implements CPUConstants {
 		return regMap.get(regName);
 	}
 
-
 	/**
-	 * Reads the contents of a specified address from memory. The default
-	 * behavior is to check the cache for the desired address before searching
-	 * main memory. The override parameter forces a skip of the cache check and
-	 * reads directly from main memory. Used when a cache check would be
-	 * redundant; otherwise, perform the default behavior of checking the cache
-	 * for the desired address. Updates the cache with the block fetched from
-	 * memory regardless of the override option.
+	 * Reads the contents of a specified address from memory. The override
+	 * parameter forces a skip of the cache check and reads directly from main
+	 * memory. Used when a cache check would be redundant; otherwise, perform
+	 * the default behavior of checking the cache for the desired address.
+	 * Updates the cache with the block fetched from memory regardless of the
+	 * override option.
 	 * 
 	 * @param address
 	 *            The address in main memory to target.
@@ -694,7 +659,7 @@ public class CPU implements CPUConstants {
 	 * 
 	 * @return the contents of the specified address.
 	 */
-	public Word readFromMemory(int address, boolean override) {
+	private Word readFromMemory(int address, boolean override) {
 		Word word = null;
 		if (override)
 			word = readFromMainMemory(address);
@@ -820,7 +785,7 @@ public class CPU implements CPUConstants {
 	 * 
 	 * @return true if successful, false otherwise.
 	 */
-	public boolean writeToMemory(Word word, byte address) {
+	public boolean writeToMemory(Word word, int address) {
 		if (l1_cache.write(word, address)) {
 			// Cache Hit.
 			return true;
@@ -898,7 +863,7 @@ public class CPU implements CPUConstants {
 			// Taking care of the indirect part
 			// EA -> MAR
 			setReg(MAR, getReg(EA));
-			
+
 			// Memory(MAR) -> MDR
 			setReg(MDR,
 					Memory.getInstance().read(getReg(MAR),
@@ -908,14 +873,14 @@ public class CPU implements CPUConstants {
 		}
 	}
 
-	public void executeInstruction(String step_type){
-		switch (step_type){
+	public void executeInstruction(String step_type) {
+		switch (step_type) {
 		case "continue":
 			Computer_GUI.toggle_button("load", false);
 			System.out.println("Continue");
 			while (cont_execution) {
 				singleInstruction();
-				if(prog_step == 0){
+				if (prog_step == 0) {
 					System.out.println("--------- Instruction Done ---------");
 					printAllRegisters();
 					advancePC();
@@ -926,11 +891,11 @@ public class CPU implements CPUConstants {
 
 		case "micro step":
 			Computer_GUI.toggle_button("load", false);
-			//Computer_GUI.toggle_button("runinput", false);
+			// Computer_GUI.toggle_button("runinput", false);
 			System.out.println("Micro Step");
 			singleInstruction();
 
-			if(prog_step == 0){
+			if (prog_step == 0) {
 				System.out.println("--------- Instruction Done ---------");
 				printAllRegisters();
 				advancePC();
@@ -943,15 +908,15 @@ public class CPU implements CPUConstants {
 			System.out.println("Macro Step");
 			do {
 				singleInstruction();
-			} while(prog_step != 0);
+			} while (prog_step != 0);
 
 			System.out.println("--------- Instruction Done ---------");
 			printAllRegisters();
 			advancePC();
 			Computer_GUI.toggle_button("runinput", true);
 			break;
-			
-		//Direct Execution - Does not advance PC
+
+		// Direct Execution - Does not advance PC
 		default:
 			System.out.println("Running user input");
 			try {
@@ -962,12 +927,12 @@ public class CPU implements CPUConstants {
 				prog_step = prog_step + 2;
 				do {
 					singleInstruction();
-				} while(prog_step != 0);
-				
+				} while (prog_step != 0);
+
 				System.out.println("--------- Instruction Done ---------");
 				printAllRegisters();
-				//Does not advance PC
-				//setReg(IR, BitSet(from step_type));
+				// Does not advance PC
+				// setReg(IR, BitSet(from step_type));
 			} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 			}
@@ -1833,10 +1798,10 @@ public class CPU implements CPUConstants {
 					InstructionBitFormats.OPCODE_SIZE));
 		}
 	}
-		
+
 	public void loadROM() {
 		try {
-			/*romLoader.load();*/
+			/* romLoader.load(); */
 			startBootloader();
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
@@ -1844,9 +1809,9 @@ public class CPU implements CPUConstants {
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} /*catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+		} /*
+		 * catch (ParseException e) { // TODO Auto-generated catch block
+		 * e.printStackTrace(); }
+		 */
 	}
 }
