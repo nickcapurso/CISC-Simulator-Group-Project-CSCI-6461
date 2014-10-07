@@ -131,10 +131,14 @@ public class IRDecoder {
 					InstructionBitFormats.SHIFT_COUNT_SIZE);
 			break;
 		case IO:
-			// IR.get(InstructionBitFormats.IO_R_START,
-			// InstructionBitFormats.IO_R_END+1);
-			// IR.get(InstructionBitFormats.IO_DEVID_START,
-			// InstructionBitFormats.IO_DEVID_END+1);
+			cpu.setReg(CPU.R, IR.get(
+					InstructionBitFormats.IO_R_START,
+					InstructionBitFormats.IO_R_END+1),
+					InstructionBitFormats.IO_R_SIZE);
+			cpu.setReg(CPU.DEVID, IR.get(
+					InstructionBitFormats.IO_DEVID_START,
+					InstructionBitFormats.IO_DEVID_END+1),
+					InstructionBitFormats.IO_DEVID_SIZE);
 			break;
 		default:
 			break;

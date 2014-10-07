@@ -51,7 +51,7 @@ public class CPU implements CPUConstants {
 		 * Used to simplify cache initialization.
 		 */
 		private byte cache_adds_counter = 0;
-
+		
 		/**
 		 * Adds a cache line to the cache. If the cache is full, it evicts a
 		 * cache line at random to make room for the new cache line. Will not
@@ -549,6 +549,10 @@ public class CPU implements CPUConstants {
 	private IRDecoder irdecoder;
 	private ALU alu;
 
+	public String input_buffer;
+	public Boolean wait_on_buffer = true;
+	public int memory_stack = 2047;
+
 	/**
 	 * The memory write write_buffer with a fast FIFO algorithm.
 	 */
@@ -621,6 +625,9 @@ public class CPU implements CPUConstants {
 		regMap.put(AL, new Register(InstructionBitFormats.SHIFT_AL_SIZE));
 		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_START));
 		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
+		
+		// Registers for IO instructions
+		regMap.put(DEVID, new Register(InstructionBitFormats.IO_DEVID_SIZE));
 
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
@@ -920,6 +927,7 @@ public class CPU implements CPUConstants {
 		default:
 			System.out.println("Running user input");
 			try {
+				System.out.println(step_type);
 				Word word_command = Utils.StringToWord(step_type);
 				Utils.bitsetToString("input", word_command, 18);
 				setReg(MDR, word_command);
@@ -1680,6 +1688,30 @@ public class CPU implements CPUConstants {
 				cycle_count++;
 				prog_step = 0;
 				break;
+			}
+			break;
+			
+		//Needs logic for different devices??
+		case OpCodesList.IN:
+			System.out.println("RUNNING IN");
+		    try { 
+		        int input = Integer.parseInt(input_buffer); 
+		        BitSet input_bitset = Utils.intToBitSet(input, 18);
+		        setReg(registerFile(getReg(R)), input_bitset, 18);
+		    } catch(NumberFormatException e) { 
+		    	//Does not handle string input!!
+		    	//Word input_word = (Word) Utils.StringToWord(input_buffer);
+		    	//setReg(registerFile(getReg(R)), input_word);
+		    }
+		    input_buffer = "";
+			cycle_count++;
+			prog_step = 0;
+		    break;
+		    
+		case OpCodesList.OUT:
+			if (Utils.convertToInt(getReg(DEVID), 2) == 1) {
+				int output = Utils.convertToInt(getReg(R), 18);
+				Computer_GUI.append_to_terminal(Integer.toString(output));
 			}
 			break;
 

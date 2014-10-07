@@ -83,7 +83,15 @@ public class InstructionWriter {
 		setLR(word, lr);
 		setAL(word, al);
 	}
-
+	
+	/*
+	 * 
+	 */
+	public void writeIOInstruction(Word word, byte opcode, byte general_register, byte devid) {
+		setOpcode(word, opcode);
+		setGeneralRegister(word, general_register);
+		setDevid(word, devid);
+	}
 	/**
 	 * Puts the instruction opcode in bit positions 0-5.
 	 * 
@@ -205,5 +213,14 @@ public class InstructionWriter {
 	 */
 	private void setCount(Word word, byte count){
 		Utils.byteToBitSetDeepCopy(count, word, InstructionBitFormats.SHIFT_COUNT_SIZE, InstructionBitFormats.SHIFT_COUNT_END);
+	}
+	
+	/*
+	 * Puts the DEVID operand in bit position 13-17
+	 * @param word
+	 * @param devid
+	 */
+	private void setDevid(Word word, byte devid) {
+		Utils.byteToBitSetDeepCopy(devid, word, InstructionBitFormats.IO_DEVID_SIZE, InstructionBitFormats.IO_DEVID_END);
 	}
 }

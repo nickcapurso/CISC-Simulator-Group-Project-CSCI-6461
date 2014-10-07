@@ -179,12 +179,17 @@ public class Utils {
 	
 	public static Word StringToWord(String input) {
 		String temp = input;
-		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al;
+		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 		try {
 			System.out.println("Test input is: " + input);
 			Word word = new Word();
 			// Read the opcode from the reader line.
-			String opcodeKeyString = temp.substring(0, 3);
+			String opcodeKeyString = "";
+			if (temp.startsWith("IN")) {
+				opcodeKeyString = temp.substring(0,2);
+			} else {
+				opcodeKeyString = temp.substring(0, 3);
+			}
 			// Determine the instruction's format from the Computer's
 			// context.
 			Context.InstructionFormat instruction_format = context
@@ -192,8 +197,9 @@ public class Utils {
 			// Ensure the key returned a valid InstructionClass object.
 
 			String instruction_elements[] = temp.split(",");
-			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = 0;
+			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
+			System.out.println(opcode);
 
 			switch (instruction_format) {
 			case ONE:
@@ -236,10 +242,14 @@ public class Utils {
 				lr = Byte.parseByte(instruction_elements[2]);
 				al = Byte.parseByte(instruction_elements[3]);
 				break;
+			case EIGHT:
+				general_register = Byte.parseByte(temp.substring(opcodeKeyString.length() + 1, opcodeKeyString.length() + 2));
+				devid = Byte.parseByte(instruction_elements[1]);
+				break;
 			default:
 				break;
 			}
-
+			
 			switch (instruction_format) {
 			case ONE:
 			case TWO:
@@ -266,12 +276,19 @@ public class Utils {
 				writer.writeShiftInstruction(word, opcode,
 						general_register, count, lr, al);
 				break;
+			case EIGHT:
+				System.out.println("Writing: opcode= " + opcode + ", R= "
+						+ general_register + ", DEVID = " + devid);
+				writer.writeIOInstruction(word, opcode,
+						general_register, devid);
+				break;
 			default:
 				break;
 			}
 			return word;
 		} catch (Exception e){
 			//This will be a Illegal Operation code
+			System.out.println(e);
 			return null;
 		}
 	}
