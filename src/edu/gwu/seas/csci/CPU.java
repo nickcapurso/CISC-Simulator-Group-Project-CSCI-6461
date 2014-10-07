@@ -69,18 +69,18 @@ public class CPU implements CPUConstants {
 		 */
 		public void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
-				System.out.println(Thread.currentThread().getName().toString() + ": Adding cache line with tag "
-						+ line.getTag() + " to cache at position "
-						+ cache_adds_counter + ".");
+				System.out.println(Thread.currentThread().getName().toString()
+						+ ": Adding cache line with tag " + line.getTag()
+						+ " to cache at position " + cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
 			} else {
 				int cache_position = 0;
 				do {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
-				System.out.println(Thread.currentThread().getName().toString() + ": Adding cache line with tag "
-						+ line.getTag() + " to cache at position "
-						+ cache_position + ".");
+				System.out.println(Thread.currentThread().getName().toString()
+						+ ": Adding cache line with tag " + line.getTag()
+						+ " to cache at position " + cache_position + ".");
 				cache[cache_position] = line;
 			}
 		}
@@ -124,9 +124,13 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println(Thread.currentThread().getName().toString() + ": Cache read hit.  Found address "
-								+ address + " in cache line with tag "
-								+ line.getTag() + ".");
+						System.out.println(Thread.currentThread().getName()
+								.toString()
+								+ ": Cache read hit.  Found address "
+								+ address
+								+ " in cache line with tag "
+								+ line.getTag()
+								+ ".");
 						return line.getWord(address - line.getTag());
 					}
 				}
@@ -186,8 +190,11 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println(Thread.currentThread().getName().toString() + ": Cache write hit.  Found address "
-								+ address + " in cache line with tag "
+						System.out.println(Thread.currentThread().getName()
+								.toString()
+								+ ": Cache write hit.  Found address "
+								+ address
+								+ " in cache line with tag "
 								+ line.getTag() + ".");
 						int index = address - line.getTag();
 						byte flag = Utils.l1IndexToFlag(index);
@@ -333,7 +340,7 @@ public class CPU implements CPUConstants {
 			if (add)
 				this.flags = (byte) (flags + flag);
 			else
-				this.flags = (byte) (flags - flag);			
+				this.flags = (byte) (flags - flag);
 		}
 	}
 
@@ -342,9 +349,11 @@ public class CPU implements CPUConstants {
 	 */
 	static class MemoryController implements Runnable {
 
+		private boolean exit = false;
+
 		@Override
 		public void run() {
-			while (true) {
+			while (!exit) {
 				synchronized (write_buffer) {
 					if (write_buffer.isEmpty()) {
 						try {
@@ -361,11 +370,24 @@ public class CPU implements CPUConstants {
 								.println(Thread.currentThread().getName()
 										.toString()
 										+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
-						write_buffer.writeToMemory();
+						write_buffer.writeToMainMemory();
 					} else {
-						write_buffer.writeToMemory();
+						write_buffer.writeToMainMemory();
 					}
 				}
+				synchronized (this) {
+					this.notify();
+				}
+			}
+		}
+
+		/**
+		 * Tells this runnable to exit the run method.
+		 */
+		public void terminate() {
+			synchronized (write_buffer) {
+				exit = true;
+				write_buffer.notify();
 			}
 		}
 	}
@@ -477,6 +499,19 @@ public class CPU implements CPUConstants {
 			WriteBufferContents contents = new WriteBufferContents(address,
 					word, flag);
 			boolean success = false;
+			while (buffer.size() == 4) {
+				synchronized (memory_controller) {
+					try {
+						System.out
+								.println(Thread.currentThread().getName()
+										.toString()
+										+ ": Buffer is full.  Waiting on memory controller to process buffer.");
+						memory_controller.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 			synchronized (this) {
 				success = buffer.add(contents);
 				System.out
@@ -514,7 +549,7 @@ public class CPU implements CPUConstants {
 		 * 
 		 * @return true if successful, otherwise false;
 		 */
-		public boolean writeToMemory() {
+		public boolean writeToMainMemory() {
 			boolean success = true;
 			try {
 				WriteBufferContents line = buffer.remove();
@@ -558,11 +593,11 @@ public class CPU implements CPUConstants {
 	/**
 	 * Runs the memory_controller asynchronously in a separate dedicated thread.
 	 */
-	private static Thread memory_controller_thread = new Thread(
-			memory_controller, "memory_controller");
+	private Thread memory_controller_thread = new Thread(memory_controller,
+			"memory_controller");
 
 	/**
-	 * 
+	 * The CPU's L1 cache.
 	 */
 	private static final L1Cache l1_cache = new L1Cache();
 
@@ -701,25 +736,47 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
+	 * Reads the contents of a specified address from memory. The default
+	 * behavior is to check the cache for the desired address before searching
+	 * main memory. The override parameter forces a skip of the cache check and
+	 * reads directly from main memory. Used when a cache check would be
+	 * redundant; otherwise, perform the default behavior of checking the cache
+	 * for the desired address. Updates the cache with the block fetched from
+	 * memory regardless of the override option.
+	 * 
 	 * @param address
 	 *            The address in main memory to target.
 	 * @param override
-	 *            TODO
-	 * @return the contents of the specified address in the specified memory.
+	 *            Skip the cache check if true.
+	 * 
+	 * @return the contents of the specified address.
 	 */
 	public Word readFromMemory(int address, boolean override) {
 		Word word = null;
 		if (override)
-			word = readFromMemory(address);
+			word = readFromMainMemory(address);
 		else {
 			word = l1_cache.read(address);
 			if (word != null)
 				return word;
 			else {
-				word = readFromMemory(address);
+				word = readFromMainMemory(address);
 			}
 		}
 		return word;
+	}
+
+	/**
+	 * Reads the contents of a specified address from memory. Checks the cache
+	 * for the desired address before searching main memory. Updates the cache
+	 * with the block fetched from memory regardless of the override option.
+	 * 
+	 * @param address
+	 *            The address in main memory to target.
+	 * @return the contents of the specified address.
+	 */
+	public Word readFromMemory(int address) {
+		return this.readFromMemory(address, false);
 	}
 
 	/**
@@ -829,6 +886,15 @@ public class CPU implements CPUConstants {
 			this.readFromMemory(address, false);
 			return this.writeToMemory(word, address);
 		}
+	}
+
+	/**
+	 * Forces the memory controller thread out of its run loop so it can
+	 * terminate gracefully.
+	 */
+	public void shutdown() {
+		memory_controller.terminate();
+		System.out.println("CPU Shutdown.");
 	}
 
 	private void advancePC() {
@@ -1691,7 +1757,7 @@ public class CPU implements CPUConstants {
 	 *            The address of the contents to fetch from mmain memory.
 	 * @return The contents of the specified address in main memory.
 	 */
-	private Word readFromMemory(int address) {
+	private Word readFromMainMemory(int address) {
 		Word[] block = Memory.getInstance().getMemoryBlock(address);
 		Word word = block[0];
 		L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
