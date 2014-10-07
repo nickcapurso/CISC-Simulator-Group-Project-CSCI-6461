@@ -1630,11 +1630,11 @@ public class CPU implements CPUConstants {
 				// COUNT -> OP2
 				setReg(OP2, getReg(COUNT));
 
-				// AL -> OP3
-				setReg(OP3, getReg(AL));
+				// LR -> OP3
+				setReg(OP3, getReg(LR));
 
-				// LR -> OP4
-				setReg(OP4, getReg(LR));
+				// AL -> OP4
+				setReg(OP4, getReg(AL));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1662,11 +1662,11 @@ public class CPU implements CPUConstants {
 				// COUNT -> OP2
 				setReg(OP2, getReg(COUNT));
 
-				// AL -> OP3
-				setReg(OP3, getReg(AL));
+				// LR -> OP3
+				setReg(OP3, getReg(LR));
 
-				// LR -> OP4
-				setReg(OP4, getReg(LR));
+				// AL -> OP4
+				setReg(OP4, getReg(AL));
 				cycle_count++;
 				prog_step++;
 				break;
