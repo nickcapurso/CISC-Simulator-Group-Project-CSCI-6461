@@ -4,7 +4,6 @@
 package edu.gwu.seas.csci;
 
 import java.util.Arrays;
-import java.util.BitSet;
 
 /**
  * Provides the memory for the {@link Computer} class. Leverages the Singleton
@@ -61,42 +60,6 @@ public class Memory {
 	}
 
 	/**
-	 * @param word
-	 * @param address
-	 */
-	public static void setWord(Word word, int address) {
-		memory[address] = word;
-	}
-
-	public static void setWord(Word word, BitSet register, int numBits) {
-		int address = Utils.convertToInt(register, numBits);
-
-		memory[address] = word;
-	}
-
-	/**
-	 * TODO: Update the JavaDocs Retrieves the {@link Word} at the address
-	 * specified in the passed register.
-	 * 
-	 * @param register
-	 *            The BitSet containing the value to convert.
-	 * @param numBits
-	 *            The size of the BitSet in bits.
-	 * @return The numeric (base 10) representation of what is stored in the
-	 *         BitSet.
-	 * @throws IndexOutOfBoundsException
-	 */
-	public Word read(BitSet register, int numBits)
-			throws IndexOutOfBoundsException {
-		int address = Utils.convertToInt(register, numBits);
-
-		if (address > length)
-			throw new IndexOutOfBoundsException();
-		Word[] words = getMemoryBlock(address);
-		return words[0];
-	}
-
-	/**
 	 * TODO: Update the JavaDocs Retrieves the {@link Word} at the specified
 	 * memory address.
 	 * 
@@ -112,26 +75,6 @@ public class Memory {
 	}
 
 	/**
-	 * Puts a {@link Word} in the address specified by the passed register.
-	 * 
-	 * @param word
-	 *            The contents to place in memory.
-	 * @param register
-	 *            The BitSet containing the address.
-	 * @param numBits
-	 *            The size of the BitSet in bits.
-	 * @throws IndexOutOfBoundsException
-	 */
-	public void write(Word word, BitSet register, int numBits)
-			throws IndexOutOfBoundsException {
-		int address = Utils.convertToInt(register, numBits);
-
-		if (address > length)
-			throw new IndexOutOfBoundsException();
-		setWord(word, address);
-	}
-
-	/**
 	 * Puts a {@link Word} in the specified address.
 	 * 
 	 * @param word
@@ -142,7 +85,7 @@ public class Memory {
 	public void write(Word word, int address) throws IndexOutOfBoundsException {
 		if (address > length)
 			throw new IndexOutOfBoundsException();
-		setWord(word, address);
+		memory[address] = word;
 	}
 
 	/*
