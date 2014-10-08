@@ -50,7 +50,7 @@ public class IRDecoder {
 
 		// Get the instruction class for the current opcode
 		instruction_string = context.getOpCodeStrings().get(
-				Utils.convertToByte(opcode, InstructionBitFormats.OPCODE_SIZE));
+				Utils.convertToUnsignedByte(opcode, InstructionBitFormats.OPCODE_SIZE));
 		instruction_class = context.getOpcodeClasses().get(instruction_string);
 
 
@@ -75,7 +75,6 @@ public class IRDecoder {
 		case LD_STR:
 		case TRANS:
 		case ARITH:
-			System.out.println("ARITH");
 			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),

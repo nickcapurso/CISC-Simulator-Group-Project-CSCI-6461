@@ -16,7 +16,7 @@ public class Utils {
 	private static InstructionWriter writer = new InstructionWriter();
 
 	/**
-	 * Converts a BitSet to its numeric equivalent, stored in a byte. The return
+	 * Converts a BitSet to its numeric equivalent (unsigned), stored in a byte. The return
 	 * value can be used for numeric based comparisons.
 	 * 
 	 * @param set
@@ -27,7 +27,7 @@ public class Utils {
 	 *            special-register lengths in InstructionBitFormats.java.
 	 * @return The numeric value represented by the BitSet.
 	 */
-	public static byte convertToByte(final BitSet set, final int numBits) {
+	public static byte convertToUnsignedByte(final BitSet set, final int numBits) {
 		byte value = 0;
 
 		for (int i = numBits - 1; i >= 0; i--)
@@ -36,7 +36,7 @@ public class Utils {
 	}
 
 	/**
-	 * Converts a BitSet to its numeric equivalent, stored in a int. Can be used
+	 * Converts a BitSet to its numeric equivalent (signed), stored in a int. Can be used
 	 * for values expected to be greater than a byte (i.e. addresses).
 	 * 
 	 * @param set
@@ -49,7 +49,21 @@ public class Utils {
 	 */
 	public static int convertToInt(final BitSet set, final int numBits) {
 		int value = 0;
+		
+		//Check if converting a BitSet which contains a negative value (MSB set)
+		if(set.get(0)){
+			BitSet temp = new BitSet(numBits);
+			
+			//Make a copy of the input set
+			bitsetDeepCopy(set, numBits, temp, numBits);
+			
+			//Return 2's complement conversion (flip all the bits and add 1)
+			temp.flip(0, numBits);
+			return 0 - (convertToInt(temp, numBits) + 1);
+		}
 
+		//Positive conversion, check each bit and shift to get the appropriate power of 2
+		//for the bit position
 		for (int i = numBits - 1; i >= 0; i--)
 			value += set.get(i) ? (1 << (numBits - 1 - i)) : 0;
 
@@ -140,7 +154,21 @@ public class Utils {
 	 */
 	public static BitSet intToBitSet(int value, int setSize){
 		BitSet set = new BitSet(setSize);
-		for(int i = setSize-1; i > 0; i--){
+		System.out.println("Value: " + value + " setSize: " + setSize);
+		//Check if value is negative (if so, BitSet needs to contain the 2's complement)
+		if(value < 0){
+			int absoluteVal = 0 - value;
+			
+			//Instead of flipping bits and adding one, first subtract one then flip bits (makes it easier to code)
+			BitSet temp = intToBitSet(absoluteVal-1, setSize);
+			
+			//Flip all the bits
+			temp.flip(0, setSize);
+			return temp;
+		}
+		
+		//If positive, essentially set the BitSet bit-by-bit
+		for(int i = setSize-1; i >= 0; i--){
 			set.set(i, (value & 1) == 1? true:false);
 			value >>>= 1;
 		}

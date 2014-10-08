@@ -623,7 +623,7 @@ public class CPU implements CPUConstants {
 
 		// Registers for shift instructions
 		regMap.put(AL, new Register(InstructionBitFormats.SHIFT_AL_SIZE));
-		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_START));
+		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_SIZE));
 		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
 		
 		// Registers for IO instructions
@@ -833,10 +833,10 @@ public class CPU implements CPUConstants {
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
 
-		if (Utils.convertToByte(i, i.getNumBits()) == 0) { // No indirect
+		if (Utils.convertToUnsignedByte(i, i.getNumBits()) == 0) { // No indirect
 															// addressing
 			if (LDXSTXInstruction
-					|| Utils.convertToByte(ix, ix.getNumBits()) == 0) { // No
+					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
 																		// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
@@ -852,7 +852,7 @@ public class CPU implements CPUConstants {
 
 		} else { // Indirect addressing
 			if (LDXSTXInstruction
-					|| Utils.convertToByte(ix, ix.getNumBits()) == 0) { // No
+					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
 																		// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
@@ -956,7 +956,7 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String indexRegisterFile(BitSet IX) {
-		switch (Utils.convertToByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
+		switch (Utils.convertToUnsignedByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
 		case 1:
 			return X1;
 		case 2:
@@ -1186,7 +1186,7 @@ public class CPU implements CPUConstants {
 			// If RESULT == 1
 			// EA -> PC
 			if (getReg(CC).get(
-					Utils.convertToByte(getReg(R), getReg(R).getNumBits())))
+					Utils.convertToUnsignedByte(getReg(R), getReg(R).getNumBits())))
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
 
 			cycle_count++;
@@ -1323,6 +1323,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.AMR:
+			System.out.println("Prog step:" + prog_step);
 			switch (prog_step) {
 			case 4:
 				calculateEA(true);
@@ -1344,7 +1345,7 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 
-			case 8:
+			case 7:
 				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 
@@ -1353,13 +1354,14 @@ public class CPU implements CPUConstants {
 				cycle_count++;
 				prog_step++;
 				break;
-			case 9:
+			case 8:
 				// Perform add in ALU
+				System.out.println("Performing add");
 				alu.AMR();
 				cycle_count++;
 				prog_step++;
 				break;
-			case 10:
+			case 9:
 				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
@@ -1390,7 +1392,7 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 
-			case 8:
+			case 7:
 				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
 
@@ -1399,13 +1401,13 @@ public class CPU implements CPUConstants {
 				cycle_count++;
 				prog_step++;
 				break;
-			case 9:
+			case 8:
 				// Perform subtract in ALU
 				alu.SMR();
 				cycle_count++;
 				prog_step++;
 				break;
-			case 10:
+			case 9:
 				// RESULT -> registerFile(R)
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				cycle_count++;
@@ -1634,13 +1636,13 @@ public class CPU implements CPUConstants {
 				setReg(OP1, getReg(registerFile(getReg(R))));
 
 				// COUNT -> OP2
-				setReg(OP2, getReg(registerFile(getReg(COUNT))));
+				setReg(OP2, getReg(COUNT));
 
-				// AL -> OP3
-				setReg(OP3, getReg(registerFile(getReg(AL))));
+				// LR -> OP3
+				setReg(OP3, getReg(LR));
 
-				// LR -> OP4
-				setReg(OP4, getReg(registerFile(getReg(LR))));
+				// AL -> OP4
+				setReg(OP4, getReg(AL));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1666,13 +1668,13 @@ public class CPU implements CPUConstants {
 				setReg(OP1, getReg(registerFile(getReg(R))));
 
 				// COUNT -> OP2
-				setReg(OP2, getReg(registerFile(getReg(COUNT))));
+				setReg(OP2, getReg(COUNT));
 
-				// AL -> OP3
-				setReg(OP3, getReg(registerFile(getReg(AL))));
+				// LR -> OP3
+				setReg(OP3, getReg(LR));
 
-				// LR -> OP4
-				setReg(OP4, getReg(registerFile(getReg(LR))));
+				// AL -> OP4
+				setReg(OP4, getReg(AL));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1739,18 +1741,27 @@ public class CPU implements CPUConstants {
 		Utils.bitsetToString(X3, getReg(X3), getReg(X3).getNumBits());
 		Utils.bitsetToString(PC, getReg(PC), getReg(PC).getNumBits());
 		Utils.bitsetToString(IR, getReg(IR), getReg(IR).getNumBits());
-		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
 		Utils.bitsetToString(MAR, getReg(MAR), getReg(MAR).getNumBits());
 		Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 		Utils.bitsetToString(MSR, getReg(MSR), getReg(MSR).getNumBits());
 		Utils.bitsetToString(MFR, getReg(MFR), getReg(MFR).getNumBits());
-		Utils.bitsetToString(OPCODE, getReg(OPCODE), getReg(OPCODE)
-				.getNumBits());
+		Utils.bitsetToString(OPCODE, getReg(OPCODE), getReg(OPCODE).getNumBits());
 		Utils.bitsetToString(IX, getReg(IX), getReg(IX).getNumBits());
 		Utils.bitsetToString(R, getReg(R), getReg(R).getNumBits());
 		Utils.bitsetToString(I, getReg(I), getReg(I).getNumBits());
 		Utils.bitsetToString(ADDR, getReg(ADDR), getReg(ADDR).getNumBits());
 		Utils.bitsetToString(EA, getReg(EA), getReg(EA).getNumBits());
+		Utils.bitsetToString(RX, getReg(RX), getReg(RX).getNumBits());
+		Utils.bitsetToString(RY, getReg(RY), getReg(RY).getNumBits());
+		Utils.bitsetToString(COUNT, getReg(COUNT), getReg(COUNT).getNumBits());
+		Utils.bitsetToString(LR, getReg(LR), getReg(LR).getNumBits());
+		Utils.bitsetToString(AL, getReg(AL), getReg(AL).getNumBits());
+		Utils.bitsetToString(OP1, getReg(OP1), getReg(OP1).getNumBits());
+		Utils.bitsetToString(OP2, getReg(OP2), getReg(OP2).getNumBits());
+		Utils.bitsetToString(OP3, getReg(OP3), getReg(OP3).getNumBits());
+		Utils.bitsetToString(OP4, getReg(OP4), getReg(OP4).getNumBits());
+		Utils.bitsetToString(RESULT, getReg(RESULT), getReg(RESULT).getNumBits());
+		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
 	}
 
 	/**
@@ -1780,7 +1791,7 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String registerFile(BitSet R) {
-		switch (Utils.convertToByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
+		switch (Utils.convertToUnsignedByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
 		case 0:
 			return R0;
 		case 1:
@@ -1826,7 +1837,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		default:
-			opcodeInstruction(Utils.convertToByte(getReg(OPCODE),
+			opcodeInstruction(Utils.convertToUnsignedByte(getReg(OPCODE),
 					InstructionBitFormats.OPCODE_SIZE));
 		}
 	}
