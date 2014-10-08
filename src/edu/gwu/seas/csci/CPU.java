@@ -1171,7 +1171,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.JZ:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1202,7 +1202,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.JNE:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1245,7 +1245,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.JMP:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1261,7 +1261,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.JSR:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1303,7 +1303,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.SOB:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1342,7 +1342,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.JGE:
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1375,7 +1375,7 @@ public class CPU implements CPUConstants {
 			System.out.println("Prog step:" + prog_step);
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1422,9 +1422,10 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.SMR:
+			System.out.println("SMR");
 			switch (prog_step) {
 			case 4:
-				calculateEA(true);
+				calculateEA(false);
 				cycle_count++;
 				prog_step++;
 				break;
