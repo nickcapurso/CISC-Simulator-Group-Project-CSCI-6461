@@ -12,6 +12,7 @@ public interface CPUConstants {
 	 */
 	
 	public static final int DEFAULT_BIT_SIZE = 18;
+	public static final byte INTERRUPT_IO = 0;
 	
 	/**
 	 * Public constants for register names

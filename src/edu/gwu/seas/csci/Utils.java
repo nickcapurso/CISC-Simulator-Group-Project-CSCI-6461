@@ -154,7 +154,6 @@ public class Utils {
 	 */
 	public static BitSet intToBitSet(int value, int setSize){
 		BitSet set = new BitSet(setSize);
-		System.out.println("Value: " + value + " setSize: " + setSize);
 		//Check if value is negative (if so, BitSet needs to contain the 2's complement)
 		if(value < 0){
 			int absoluteVal = 0 - value;

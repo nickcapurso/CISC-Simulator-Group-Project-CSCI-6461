@@ -549,8 +549,7 @@ public class CPU implements CPUConstants {
 	private IRDecoder irdecoder;
 	private ALU alu;
 
-	public String input_buffer;
-	public Boolean wait_on_buffer = true;
+	public String input_buffer = "";
 	public int memory_stack = 2047;
 
 	/**
@@ -573,6 +572,9 @@ public class CPU implements CPUConstants {
 	 * The CPU's L1 cache.
 	 */
 	private static final L1Cache l1_cache = new L1Cache();
+	
+	private boolean waitForInterrupt;
+	private String currentExecution = "";
 
 	// Constructor
 	public CPU(Memory memory) {
@@ -879,8 +881,21 @@ public class CPU implements CPUConstants {
 			setReg(EA, getReg(MDR));
 		}
 	}
+	
+	public void handleInterrupt(byte interruptCode){
+		switch(interruptCode){
+		case INTERRUPT_IO:
+			if(!input_buffer.equals("")){
+				System.out.println("Restarting instruction");
+				waitForInterrupt = false;
+				executeInstruction(currentExecution);
+			}
+			break;
+		}
+	}
 
 	public void executeInstruction(String step_type) {
+		currentExecution = step_type;
 		switch (step_type) {
 		case "continue":
 			Computer_GUI.toggle_button("load", false);
@@ -901,6 +916,8 @@ public class CPU implements CPUConstants {
 			// Computer_GUI.toggle_button("runinput", false);
 			System.out.println("Micro Step");
 			singleInstruction();
+			if(waitForInterrupt)
+				return;
 
 			if (prog_step == 0) {
 				System.out.println("--------- Instruction Done ---------");
@@ -915,6 +932,10 @@ public class CPU implements CPUConstants {
 			System.out.println("Macro Step");
 			do {
 				singleInstruction();
+				if(waitForInterrupt){
+					System.out.println("Waiting for interrupt...");
+					return;
+				}
 			} while (prog_step != 0);
 
 			System.out.println("--------- Instruction Done ---------");
@@ -935,6 +956,11 @@ public class CPU implements CPUConstants {
 				prog_step = prog_step + 2;
 				do {
 					singleInstruction();
+					if(waitForInterrupt){
+						cycle_count -=2;
+						prog_step = 0;
+						return;
+					}
 				} while (prog_step != 0);
 
 				System.out.println("--------- Instruction Done ---------");
@@ -1696,6 +1722,11 @@ public class CPU implements CPUConstants {
 		//Needs logic for different devices??
 		case OpCodesList.IN:
 			System.out.println("RUNNING IN");
+			if(input_buffer.equals("")){
+				waitForInterrupt = true;
+				return;
+			}
+			
 		    try { 
 		        int input = Integer.parseInt(input_buffer); 
 		        BitSet input_bitset = Utils.intToBitSet(input, 18);

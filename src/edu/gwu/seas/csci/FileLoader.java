@@ -68,12 +68,15 @@ public class FileLoader implements Loader {
 			byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 
 			while ((temp = reader.readLine()) != null) {
+				if(temp.equals("") || temp.charAt(0) == '/'){
+					System.out.println("Ignoring line: blank or a comment");
+					continue;
+				}
+				
 				Word word = new Word();
 				// Read the opcode from the reader line.
-				String opcodeKeyString = temp.substring(0, 3);
-				if (temp.substring(0,2) == "IN") {
-					opcodeKeyString = temp.substring(0,2);
-				}
+				String opcodeKeyString = temp.substring(0, 3).trim();
+
 				// Determine the instruction's format from the Computer's
 				// context.
 				Context.InstructionFormat instruction_format = context
@@ -88,48 +91,51 @@ public class FileLoader implements Loader {
 				
 				switch (instruction_format) {
 				case ONE:
-					general_register = Byte.parseByte(temp.substring(4, 5));
-					index_register = Byte.parseByte(instruction_elements[1]);
-					address = Byte.parseByte(instruction_elements[2]);
+					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					index_register = Byte.parseByte(instruction_elements[1].trim());
+					address = Byte.parseByte(instruction_elements[2].trim());
 					// Optional indirection check
 					if (instruction_elements.length < 4)
 						indirection = 0;
 					else
-						indirection = Byte.parseByte(instruction_elements[3]);
+						indirection = Byte.parseByte(instruction_elements[3].trim());
 					break;
 				case TWO:
-					index_register = Byte.parseByte(temp.substring(4, 5));
-					address = Byte.parseByte(instruction_elements[1]);
+					index_register = Byte.parseByte(temp.substring(4, 5).trim());
+					address = Byte.parseByte(instruction_elements[1].trim());
 
 					// Optional indirection check
 					if (instruction_elements.length < 3)
 						indirection = 0;
 					else
-						indirection = Byte.parseByte(instruction_elements[2]);
+						indirection = Byte.parseByte(instruction_elements[2].trim());
 					break;
 				case THREE:
-					general_register = Byte.parseByte(temp.substring(4, 5));
-					address = Byte.parseByte(instruction_elements[1]);
+					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					address = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				case FOUR:
-					address = Byte.parseByte(temp.substring(4, temp.length()));
+					address = Byte.parseByte(temp.substring(4, temp.length()).trim());
 					break;
 				case FIVE:
-					register_x = Byte.parseByte(temp.substring(4, 5));
+					register_x = Byte.parseByte(temp.substring(4, 5).trim());
 					break;
 				case SIX:
-					register_x = Byte.parseByte(temp.substring(4, 5));
-					register_y = Byte.parseByte(instruction_elements[1]);
+					register_x = Byte.parseByte(temp.substring(4, 5).trim());
+					register_y = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				case SEVEN:
-					general_register = Byte.parseByte(temp.substring(4, 5));
-					count = Byte.parseByte(instruction_elements[1]);
-					lr = Byte.parseByte(instruction_elements[2]);
-					al = Byte.parseByte(instruction_elements[3]);
+					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					count = Byte.parseByte(instruction_elements[1].trim());
+					lr = Byte.parseByte(instruction_elements[2].trim());
+					al = Byte.parseByte(instruction_elements[3].trim());
 					break;
 				case EIGHT:
-					general_register = Byte.parseByte(temp.substring(4, 5));
-					devid = Byte.parseByte(instruction_elements[1]);
+					if(opcodeKeyString.equals("IN"))
+						general_register = Byte.parseByte(temp.substring(3, 4).trim());
+					else
+						general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					devid = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				default:
 					break;
