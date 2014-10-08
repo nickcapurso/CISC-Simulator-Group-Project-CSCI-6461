@@ -148,6 +148,10 @@ public class Context {
 		// Shift/rotate instructions
 		opcodeClasses.put("SRC", InstructionClass.SHIFT);
 		opcodeClasses.put("RRC", InstructionClass.SHIFT);
+		
+		// IO instuctions
+		opcodeClasses.put("IN", InstructionClass.IO);
+		opcodeClasses.put("OUT", InstructionClass.IO);
 
 		/**
 		 * OpCodeBytes setup

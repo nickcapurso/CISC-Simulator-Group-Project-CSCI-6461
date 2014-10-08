@@ -273,11 +273,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			} catch (Exception ex) { //Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
+			textField.setText("");
 			// Needs to run through the FileLoader Instruction Parser to work
 			// properly
 		} else if (e.getSource() == runinput) {
 			String user_input = textField.getText();
 			cpu.executeInstruction(user_input);
+			textField.setText("");
 		} else if (e.getSource() == reset) {
 			cpu.startBootloader();
 			start.setEnabled(true);
@@ -290,6 +292,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cpu.input_buffer = textField.getText();
 			cpu.wait_on_buffer = false;
 			System.out.println(cpu.input_buffer);
+			textField.setText("");
 		}
 	}
 
