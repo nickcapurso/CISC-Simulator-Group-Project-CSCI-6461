@@ -162,9 +162,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		JLabel lblMfr = new JLabel("MFR:");
 		lblMfr.setBounds(498, 134, 41, 30);
 		contentPane.add(lblMfr);
+		
+		JLabel lblCc = new JLabel("CC:");
+		lblCc.setBounds(498, 165, 41, 30);
+		contentPane.add(lblCc);
 
 		JLabel lblIr = new JLabel("OPCODE:");
-		lblIr.setBounds(498, 172, 56, 16);
+		lblIr.setBounds(498, 202, 56, 16);
 		contentPane.add(lblIr);
 
 		opcode_name = new JLabel("");
@@ -191,7 +195,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		JRadioButton[] MSR = new JRadioButton[18];
 		JRadioButton[] MDR = new JRadioButton[18];
 		JRadioButton[] MFR = new JRadioButton[4];
-		JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR };
+		JRadioButton[] CC = new JRadioButton[4];
+		JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR, CC };
 
 		// For loop to decrease RadioButton [] creation
 		for (int j = 0; j < MR.length; j++) {
@@ -208,8 +213,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 					XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
 					contentPane.add(XR[j][i]);
 				}
-				if (j == MR.length - 1) {
-					if (i < MFR.length) {
+				if (j == MR.length - 1 || j == MR.length - 2) {
+					if (i < MFR.length || i < CC.length) {
 						MR[j][i] = new JRadioButton();
 						MR[j][i].setEnabled(false);
 						MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
@@ -235,7 +240,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		for (int i = 0; i < 6; i++) {
 			IR[i] = new JRadioButton();
 			IR[i].setEnabled(false);
-			IR[i].setBounds(547 + 24 * i, 170, 20, 20);
+			IR[i].setBounds(547 + 24 * i, 201, 20, 20);
 			contentPane.add(IR[i]);
 		}
 		/*
@@ -254,6 +259,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MFR", MFR);
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
+		Registers.put("CC",	CC);
 
 	}
 
