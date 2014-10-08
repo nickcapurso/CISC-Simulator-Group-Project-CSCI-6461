@@ -882,6 +882,13 @@ public class CPU implements CPUConstants {
 		}
 	}
 	
+	/**
+	 * Handles the interrupt sent to the CPU. For
+	 * I/O interrupts, this means restarting the current
+	 * instruction.
+	 * 
+	 * @param interruptCode The type of interrupt generated.
+	 */
 	public void handleInterrupt(byte interruptCode){
 		switch(interruptCode){
 		case INTERRUPT_IO:
@@ -934,10 +941,9 @@ public class CPU implements CPUConstants {
 			System.out.println("Macro Step");
 			do {
 				singleInstruction();
-				if(waitForInterrupt){
-					System.out.println("Waiting for interrupt...");
+				if(waitForInterrupt)
 					return;
-				}
+				
 			} while (prog_step != 0);
 
 			System.out.println("--------- Instruction Done ---------");
@@ -1725,6 +1731,7 @@ public class CPU implements CPUConstants {
 		case OpCodesList.IN:
 			System.out.println("RUNNING IN");
 			if(input_buffer.equals("")){
+				System.out.println("Waiting for interrupt...");
 				waitForInterrupt = true;
 				return;
 			}
