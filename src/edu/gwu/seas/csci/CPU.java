@@ -200,6 +200,13 @@ public class CPU implements CPUConstants {
 			System.out.println("Cache write miss.");
 			return false;
 		}
+
+		/**
+		 * @return the cache
+		 */
+		L1CacheLine[] getCache() {
+			return cache;
+		}
 	}
 
 	/**
@@ -247,14 +254,14 @@ public class CPU implements CPUConstants {
 		/**
 		 * @return the flags
 		 */
-		private byte getFlags() {
+		byte getFlags() {
 			return flags;
 		}
 
 		/**
 		 * @return the tag
 		 */
-		private int getTag() {
+		int getTag() {
 			return tag;
 		}
 
@@ -1916,5 +1923,12 @@ public class CPU implements CPUConstants {
 		 * catch (ParseException e) { // TODO Auto-generated catch block
 		 * e.printStackTrace(); }
 		 */
+	}
+
+	/**
+	 * @return the l1Cache
+	 */
+	static L1Cache getL1Cache() {
+		return l1_cache;
 	}
 }
