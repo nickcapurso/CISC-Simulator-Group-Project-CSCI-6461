@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
 import javax.swing.JTextPane;
 import javax.swing.JTextField;
@@ -19,6 +20,8 @@ import java.util.HashMap;
 import javax.swing.JButton;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 public class Computer_GUI extends JFrame implements ActionListener {
 
@@ -30,7 +33,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JTextField textField;
-	private static JTextPane terminal;
+	private static JTextArea terminal;
 	private static JButton cont, start, microstep, macrostep, runinput, enter, load;
 	private JButton reset;
 	private FileLoader fileloader = new FileLoader();
@@ -60,10 +63,14 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.add(textField);
 		textField.setColumns(10);
 
-		terminal = new JTextPane();
-		terminal.setBounds(12, 310, 402, 199);
+		terminal = new JTextArea();
 		terminal.setEnabled(false);
-		contentPane.add(terminal);
+		JScrollPane scroll = new JScrollPane (terminal, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		scroll.setBounds(12, 310, 402, 199);
+		contentPane.add(scroll);
 
 		/*
 		 * JButtons for user interaction - Load: load a textfile through
@@ -345,12 +352,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	}
 
 	public static void append_to_terminal(String value) {
-		StyledDocument document = (StyledDocument) terminal.getDocument();
-		try {
-			document.insertString(document.getLength(), value, null);
-		} catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		terminal.append(value);
 	}
 }
