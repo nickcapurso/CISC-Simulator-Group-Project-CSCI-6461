@@ -128,7 +128,7 @@ public class FileLoader implements Loader {
 					al = Byte.parseByte(instruction_elements[3]);
 					break;
 				case EIGHT:
-					general_register = Byte.parseByte(instruction_elements[0]);
+					general_register = Byte.parseByte(temp.substring(4, 5));
 					devid = Byte.parseByte(instruction_elements[1]);
 					break;
 				default:
@@ -164,6 +164,7 @@ public class FileLoader implements Loader {
 				case EIGHT:
 					System.out.println("Writing: opcode= " + opcode + ", R= "
 							+ general_register + ", DEVID = " + devid);
+					writer.writeIOInstruction(word, opcode, general_register, devid);
 					break;
 				default:
 					break;

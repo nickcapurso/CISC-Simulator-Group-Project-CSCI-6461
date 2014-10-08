@@ -1711,10 +1711,13 @@ public class CPU implements CPUConstants {
 		    break;
 		    
 		case OpCodesList.OUT:
-			if (Utils.convertToInt(getReg(DEVID), 2) == 1) {
-				int output = Utils.convertToInt(getReg(R), 18);
-				Computer_GUI.append_to_terminal(Integer.toString(output));
+			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
+				int output = Utils.convertToInt(getReg(registerFile(getReg(R))), 18);
+				Computer_GUI.append_to_terminal(""+(char)(output));
+				System.out.println("OUT: " + output);
 			}
+			cycle_count++;
+			prog_step = 0;
 			break;
 
 		case OpCodesList.HLT:
@@ -1761,6 +1764,7 @@ public class CPU implements CPUConstants {
 		Utils.bitsetToString(OP3, getReg(OP3), getReg(OP3).getNumBits());
 		Utils.bitsetToString(OP4, getReg(OP4), getReg(OP4).getNumBits());
 		Utils.bitsetToString(RESULT, getReg(RESULT), getReg(RESULT).getNumBits());
+		Utils.bitsetToString(DEVID, getReg(DEVID), getReg(DEVID).getNumBits());
 		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
 	}
 
