@@ -51,7 +51,7 @@ public class CPU implements CPUConstants {
 		 * Used to simplify cache initialization.
 		 */
 		private byte cache_adds_counter = 0;
-		
+
 		/**
 		 * Adds a cache line to the cache. If the cache is full, it evicts a
 		 * cache line at random to make room for the new cache line. Will not
@@ -200,6 +200,13 @@ public class CPU implements CPUConstants {
 			System.out.println("Cache write miss.");
 			return false;
 		}
+
+		/**
+		 * @return the cache
+		 */
+		L1CacheLine[] getCache() {
+			return cache;
+		}
 	}
 
 	/**
@@ -247,14 +254,14 @@ public class CPU implements CPUConstants {
 		/**
 		 * @return the flags
 		 */
-		private byte getFlags() {
+		byte getFlags() {
 			return flags;
 		}
 
 		/**
 		 * @return the tag
 		 */
-		private int getTag() {
+		int getTag() {
 			return tag;
 		}
 
@@ -572,7 +579,7 @@ public class CPU implements CPUConstants {
 	 * The CPU's L1 cache.
 	 */
 	private static final L1Cache l1_cache = new L1Cache();
-	
+
 	private boolean waitForInterrupt;
 	private String currentExecution = "";
 
@@ -627,7 +634,7 @@ public class CPU implements CPUConstants {
 		regMap.put(AL, new Register(InstructionBitFormats.SHIFT_AL_SIZE));
 		regMap.put(LR, new Register(InstructionBitFormats.SHIFT_LR_SIZE));
 		regMap.put(COUNT, new Register(InstructionBitFormats.SHIFT_COUNT_SIZE));
-		
+
 		// Registers for IO instructions
 		regMap.put(DEVID, new Register(InstructionBitFormats.IO_DEVID_SIZE));
 
@@ -835,11 +842,12 @@ public class CPU implements CPUConstants {
 		Register ea = regMap.get(EA);
 		Register addr = regMap.get(ADDR);
 
-		if (Utils.convertToUnsignedByte(i, i.getNumBits()) == 0) { // No indirect
-															// addressing
+		if (Utils.convertToUnsignedByte(i, i.getNumBits()) == 0) { // No
+																	// indirect
+			// addressing
 			if (LDXSTXInstruction
 					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
-																		// indexing
+				// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
 				// ADDR + indexregisterfile(IX)
@@ -855,7 +863,7 @@ public class CPU implements CPUConstants {
 		} else { // Indirect addressing
 			if (LDXSTXInstruction
 					|| Utils.convertToUnsignedByte(ix, ix.getNumBits()) == 0) { // No
-																		// indexing
+				// indexing
 				setReg(EA, regMap.get(ADDR));
 			} else { // Indexing, no indirect
 				// ADDR + indexregisterfile(IX)
@@ -874,25 +882,26 @@ public class CPU implements CPUConstants {
 			setReg(MAR, getReg(EA));
 
 			// Memory(MAR) -> MDR
-			setReg(MDR,
-					Memory.getInstance().read(getReg(MAR),
-							getReg(MAR).getNumBits()));
+			Register register = this.getReg(MAR);
+			int address = Utils.convertToInt(register, register.getNumBits());
+			Word word = this.readFromMemory(address);
+			setReg(MDR, word);
 			// MDR -> EA
 			setReg(EA, getReg(MDR));
 		}
 	}
-	
+
 	/**
-	 * Handles the interrupt sent to the CPU. For
-	 * I/O interrupts, this means restarting the current
-	 * instruction.
+	 * Handles the interrupt sent to the CPU. For I/O interrupts, this means
+	 * restarting the current instruction.
 	 * 
-	 * @param interruptCode The type of interrupt generated.
+	 * @param interruptCode
+	 *            The type of interrupt generated.
 	 */
-	public void handleInterrupt(byte interruptCode){
-		switch(interruptCode){
+	public void handleInterrupt(byte interruptCode) {
+		switch (interruptCode) {
 		case INTERRUPT_IO:
-			if(!input_buffer.equals("")){
+			if (!input_buffer.equals("")) {
 				System.out.println("Restarting instruction");
 				waitForInterrupt = false;
 				executeInstruction(currentExecution);
@@ -909,7 +918,7 @@ public class CPU implements CPUConstants {
 			System.out.println("Continue");
 			while (cont_execution) {
 				singleInstruction();
-				if(waitForInterrupt)
+				if (waitForInterrupt)
 					return;
 				if (prog_step == 0) {
 					System.out.println("--------- Instruction Done ---------");
@@ -925,7 +934,7 @@ public class CPU implements CPUConstants {
 			// Computer_GUI.toggle_button("runinput", false);
 			System.out.println("Micro Step");
 			singleInstruction();
-			if(waitForInterrupt)
+			if (waitForInterrupt)
 				return;
 
 			if (prog_step == 0) {
@@ -941,9 +950,9 @@ public class CPU implements CPUConstants {
 			System.out.println("Macro Step");
 			do {
 				singleInstruction();
-				if(waitForInterrupt)
+				if (waitForInterrupt)
 					return;
-				
+
 			} while (prog_step != 0);
 
 			System.out.println("--------- Instruction Done ---------");
@@ -964,8 +973,8 @@ public class CPU implements CPUConstants {
 				prog_step = prog_step + 2;
 				do {
 					singleInstruction();
-					if(waitForInterrupt){
-						cycle_count -=2;
+					if (waitForInterrupt) {
+						cycle_count -= 2;
 						prog_step = 0;
 						return;
 					}
@@ -990,7 +999,8 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String indexRegisterFile(BitSet IX) {
-		switch (Utils.convertToUnsignedByte(IX, InstructionBitFormats.LD_STR_IX_SIZE)) {
+		switch (Utils.convertToUnsignedByte(IX,
+				InstructionBitFormats.LD_STR_IX_SIZE)) {
 		case 1:
 			return X1;
 		case 2:
@@ -1033,7 +1043,7 @@ public class CPU implements CPUConstants {
 				// Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
 						.getNumBits());
-				setReg(MDR, Memory.getInstance().read(mar_addr));
+				setReg(MDR, this.readFromMemory(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1066,10 +1076,12 @@ public class CPU implements CPUConstants {
 				break;
 			case 6:
 				// MDR -> Mem(MAR)
-				Memory.getInstance().setWord(
-						Utils.registerToWord(getReg(MDR), getReg(MDR)
-								.getNumBits()), getReg(MAR),
-						getReg(MAR).getNumBits());
+				Word word = Utils.registerToWord(getReg(MDR), getReg(MDR)
+						.getNumBits());
+				Register register = this.getReg(MAR);
+				int address = Utils.convertToInt(register,
+						register.getNumBits());
+				this.writeToMemory(word, address);
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1111,7 +1123,7 @@ public class CPU implements CPUConstants {
 				// Mem(MAR) -> MDR
 				int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
 						.getNumBits());
-				setReg(MDR, Memory.getInstance().read(mar_addr));
+				setReg(MDR, this.readFromMemory(mar_addr));
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1143,10 +1155,12 @@ public class CPU implements CPUConstants {
 				break;
 			case 6:
 				// MDR -> Mem(MAR)
-				Memory.getInstance().setWord(
-						Utils.registerToWord(getReg(MDR), getReg(MDR)
-								.getNumBits()), getReg(MAR),
-						regMap.get(MAR).getNumBits());
+				Word word = Utils.registerToWord(getReg(MDR), getReg(MDR)
+						.getNumBits());
+				Register register = this.getReg(MAR);
+				int address = Utils.convertToInt(register,
+						register.getNumBits());
+				this.writeToMemory(word, address);
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1220,7 +1234,8 @@ public class CPU implements CPUConstants {
 			// If RESULT == 1
 			// EA -> PC
 			if (getReg(CC).get(
-					Utils.convertToUnsignedByte(getReg(R), getReg(R).getNumBits())))
+					Utils.convertToUnsignedByte(getReg(R), getReg(R)
+							.getNumBits())))
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
 
 			cycle_count++;
@@ -1372,9 +1387,11 @@ public class CPU implements CPUConstants {
 				break;
 			case 6:
 				// Memory(MAR) -> MDR
-				setReg(MDR,
-						Memory.getInstance().read(getReg(MAR),
-								getReg(MAR).getNumBits()));
+				Register register = this.getReg(MAR);
+				int address = Utils.convertToInt(register,
+						register.getNumBits());
+				Word word = this.readFromMemory(address);
+				setReg(MDR, word);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1419,9 +1436,11 @@ public class CPU implements CPUConstants {
 				break;
 			case 6:
 				// Memory(MAR) -> MDR
-				setReg(MDR,
-						Memory.getInstance().read(getReg(MAR),
-								getReg(MAR).getNumBits()));
+				Register register = this.getReg(MAR);
+				int address = Utils.convertToInt(register,
+						register.getNumBits());
+				Word word = this.readFromMemory(address);
+				setReg(MDR, word);
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1726,34 +1745,35 @@ public class CPU implements CPUConstants {
 				break;
 			}
 			break;
-			
-		//Needs logic for different devices??
+
+		// Needs logic for different devices??
 		case OpCodesList.IN:
 			System.out.println("RUNNING IN");
-			if(input_buffer.equals("")){
+			if (input_buffer.equals("")) {
 				System.out.println("Waiting for interrupt...");
 				waitForInterrupt = true;
 				return;
 			}
-			
-		    try { 
-		        int input = Integer.parseInt(input_buffer); 
-		        BitSet input_bitset = Utils.intToBitSet(input, 18);
-		        setReg(registerFile(getReg(R)), input_bitset, 18);
-		    } catch(NumberFormatException e) { 
-		    	//Does not handle string input!!
-		    	//Word input_word = (Word) Utils.StringToWord(input_buffer);
-		    	//setReg(registerFile(getReg(R)), input_word);
-		    }
-		    input_buffer = "";
+
+			try {
+				int input = Integer.parseInt(input_buffer);
+				BitSet input_bitset = Utils.intToBitSet(input, 18);
+				setReg(registerFile(getReg(R)), input_bitset, 18);
+			} catch (NumberFormatException e) {
+				// Does not handle string input!!
+				// Word input_word = (Word) Utils.StringToWord(input_buffer);
+				// setReg(registerFile(getReg(R)), input_word);
+			}
+			input_buffer = "";
 			cycle_count++;
 			prog_step = 0;
-		    break;
-		    
+			break;
+
 		case OpCodesList.OUT:
 			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
-				int output = Utils.convertToInt(getReg(registerFile(getReg(R))), 18);
-				Computer_GUI.append_to_terminal(""+(char)(output));
+				int output = Utils.convertToInt(
+						getReg(registerFile(getReg(R))), 18);
+				Computer_GUI.append_to_terminal("" + (char) (output));
 				System.out.println("OUT: " + output);
 			}
 			cycle_count++;
@@ -1788,7 +1808,8 @@ public class CPU implements CPUConstants {
 		Utils.bitsetToString(MDR, getReg(MDR), getReg(MDR).getNumBits());
 		Utils.bitsetToString(MSR, getReg(MSR), getReg(MSR).getNumBits());
 		Utils.bitsetToString(MFR, getReg(MFR), getReg(MFR).getNumBits());
-		Utils.bitsetToString(OPCODE, getReg(OPCODE), getReg(OPCODE).getNumBits());
+		Utils.bitsetToString(OPCODE, getReg(OPCODE), getReg(OPCODE)
+				.getNumBits());
 		Utils.bitsetToString(IX, getReg(IX), getReg(IX).getNumBits());
 		Utils.bitsetToString(R, getReg(R), getReg(R).getNumBits());
 		Utils.bitsetToString(I, getReg(I), getReg(I).getNumBits());
@@ -1803,7 +1824,8 @@ public class CPU implements CPUConstants {
 		Utils.bitsetToString(OP2, getReg(OP2), getReg(OP2).getNumBits());
 		Utils.bitsetToString(OP3, getReg(OP3), getReg(OP3).getNumBits());
 		Utils.bitsetToString(OP4, getReg(OP4), getReg(OP4).getNumBits());
-		Utils.bitsetToString(RESULT, getReg(RESULT), getReg(RESULT).getNumBits());
+		Utils.bitsetToString(RESULT, getReg(RESULT), getReg(RESULT)
+				.getNumBits());
 		Utils.bitsetToString(DEVID, getReg(DEVID), getReg(DEVID).getNumBits());
 		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
 	}
@@ -1835,7 +1857,8 @@ public class CPU implements CPUConstants {
 	 * @return A String key into the register map.
 	 */
 	private String registerFile(BitSet R) {
-		switch (Utils.convertToUnsignedByte(R, InstructionBitFormats.LD_STR_R_SIZE)) {
+		switch (Utils.convertToUnsignedByte(R,
+				InstructionBitFormats.LD_STR_R_SIZE)) {
 		case 0:
 			return R0;
 		case 1:
@@ -1863,7 +1886,7 @@ public class CPU implements CPUConstants {
 		case 1:
 			int mar_addr = Utils.convertToInt(regMap.get(MAR), getReg(MAR)
 					.getNumBits());
-			setReg(MDR, Memory.getInstance().read(mar_addr));
+			setReg(MDR, this.readFromMemory(mar_addr));
 			cycle_count++;
 			prog_step++;
 			break;
@@ -1900,5 +1923,12 @@ public class CPU implements CPUConstants {
 		 * catch (ParseException e) { // TODO Auto-generated catch block
 		 * e.printStackTrace(); }
 		 */
+	}
+
+	/**
+	 * @return the l1Cache
+	 */
+	static L1Cache getL1Cache() {
+		return l1_cache;
 	}
 }
