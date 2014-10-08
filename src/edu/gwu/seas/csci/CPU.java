@@ -902,6 +902,8 @@ public class CPU implements CPUConstants {
 			System.out.println("Continue");
 			while (cont_execution) {
 				singleInstruction();
+				if(waitForInterrupt)
+					return;
 				if (prog_step == 0) {
 					System.out.println("--------- Instruction Done ---------");
 					printAllRegisters();
