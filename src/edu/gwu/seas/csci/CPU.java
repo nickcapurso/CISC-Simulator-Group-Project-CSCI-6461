@@ -65,8 +65,7 @@ public class CPU implements CPUConstants {
 		 */
 		private void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
-				logger.debug(Thread.currentThread().getName().toString()
-						+ ": Adding cache line with tag " + line.getTag()
+				logger.debug("Adding cache line with tag " + line.getTag()
 						+ " to cache at position " + cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
 			} else {
@@ -74,8 +73,7 @@ public class CPU implements CPUConstants {
 				do {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
-				logger.debug(Thread.currentThread().getName().toString()
-						+ ": Adding cache line with tag " + line.getTag()
+				logger.debug("Adding cache line with tag " + line.getTag()
 						+ " to cache at position " + cache_position + ".");
 				cache[cache_position] = line;
 			}
@@ -487,13 +485,11 @@ public class CPU implements CPUConstants {
 			}
 			synchronized (this) {
 				success = buffer.add(contents);
-				logger.debug(Thread.currentThread().getName().toString()
-						+ ": Element added to write write_buffer.  Notifying memory controller.");
+				logger.debug("Element added to write write_buffer.  Notifying memory controller.");
 				notify();
 			}
 
-			logger.debug(Thread.currentThread().getName().toString()
-					+ ": Write write_buffer is returning with value of: "
+			logger.debug("Write write_buffer is returning with value of: "
 					+ success + ".");
 			return success;
 		}
@@ -525,8 +521,7 @@ public class CPU implements CPUConstants {
 			boolean success = true;
 			try {
 				WriteBufferContents line = buffer.remove();
-				logger.debug(Thread.currentThread().getName().toString()
-						+ ": Removing line " + line + " From write_buffer.");
+				logger.debug("Removing line " + line + " From write_buffer.");
 				Word word = line.getWord();
 				int address = line.getAddress();
 				byte flag = line.getFlag();
@@ -540,7 +535,6 @@ public class CPU implements CPUConstants {
 	}
 
 	static final Logger logger = LogManager.getLogger(CPU.class.getName());
-
 	public static final byte BOOTLOADER_START = 010;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
