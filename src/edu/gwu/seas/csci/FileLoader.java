@@ -91,7 +91,10 @@ public class FileLoader implements Loader {
 				
 				switch (instruction_format) {
 				case ONE:
-					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					if(opcodeKeyString.equals("JZ"))
+						general_register = Byte.parseByte(temp.substring(3, 4).trim());
+					else
+						general_register = Byte.parseByte(temp.substring(4, 5).trim());
 					index_register = Byte.parseByte(instruction_elements[1].trim());
 					address = Byte.parseByte(instruction_elements[2].trim());
 					// Optional indirection check

@@ -1760,6 +1760,7 @@ public class CPU implements CPUConstants {
 				int input = Integer.parseInt(input_buffer);
 				BitSet input_bitset = Utils.intToBitSet(input, 18);
 				setReg(registerFile(getReg(R)), input_bitset, 18);
+				Computer_GUI.append_to_terminal(input_buffer);
 			} catch (NumberFormatException e) {
 				// Does not handle string input!!
 				// Word input_word = (Word) Utils.StringToWord(input_buffer);
@@ -1774,7 +1775,12 @@ public class CPU implements CPUConstants {
 			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
 				int output = Utils.convertToInt(
 						getReg(registerFile(getReg(R))), 18);
-				Computer_GUI.append_to_terminal("" + (char) (output));
+				
+				if(Utils.convertToUnsignedByte(this.readFromMemory(120), 18) == (byte)1)
+					Computer_GUI.append_to_terminal("" + Integer.toString(output));
+				else
+					Computer_GUI.append_to_terminal("" + (char) (output));
+				System.out.println("Memory addr 120 = " + Utils.convertToUnsignedByte(this.readFromMemory(120),18));
 				System.out.println("OUT: " + output);
 			}
 			cycle_count++;

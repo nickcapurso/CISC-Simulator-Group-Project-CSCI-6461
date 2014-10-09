@@ -525,7 +525,7 @@ public class ALU implements CPUConstants{
 		BitSet result = new BitSet(DEFAULT_BIT_SIZE);
 		
 		if (op1Val >= op2Val) {
-			result.set(0);
+			result.set(17);
 		}
 		
 		cpu.setReg(RESULT, result, DEFAULT_BIT_SIZE);
