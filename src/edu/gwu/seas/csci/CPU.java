@@ -118,13 +118,9 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						logger.debug(Thread.currentThread().getName()
-								.toString()
-								+ ": Cache read hit.  Found address "
-								+ address
-								+ " in cache line with tag "
-								+ line.getTag()
-								+ ".");
+						logger.debug("Cache read hit.  Found address "
+								+ address + " in cache line with tag "
+								+ line.getTag() + ".");
 						return line.getWord(address - line.getTag());
 					}
 				}
@@ -184,11 +180,8 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						logger.debug(Thread.currentThread().getName()
-								.toString()
-								+ ": Cache write hit.  Found address "
-								+ address
-								+ " in cache line with tag "
+						logger.debug("Cache write hit.  Found address "
+								+ address + " in cache line with tag "
 								+ line.getTag() + ".");
 						int index = address - line.getTag();
 						byte flag = Utils.l1IndexToFlag(index);
@@ -353,17 +346,13 @@ public class CPU implements CPUConstants {
 				synchronized (write_buffer) {
 					if (write_buffer.isEmpty()) {
 						try {
-							logger.debug(Thread.currentThread().getName()
-									.toString()
-									+ ":  Memory controller is waiting for an element to be added to the write write_buffer.");
+							logger.debug("Memory controller is waiting for an element to be added to the write write_buffer.");
 							write_buffer.wait();
 
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						logger.debug(Thread.currentThread().getName()
-								.toString()
-								+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
+						logger.debug("Memory controller has been notified that an element has been added to the write write_buffer.");
 						write_buffer.writeToMainMemory();
 					} else {
 						write_buffer.writeToMainMemory();
@@ -474,9 +463,7 @@ public class CPU implements CPUConstants {
 			while (buffer.size() == 4) {
 				synchronized (memory_controller) {
 					try {
-						logger.debug(Thread.currentThread().getName()
-								.toString()
-								+ ": Buffer is full.  Waiting on memory controller to process buffer.");
+						logger.debug("Buffer is full.  Waiting on memory controller to process buffer.");
 						memory_controller.wait();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
