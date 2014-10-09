@@ -79,7 +79,7 @@ public class Context {
 		// OPCODE X,ADDR[,I]
 		instructionFormats.put("LDX", InstructionFormat.TWO);
 		instructionFormats.put("STX", InstructionFormat.TWO);
-		instructionFormats.put("JMR", InstructionFormat.TWO);
+		instructionFormats.put("JMP", InstructionFormat.TWO);
 		instructionFormats.put("JSR", InstructionFormat.TWO);
 
 		// OPCODE R,IMMED

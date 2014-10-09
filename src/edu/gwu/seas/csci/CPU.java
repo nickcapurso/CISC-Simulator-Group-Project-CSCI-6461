@@ -581,6 +581,7 @@ public class CPU implements CPUConstants {
 	private static final L1Cache l1_cache = new L1Cache();
 
 	private boolean waitForInterrupt;
+	private boolean jumpTaken;
 	private String currentExecution = "";
 
 	// Constructor
@@ -822,6 +823,10 @@ public class CPU implements CPUConstants {
 	}
 
 	private void advancePC() {
+		if(jumpTaken){
+			jumpTaken = false;
+			return;
+		}
 		int pcContents = Utils
 				.convertToInt(getReg(PC), getReg(PC).getNumBits());
 		setReg(PC, Utils.intToBitSet(++pcContents, getReg(PC).getNumBits()),
@@ -1191,8 +1196,10 @@ public class CPU implements CPUConstants {
 			case 7:
 				// If RESULT == 1
 				// EA -> PC
-				if (!getReg(CC).get(EQUALORNOT))
+				if (!getReg(CC).get(EQUALORNOT)){
 					setReg(PC, getReg(EA));
+					jumpTaken = true;
+				}
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1222,8 +1229,10 @@ public class CPU implements CPUConstants {
 			case 7:
 				// If RESULT == 0
 				// EA -> PC
-				if (!getReg(CC).get(EQUALORNOT))
+				if (!getReg(CC).get(EQUALORNOT)){
 					setReg(PC, getReg(EA));
+					jumpTaken = true;
+				}
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1235,14 +1244,17 @@ public class CPU implements CPUConstants {
 			// EA -> PC
 			if (getReg(CC).get(
 					Utils.convertToUnsignedByte(getReg(R), getReg(R)
-							.getNumBits())))
+							.getNumBits()))){
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
+				jumpTaken = true;
+			}
 
 			cycle_count++;
 			prog_step = 0;
 			break;
 
 		case OpCodesList.JMP:
+			System.out.println("JUMP");
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1254,6 +1266,7 @@ public class CPU implements CPUConstants {
 				setReg(PC, getReg(EA));
 				cycle_count++;
 				prog_step = 0;
+				jumpTaken = true;
 				break;
 			}
 			break;
@@ -1279,6 +1292,7 @@ public class CPU implements CPUConstants {
 				setReg(PC, getReg(EA));
 				cycle_count++;
 				prog_step = 0;
+				jumpTaken = true;
 				break;
 			}
 			break;
@@ -1294,6 +1308,7 @@ public class CPU implements CPUConstants {
 			case 5:
 				// R3 -> PC
 				setReg(PC, getReg(R3));
+				jumpTaken = true;
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1331,8 +1346,10 @@ public class CPU implements CPUConstants {
 				// If RESULT == 1
 				// EA -> PC
 				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+						.getNumBits()) == 1){
 					setReg(PC, getReg(EA));
+					jumpTaken = true;
+				}
 				cycle_count++;
 				prog_step = 0;
 				break;
@@ -1363,8 +1380,10 @@ public class CPU implements CPUConstants {
 				// If RESULT == 1
 				// EA -> PC
 				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1)
+						.getNumBits()) == 1){
 					setReg(PC, getReg(EA));
+					jumpTaken = true;
+				}
 				cycle_count++;
 				prog_step = 0;
 				break;
