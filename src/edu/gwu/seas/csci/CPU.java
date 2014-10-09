@@ -3,6 +3,9 @@ package edu.gwu.seas.csci;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.gwu.seas.csci.Utils;
 
 /**
@@ -62,8 +65,7 @@ public class CPU implements CPUConstants {
 		 */
 		private void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
-				System.out.println(Thread.currentThread().getName().toString()
-						+ ": Adding cache line with tag " + line.getTag()
+				logger.debug("Adding cache line with tag " + line.getTag()
 						+ " to cache at position " + cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
 			} else {
@@ -71,8 +73,7 @@ public class CPU implements CPUConstants {
 				do {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
-				System.out.println(Thread.currentThread().getName().toString()
-						+ ": Adding cache line with tag " + line.getTag()
+				logger.debug("Adding cache line with tag " + line.getTag()
 						+ " to cache at position " + cache_position + ".");
 				cache[cache_position] = line;
 			}
@@ -117,7 +118,7 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println(Thread.currentThread().getName()
+						logger.debug(Thread.currentThread().getName()
 								.toString()
 								+ ": Cache read hit.  Found address "
 								+ address
@@ -128,7 +129,7 @@ public class CPU implements CPUConstants {
 					}
 				}
 			}
-			System.out.println("Cache read miss.");
+			logger.debug("Cache read miss.");
 			return null;
 		}
 
@@ -183,7 +184,7 @@ public class CPU implements CPUConstants {
 					if (address >= line.getTag()
 							&& address < line.getTag()
 									+ L1CacheLine.WORDS_PER_LINE) {
-						System.out.println(Thread.currentThread().getName()
+						logger.debug(Thread.currentThread().getName()
 								.toString()
 								+ ": Cache write hit.  Found address "
 								+ address
@@ -197,7 +198,7 @@ public class CPU implements CPUConstants {
 					}
 				}
 			}
-			System.out.println("Cache write miss.");
+			logger.debug("Cache write miss.");
 			return false;
 		}
 
@@ -301,14 +302,6 @@ public class CPU implements CPUConstants {
 			words[index] = word;
 		}
 
-		/**
-		 * @param words
-		 *            the words to set
-		 */
-		private void setWords(Word[] words) {
-			this.words = words;
-		}
-
 		/*
 		 * (non-Javadoc)
 		 * 
@@ -360,19 +353,17 @@ public class CPU implements CPUConstants {
 				synchronized (write_buffer) {
 					if (write_buffer.isEmpty()) {
 						try {
-							System.out
-									.println(Thread.currentThread().getName()
-											.toString()
-											+ ":  Memory controller is waiting for an element to be added to the write write_buffer.");
+							logger.debug(Thread.currentThread().getName()
+									.toString()
+									+ ":  Memory controller is waiting for an element to be added to the write write_buffer.");
 							write_buffer.wait();
 
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						System.out
-								.println(Thread.currentThread().getName()
-										.toString()
-										+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
+						logger.debug(Thread.currentThread().getName()
+								.toString()
+								+ ":  Memory controller has been notified that an element has been added to the write write_buffer.");
 						write_buffer.writeToMainMemory();
 					} else {
 						write_buffer.writeToMainMemory();
@@ -483,10 +474,9 @@ public class CPU implements CPUConstants {
 			while (buffer.size() == 4) {
 				synchronized (memory_controller) {
 					try {
-						System.out
-								.println(Thread.currentThread().getName()
-										.toString()
-										+ ": Buffer is full.  Waiting on memory controller to process buffer.");
+						logger.debug(Thread.currentThread().getName()
+								.toString()
+								+ ": Buffer is full.  Waiting on memory controller to process buffer.");
 						memory_controller.wait();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -495,14 +485,11 @@ public class CPU implements CPUConstants {
 			}
 			synchronized (this) {
 				success = buffer.add(contents);
-				System.out
-						.println(Thread.currentThread().getName().toString()
-								+ ": Element added to write write_buffer.  Notifying memory controller.");
+				logger.debug("Element added to write write_buffer.  Notifying memory controller.");
 				notify();
 			}
 
-			System.out.println(Thread.currentThread().getName().toString()
-					+ ": Write write_buffer is returning with value of: "
+			logger.debug("Write write_buffer is returning with value of: "
 					+ success + ".");
 			return success;
 		}
@@ -534,8 +521,7 @@ public class CPU implements CPUConstants {
 			boolean success = true;
 			try {
 				WriteBufferContents line = buffer.remove();
-				System.out.println(Thread.currentThread().getName().toString()
-						+ ": Removing line " + line + " From write_buffer.");
+				logger.debug("Removing line " + line + " From write_buffer.");
 				Word word = line.getWord();
 				int address = line.getAddress();
 				byte flag = line.getFlag();
@@ -548,6 +534,7 @@ public class CPU implements CPUConstants {
 		}
 	}
 
+	static final Logger logger = LogManager.getLogger(CPU.class.getName());
 	public static final byte BOOTLOADER_START = 010;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
@@ -745,7 +732,7 @@ public class CPU implements CPUConstants {
 			// update the GUI
 			Computer_GUI.update_register(destName, getReg(destName));
 		} else
-			System.out.println("Register map does not contain key " + destName);
+			logger.debug("Register map does not contain key " + destName);
 	}
 
 	/**
@@ -819,11 +806,11 @@ public class CPU implements CPUConstants {
 	 */
 	public void shutdown() {
 		memory_controller.terminate();
-		System.out.println("CPU Shutdown.");
+		logger.info("CPU shutting down.");
 	}
 
 	private void advancePC() {
-		if(jumpTaken){
+		if (jumpTaken) {
 			jumpTaken = false;
 			return;
 		}
@@ -907,7 +894,7 @@ public class CPU implements CPUConstants {
 		switch (interruptCode) {
 		case INTERRUPT_IO:
 			if (!input_buffer.equals("")) {
-				System.out.println("Restarting instruction");
+				logger.debug("Restarting instruction");
 				waitForInterrupt = false;
 				executeInstruction(currentExecution);
 			}
@@ -920,13 +907,13 @@ public class CPU implements CPUConstants {
 		switch (step_type) {
 		case "continue":
 			Computer_GUI.toggle_button("load", false);
-			System.out.println("Continue");
+			logger.debug("Continue");
 			while (cont_execution) {
 				singleInstruction();
 				if (waitForInterrupt)
 					return;
 				if (prog_step == 0) {
-					System.out.println("--------- Instruction Done ---------");
+					logger.debug("--------- Instruction Done ---------");
 					printAllRegisters();
 					advancePC();
 				}
@@ -937,13 +924,13 @@ public class CPU implements CPUConstants {
 		case "micro step":
 			Computer_GUI.toggle_button("load", false);
 			// Computer_GUI.toggle_button("runinput", false);
-			System.out.println("Micro Step");
+			logger.debug("Micro Step");
 			singleInstruction();
 			if (waitForInterrupt)
 				return;
 
 			if (prog_step == 0) {
-				System.out.println("--------- Instruction Done ---------");
+				logger.debug("--------- Instruction Done ---------");
 				printAllRegisters();
 				advancePC();
 				Computer_GUI.toggle_button("runinput", true);
@@ -952,7 +939,7 @@ public class CPU implements CPUConstants {
 
 		case "macro step":
 			Computer_GUI.toggle_button("load", false);
-			System.out.println("Macro Step");
+			logger.debug("Macro Step");
 			do {
 				singleInstruction();
 				if (waitForInterrupt)
@@ -960,7 +947,7 @@ public class CPU implements CPUConstants {
 
 			} while (prog_step != 0);
 
-			System.out.println("--------- Instruction Done ---------");
+			logger.debug("--------- Instruction Done ---------");
 			printAllRegisters();
 			advancePC();
 			Computer_GUI.toggle_button("runinput", true);
@@ -968,7 +955,7 @@ public class CPU implements CPUConstants {
 
 		// Direct Execution - Does not advance PC
 		default:
-			System.out.println("Running user input");
+			logger.debug("Running user input");
 			try {
 				System.out.println(step_type);
 				Word word_command = Utils.StringToWord(step_type);
@@ -985,7 +972,7 @@ public class CPU implements CPUConstants {
 					}
 				} while (prog_step != 0);
 
-				System.out.println("--------- Instruction Done ---------");
+				logger.debug("--------- Instruction Done ---------");
 				printAllRegisters();
 				// Does not advance PC
 				// setReg(IR, BitSet(from step_type));
@@ -1196,7 +1183,7 @@ public class CPU implements CPUConstants {
 			case 7:
 				// If RESULT == 1
 				// EA -> PC
-				if (getReg(CC).get(EQUALORNOT)){
+				if (getReg(CC).get(EQUALORNOT)) {
 					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}
@@ -1229,7 +1216,7 @@ public class CPU implements CPUConstants {
 			case 7:
 				// If RESULT == 0
 				// EA -> PC
-				if (!getReg(CC).get(EQUALORNOT)){
+				if (!getReg(CC).get(EQUALORNOT)) {
 					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}
@@ -1244,7 +1231,7 @@ public class CPU implements CPUConstants {
 			// EA -> PC
 			if (getReg(CC).get(
 					Utils.convertToUnsignedByte(getReg(R), getReg(R)
-							.getNumBits()))){
+							.getNumBits()))) {
 				setReg(EA, getReg(PC), getReg(PC).getNumBits());
 				jumpTaken = true;
 			}
@@ -1346,7 +1333,7 @@ public class CPU implements CPUConstants {
 				// If RESULT == 1
 				// EA -> PC
 				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1){
+						.getNumBits()) == 1) {
 					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}
@@ -1380,7 +1367,7 @@ public class CPU implements CPUConstants {
 				// If RESULT == 1
 				// EA -> PC
 				if (Utils.convertToInt(getReg(RESULT), getReg(RESULT)
-						.getNumBits()) == 1){
+						.getNumBits()) == 1) {
 					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}
@@ -1426,7 +1413,7 @@ public class CPU implements CPUConstants {
 				break;
 			case 8:
 				// Perform add in ALU
-				System.out.println("Performing add");
+				logger.debug("Performing add");
 				alu.AMR();
 				cycle_count++;
 				prog_step++;
@@ -1768,9 +1755,9 @@ public class CPU implements CPUConstants {
 
 		// Needs logic for different devices??
 		case OpCodesList.IN:
-			System.out.println("RUNNING IN");
+			logger.debug("RUNNING IN");
 			if (input_buffer.equals("")) {
-				System.out.println("Waiting for interrupt...");
+				logger.info("Waiting for interrupt...");
 				waitForInterrupt = true;
 				return;
 			}
@@ -1794,20 +1781,24 @@ public class CPU implements CPUConstants {
 			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
 				int output = Utils.convertToInt(
 						getReg(registerFile(getReg(R))), 18);
-				
-				if(Utils.convertToUnsignedByte(this.readFromMemory(120), 18) == (byte)1)
-					Computer_GUI.append_to_terminal("" + Integer.toString(output));
+
+				if (Utils.convertToUnsignedByte(this.readFromMemory(120), 18) == (byte) 1)
+					Computer_GUI.append_to_terminal(""
+							+ Integer.toString(output));
 				else
 					Computer_GUI.append_to_terminal("" + (char) (output));
-				System.out.println("Memory addr 120 = " + Utils.convertToUnsignedByte(this.readFromMemory(120),18));
-				System.out.println("OUT: " + output);
+				logger.info("Memory addr 120 = "
+						+ Utils.convertToUnsignedByte(this.readFromMemory(120),
+								18));
+				logger.info("OUT: " + output);
+
 			}
 			cycle_count++;
 			prog_step = 0;
 			break;
 
 		case OpCodesList.HLT:
-			System.out.println("End of the program");
+			logger.info("End of the program");
 			cont_execution = false;
 			prog_step = 0;
 			Computer_GUI.disable_btns();

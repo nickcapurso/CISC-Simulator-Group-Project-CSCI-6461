@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Reads the contents of a file from disk and loads it into {@link Memory}. The
  * file is expected to contain instructions that constitute a program, with one
@@ -20,6 +23,9 @@ import java.text.ParseException;
  * @author Alex Remily
  */
 public class FileLoader implements Loader {
+
+	static final Logger logger = LogManager.getLogger(FileLoader.class
+			.getName());
 
 	/**
 	 * Provide a reference to the Computer's memory to hold the contents of the
@@ -49,7 +55,7 @@ public class FileLoader implements Loader {
 		InputStream in = getClass().getResourceAsStream("/input.txt");
 		reader = new BufferedReader(new InputStreamReader(in));
 	}
-	
+
 	public void Load_File(String file) {
 		InputStream in = getClass().getResourceAsStream("/" + file);
 		reader = new BufferedReader(new InputStreamReader(in));
@@ -68,11 +74,11 @@ public class FileLoader implements Loader {
 			byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 
 			while ((temp = reader.readLine()) != null) {
-				if(temp.equals("") || temp.charAt(0) == '/'){
-					System.out.println("Ignoring line: blank or a comment");
+				if (temp.equals("") || temp.charAt(0) == '/') {
+					logger.debug("Ignoring line: blank or a comment");
 					continue;
 				}
-				
+
 				Word word = new Word();
 				// Read the opcode from the reader line.
 				String opcodeKeyString = temp.substring(0, 3).trim();
@@ -88,7 +94,7 @@ public class FileLoader implements Loader {
 				String instruction_elements[] = temp.split(",");
 				opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
 				opcode = context.getOpCodeBytes().get(opcodeKeyString);
-				
+
 				switch (instruction_format) {
 				case ONE:
 					if(opcodeKeyString.equals("JZ"))
@@ -101,24 +107,29 @@ public class FileLoader implements Loader {
 					if (instruction_elements.length < 4)
 						indirection = 0;
 					else
-						indirection = Byte.parseByte(instruction_elements[3].trim());
+						indirection = Byte.parseByte(instruction_elements[3]
+								.trim());
 					break;
 				case TWO:
-					index_register = Byte.parseByte(temp.substring(4, 5).trim());
+					index_register = Byte
+							.parseByte(temp.substring(4, 5).trim());
 					address = Byte.parseByte(instruction_elements[1].trim());
 
 					// Optional indirection check
 					if (instruction_elements.length < 3)
 						indirection = 0;
 					else
-						indirection = Byte.parseByte(instruction_elements[2].trim());
+						indirection = Byte.parseByte(instruction_elements[2]
+								.trim());
 					break;
 				case THREE:
-					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					general_register = Byte.parseByte(temp.substring(4, 5)
+							.trim());
 					address = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				case FOUR:
-					address = Byte.parseByte(temp.substring(4, temp.length()).trim());
+					address = Byte.parseByte(temp.substring(4, temp.length())
+							.trim());
 					break;
 				case FIVE:
 					register_x = Byte.parseByte(temp.substring(4, 5).trim());
@@ -128,16 +139,19 @@ public class FileLoader implements Loader {
 					register_y = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				case SEVEN:
-					general_register = Byte.parseByte(temp.substring(4, 5).trim());
+					general_register = Byte.parseByte(temp.substring(4, 5)
+							.trim());
 					count = Byte.parseByte(instruction_elements[1].trim());
 					lr = Byte.parseByte(instruction_elements[2].trim());
 					al = Byte.parseByte(instruction_elements[3].trim());
 					break;
 				case EIGHT:
-					if(opcodeKeyString.equals("IN"))
-						general_register = Byte.parseByte(temp.substring(3, 4).trim());
+					if (opcodeKeyString.equals("IN"))
+						general_register = Byte.parseByte(temp.substring(3, 4)
+								.trim());
 					else
-						general_register = Byte.parseByte(temp.substring(4, 5).trim());
+						general_register = Byte.parseByte(temp.substring(4, 5)
+								.trim());
 					devid = Byte.parseByte(instruction_elements[1].trim());
 					break;
 				default:
@@ -149,7 +163,7 @@ public class FileLoader implements Loader {
 				case TWO:
 				case THREE:
 				case FOUR:
-					System.out.println("Writing: opcode = " + opcode + ", R = "
+					logger.debug("Writing: opcode = " + opcode + ", R = "
 							+ general_register + ", X = " + index_register
 							+ ", I = " + indirection + ", ADDR = " + address);
 					writer.writeLoadStoreFormatInstruction(word, opcode,
@@ -158,22 +172,23 @@ public class FileLoader implements Loader {
 					break;
 				case FIVE:
 				case SIX:
-					System.out.println("Writing: opcode = " + opcode
-							+ ", RX = " + register_x + ", RY = " + register_y);
+					logger.debug("Writing: opcode = " + opcode + ", RX = "
+							+ register_x + ", RY = " + register_y);
 					writer.writeXYArithInstruction(word, opcode, register_x,
 							register_y);
 					break;
 				case SEVEN:
-					System.out.println("Writing: opcode = " + opcode + ", R = "
+					logger.debug("Writing: opcode = " + opcode + ", R = "
 							+ general_register + ", COUNT = " + count
 							+ ", LR = " + lr + ", AL = " + al);
 					writer.writeShiftInstruction(word, opcode,
 							general_register, count, lr, al);
 					break;
 				case EIGHT:
-					System.out.println("Writing: opcode= " + opcode + ", R= "
+					logger.debug("Writing: opcode= " + opcode + ", R= "
 							+ general_register + ", DEVID = " + devid);
-					writer.writeIOInstruction(word, opcode, general_register, devid);
+					writer.writeIOInstruction(word, opcode, general_register,
+							devid);
 					break;
 				default:
 					break;
@@ -181,7 +196,7 @@ public class FileLoader implements Loader {
 
 				memory.write(word, memory_location++);
 			}
-			System.out.println(memory_location);
+			logger.debug(memory_location);
 			reader.close();
 		} catch (IOException e) {
 			throw new ParseException(e.getMessage(), 0);
