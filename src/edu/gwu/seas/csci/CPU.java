@@ -1196,7 +1196,7 @@ public class CPU implements CPUConstants {
 			case 7:
 				// If RESULT == 1
 				// EA -> PC
-				if (!getReg(CC).get(EQUALORNOT)){
+				if (getReg(CC).get(EQUALORNOT)){
 					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}

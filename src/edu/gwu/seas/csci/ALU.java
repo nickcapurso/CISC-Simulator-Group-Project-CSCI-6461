@@ -339,7 +339,8 @@ public class ALU implements CPUConstants{
 		
 		if (op1Val == op2Val) {
 			setCC(EQUALORNOT);
-		}
+		}else
+			cpu.getReg(CC).set(EQUALORNOT, false);
 		
 	}
 
