@@ -3,6 +3,7 @@ package edu.gwu.seas.csci;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.StyledDocument;
@@ -14,14 +15,19 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.ParseException;
 import java.util.BitSet;
 import java.util.HashMap;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Computer_GUI extends JFrame implements ActionListener {
 
@@ -31,6 +37,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	 * input
 	 */
 	private static final long serialVersionUID = 1L;
+	static final Logger logger = LogManager.getLogger(CPU.class.getName());
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;
@@ -279,14 +286,23 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == macrostep) {
 			cpu.executeInstruction("macro step");
 		} else if (e.getSource() == load) {
-			String filepath = textField.getText();
-			try {
-				fileloader.Load_File(filepath);
-				fileloader.load();
-			} catch (Exception ex) { //Catch exception if any
-				System.err.println("Error: " + ex.getMessage());
-			}
-			textField.setText("");
+			    JFileChooser chooser = new JFileChooser();
+			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+			        "Text Files", "txt");
+			    chooser.setFileFilter(filter);
+			    int returnVal = chooser.showOpenDialog(this);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+					fileloader.Load_File("\\" + chooser.getSelectedFile().getName());
+					try {
+						fileloader.load();
+					} catch (NullPointerException | IllegalArgumentException
+							| ParseException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+			    } else {
+			    	logger.debug("Could not load file " + chooser.getSelectedFile().getName());
+			    }
 			// Needs to run through the FileLoader Instruction Parser to work
 			// properly
 		} else if (e.getSource() == runinput) {

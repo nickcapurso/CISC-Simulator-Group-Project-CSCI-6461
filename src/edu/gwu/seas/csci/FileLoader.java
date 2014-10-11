@@ -71,7 +71,6 @@ public class FileLoader implements Loader {
 		try {
 			String temp = null;
 			short memory_location = 8; // Locations 0-5 are reserved.
-			byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 
 			while ((temp = reader.readLine()) != null) {
 				if (temp.equals("") || temp.charAt(0) == '/') {
@@ -79,122 +78,10 @@ public class FileLoader implements Loader {
 					continue;
 				}
 
-				Word word = new Word();
-				// Read the opcode from the reader line.
-				String opcodeKeyString = temp.substring(0, 3).trim();
-
-				// Determine the instruction's format from the Computer's
-				// context.
-				Context.InstructionFormat instruction_format = context
-						.getInstructionFormats().get(opcodeKeyString);
-				// Ensure the key returned a valid InstructionClass object.
-				if (instruction_format == null)
-					continue;
-
-				String instruction_elements[] = temp.split(",");
-				opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
-				opcode = context.getOpCodeBytes().get(opcodeKeyString);
-
-				switch (instruction_format) {
-				case ONE:
-					if(opcodeKeyString.equals("JZ"))
-						general_register = Byte.parseByte(temp.substring(3, 4).trim());
-					else
-						general_register = Byte.parseByte(temp.substring(4, 5).trim());
-					index_register = Byte.parseByte(instruction_elements[1].trim());
-					address = Byte.parseByte(instruction_elements[2].trim());
-					// Optional indirection check
-					if (instruction_elements.length < 4)
-						indirection = 0;
-					else
-						indirection = Byte.parseByte(instruction_elements[3]
-								.trim());
-					break;
-				case TWO:
-					index_register = Byte
-							.parseByte(temp.substring(4, 5).trim());
-					address = Byte.parseByte(instruction_elements[1].trim());
-
-					// Optional indirection check
-					if (instruction_elements.length < 3)
-						indirection = 0;
-					else
-						indirection = Byte.parseByte(instruction_elements[2]
-								.trim());
-					break;
-				case THREE:
-					general_register = Byte.parseByte(temp.substring(4, 5)
-							.trim());
-					address = Byte.parseByte(instruction_elements[1].trim());
-					break;
-				case FOUR:
-					address = Byte.parseByte(temp.substring(4, temp.length())
-							.trim());
-					break;
-				case FIVE:
-					register_x = Byte.parseByte(temp.substring(4, 5).trim());
-					break;
-				case SIX:
-					register_x = Byte.parseByte(temp.substring(4, 5).trim());
-					register_y = Byte.parseByte(instruction_elements[1].trim());
-					break;
-				case SEVEN:
-					general_register = Byte.parseByte(temp.substring(4, 5)
-							.trim());
-					count = Byte.parseByte(instruction_elements[1].trim());
-					lr = Byte.parseByte(instruction_elements[2].trim());
-					al = Byte.parseByte(instruction_elements[3].trim());
-					break;
-				case EIGHT:
-					if (opcodeKeyString.equals("IN"))
-						general_register = Byte.parseByte(temp.substring(3, 4)
-								.trim());
-					else
-						general_register = Byte.parseByte(temp.substring(4, 5)
-								.trim());
-					devid = Byte.parseByte(instruction_elements[1].trim());
-					break;
-				default:
-					break;
-				}
-
-				switch (instruction_format) {
-				case ONE:
-				case TWO:
-				case THREE:
-				case FOUR:
-					logger.debug("Writing: opcode = " + opcode + ", R = "
-							+ general_register + ", X = " + index_register
-							+ ", I = " + indirection + ", ADDR = " + address);
-					writer.writeLoadStoreFormatInstruction(word, opcode,
-							general_register, index_register, indirection,
-							address);
-					break;
-				case FIVE:
-				case SIX:
-					logger.debug("Writing: opcode = " + opcode + ", RX = "
-							+ register_x + ", RY = " + register_y);
-					writer.writeXYArithInstruction(word, opcode, register_x,
-							register_y);
-					break;
-				case SEVEN:
-					logger.debug("Writing: opcode = " + opcode + ", R = "
-							+ general_register + ", COUNT = " + count
-							+ ", LR = " + lr + ", AL = " + al);
-					writer.writeShiftInstruction(word, opcode,
-							general_register, count, lr, al);
-					break;
-				case EIGHT:
-					logger.debug("Writing: opcode= " + opcode + ", R= "
-							+ general_register + ", DEVID = " + devid);
-					writer.writeIOInstruction(word, opcode, general_register,
-							devid);
-					break;
-				default:
-					break;
-				}
-
-				memory.write(word, memory_location++);
+				Word word = Utils.StringToWord(temp);
+				
+				if (word != null)
+					memory.write(word, memory_location++);
 			}
 			logger.debug(memory_location);
 			reader.close();
