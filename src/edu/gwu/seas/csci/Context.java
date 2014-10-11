@@ -51,6 +51,7 @@ public class Context {
 	private Map<String, Byte> opCodeBytes = new HashMap<String, Byte>();
 	private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
 	private Map<Integer, Byte> indexToFlags = new HashMap<Integer, Byte>();
+	private Map<Byte, Integer> flagsToIndex = new HashMap<Byte, Integer>();
 
 	/**
 	 * 
@@ -102,7 +103,7 @@ public class Context {
 		// OPCODE R,COUNT,L/R,A/L
 		instructionFormats.put("SRC", InstructionFormat.SEVEN);
 		instructionFormats.put("RRC", InstructionFormat.SEVEN);
-		
+
 		// OPCODE R,DEVID
 		instructionFormats.put("IN", InstructionFormat.EIGHT);
 		instructionFormats.put("OUT", InstructionFormat.EIGHT);
@@ -148,7 +149,7 @@ public class Context {
 		// Shift/rotate instructions
 		opcodeClasses.put("SRC", InstructionClass.SHIFT);
 		opcodeClasses.put("RRC", InstructionClass.SHIFT);
-		
+
 		// IO instuctions
 		opcodeClasses.put("IN", InstructionClass.IO);
 		opcodeClasses.put("OUT", InstructionClass.IO);
@@ -194,7 +195,7 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeBytes.put("SRC", OpCodesList.SRC);
 		opCodeBytes.put("RRC", OpCodesList.RRC);
-		
+
 		// IO Instructions
 		opCodeBytes.put("IN", OpCodesList.IN);
 		opCodeBytes.put("OUT", OpCodesList.OUT);
@@ -240,7 +241,7 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeStrings.put(OpCodesList.SRC, "SRC");
 		opCodeStrings.put(OpCodesList.RRC, "RRC");
-		
+
 		opCodeStrings.put(OpCodesList.IN, "IN");
 		opCodeStrings.put(OpCodesList.OUT, "OUT");
 
@@ -250,6 +251,13 @@ public class Context {
 		indexToFlags.put(3, FOUR);
 		indexToFlags.put(4, FIVE);
 		indexToFlags.put(5, SIX);
+
+		flagsToIndex.put(ONE, 0);
+		flagsToIndex.put(TWO, 1);
+		flagsToIndex.put(THREE, 2);
+		flagsToIndex.put(FOUR, 3);
+		flagsToIndex.put(FIVE, 4);
+		flagsToIndex.put(SIX, 5);
 	}
 
 	public static Context getInstance() {
@@ -289,5 +297,12 @@ public class Context {
 	 */
 	public Map<Integer, Byte> getIndexToFlags() {
 		return indexToFlags;
+	}
+
+	/**
+	 * @return the flagsToIndex
+	 */
+	Map<Byte, Integer> getFlagsToIndex() {
+		return flagsToIndex;
 	}
 }

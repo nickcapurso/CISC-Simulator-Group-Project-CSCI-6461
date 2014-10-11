@@ -145,14 +145,9 @@ public class CPU implements CPUConstants {
 		 *            Whether to add or subtract the value of flag from the
 		 *            cache line flags bitmask.
 		 */
-		private void upadteFlags(int address, byte flag, boolean add) {
+		private void updateFlags(int address, byte flag, boolean add) {
 			L1CacheLine line = l1_cache.getCacheLine(address);
-			byte flags = line.getFlags();
-			if (add)
-				flags = (byte) (flags + flag);
-			else
-				flags = (byte) (flags - flag);
-			line.setFlags(flags);
+			line.updateFlags(flag, add);
 		}
 
 		/**
@@ -185,7 +180,7 @@ public class CPU implements CPUConstants {
 								+ line.getTag() + ".");
 						int index = address - line.getTag();
 						byte flag = Utils.l1IndexToFlag(index);
-						line.updateFlags(flag, true);
+						this.updateFlags(address, flag, true);
 						line.setWord(word, index);
 						return write_buffer.addToBuffer(word, address, flag);
 					}
@@ -280,14 +275,6 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * @param flags
-		 *            the flags to set
-		 */
-		private void setFlags(byte flags) {
-			this.flags = flags;
-		}
-
-		/**
 		 * @param word
 		 * @param index
 		 */
@@ -320,10 +307,14 @@ public class CPU implements CPUConstants {
 		 *            cache line flags bitmask.
 		 */
 		private void updateFlags(byte flag, boolean add) {
-			if (add)
+			int index = Utils.l1FlagToIndex(flag);
+			if ((this.flags & 1 << index) != 0) {
+				if (!add)
+					this.flags = (byte) (flags - flag);
+			} else if (add)
 				this.flags = (byte) (flags + flag);
-			else
-				this.flags = (byte) (flags - flag);
+			logger.debug("The value of line tag " + this.tag
+					+ " flags bitmask is " + this.flags + ".");
 		}
 	}
 
@@ -346,13 +337,13 @@ public class CPU implements CPUConstants {
 				synchronized (write_buffer) {
 					if (write_buffer.isEmpty()) {
 						try {
-							logger.debug("Memory controller is waiting for an element to be added to the write write_buffer.");
+							logger.debug("Memory controller is waiting for an element to be added to the write buffer.");
 							write_buffer.wait();
 
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						logger.debug("Memory controller has been notified that an element has been added to the write write_buffer.");
+						logger.debug("Memory controller has been notified that an element has been added to the write buffer.");
 						write_buffer.writeToMainMemory();
 					} else {
 						write_buffer.writeToMainMemory();
@@ -361,6 +352,9 @@ public class CPU implements CPUConstants {
 				synchronized (this) {
 					this.notify();
 				}
+			}
+			while (!write_buffer.isEmpty()) {
+				write_buffer.writeToMainMemory();
 			}
 		}
 
@@ -475,17 +469,7 @@ public class CPU implements CPUConstants {
 				logger.debug("Element added to write write_buffer.  Notifying memory controller.");
 				notify();
 			}
-
-			logger.debug("Write write_buffer is returning with value of: "
-					+ success + ".");
 			return success;
-		}
-
-		/**
-		 * @return the write_buffer
-		 */
-		private Queue<WriteBufferContents> getBuffer() {
-			return buffer;
 		}
 
 		/**
@@ -513,7 +497,7 @@ public class CPU implements CPUConstants {
 				int address = line.getAddress();
 				byte flag = line.getFlag();
 				Memory.getInstance().write(word, address);
-				l1_cache.upadteFlags(address, flag, false);
+				l1_cache.updateFlags(address, flag, false);
 			} catch (NoSuchElementException | IndexOutOfBoundsException e) {
 				success = false;
 			}
@@ -791,9 +775,9 @@ public class CPU implements CPUConstants {
 	 * Forces the memory controller thread out of its run loop so it can
 	 * terminate gracefully.
 	 */
-	public void shutdown() {
+	public void stopMemoryController() {
 		memory_controller.terminate();
-		logger.info("CPU shutting down.");
+		logger.info("Memory controller shutting down.");
 	}
 
 	private void advancePC() {
@@ -1934,5 +1918,12 @@ public class CPU implements CPUConstants {
 	 */
 	static L1Cache getL1Cache() {
 		return l1_cache;
+	}
+
+	/**
+	 * @return the memory_controller_thread
+	 */
+	Thread getMemory_controller_thread() {
+		return memory_controller_thread;
 	}
 }
