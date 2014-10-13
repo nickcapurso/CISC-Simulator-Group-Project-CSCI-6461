@@ -816,7 +816,7 @@ public class CPU implements CPUConstants {
 				// ADDR + indexregisterfile(IX)
 				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)),
 						getReg(indexRegisterFile(ix)).getNumBits())
-						+ Utils.convertToInt(addr, addr.getNumBits());
+						+ Utils.convertToUnsignedByte(addr, addr.getNumBits());
 
 				// EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()),
@@ -832,7 +832,7 @@ public class CPU implements CPUConstants {
 				// ADDR + indexregisterfile(IX)
 				int temp = Utils.convertToInt(getReg(indexRegisterFile(ix)),
 						getReg(indexRegisterFile(ix)).getNumBits())
-						+ Utils.convertToInt(addr, addr.getNumBits());
+						+ Utils.convertToUnsignedByte(addr, addr.getNumBits());
 
 				// EA = ADDR + Xx
 				setReg(EA, Utils.intToBitSet(temp, ea.getNumBits()),
