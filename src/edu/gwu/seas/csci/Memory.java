@@ -55,8 +55,13 @@ public class Memory {
 	 * @return
 	 */
 	public Word[] getMemoryBlock(int address) {
-		Word[] words = Arrays.copyOfRange(memory, address, address + 6);
-		return words;
+		try {
+			Word[] words = Arrays.copyOfRange(memory, address, address + 6);
+			return words;
+		} catch (IndexOutOfBoundsException e) {
+			Word[] words = Arrays.copyOfRange(memory, address, memory.length-1);
+			return words;
+		}
 	}
 
 	/**

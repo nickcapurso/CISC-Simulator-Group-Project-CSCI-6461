@@ -301,7 +301,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 						e1.printStackTrace();
 					}
 			    } else {
-			    	logger.debug("Could not load file " + chooser.getSelectedFile().getName());
+			    	logger.debug("File not selected or could not be loaded");
 			    }
 			// Needs to run through the FileLoader Instruction Parser to work
 			// properly
