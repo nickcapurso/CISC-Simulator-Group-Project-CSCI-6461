@@ -3,25 +3,35 @@ package edu.gwu.seas.csci;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.BadLocationException;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
-import javax.swing.text.StyledDocument;
-import javax.swing.JTextPane;
 import javax.swing.JTextField;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.BitSet;
 import java.util.HashMap;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JRadioButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JComboBox;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+
+import net.miginfocom.swing.MigLayout;
+
+import java.awt.SystemColor;
+import java.awt.Color;
+
+import javax.swing.UIManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Computer_GUI extends JFrame implements ActionListener {
 
@@ -31,10 +41,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	 * input
 	 */
 	private static final long serialVersionUID = 1L;
+	static final Logger logger = LogManager.getLogger(CPU.class.getName());
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;
-	private static JButton cont, start, microstep, macrostep, runinput, enter, load;
+	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem;
+	private JComboBox register_list;
+	private JSpinner bit_value, memory_address, memory_address2;
 	private JButton reset;
 	private FileLoader fileloader = new FileLoader();
 	private CPU cpu;
@@ -51,9 +64,15 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 954, 608);
 		contentPane = new JPanel();
+		contentPane.setBackground(SystemColor.menu);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		
+		//Registers for getting and setting register and memory
+		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
+				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
+				"RX", "RY", "AL", "LR", "COUNT"};
 
 		/*
 		 * Textfield and Textpane for I/O
@@ -181,6 +200,57 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		opcode_name = new JLabel("");
 		opcode_name.setBounds(730, 172, 56, 16);
 		contentPane.add(opcode_name);
+		
+		/*
+		 * Jpanel for Setting Registers and Memory
+		 *  - Spinner:
+		 *  	memory_address - spinner to determine memory location to update
+		 *  	bit_value - value to update register/memory
+		 *  - Buttons:
+		 *  	set_reg_mem - sets the register/memory address
+		 *  - ComboBox:
+		 *  	register_list - list of registers/memory
+		 */
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.GRAY);
+		panel.setBounds(535, 310, 389, 101);
+		contentPane.add(panel);
+		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][100:n][][50px:n:50px,center][]", "[][][]"));
+		
+		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
+		panel.add(lblSetMemoryAnd, "cell 0 0");
+		
+		JLabel lblSet = new JLabel("Set - ");
+		panel.add(lblSet, "cell 0 1,alignx center");
+		
+		register_list = new JComboBox(registers);
+		panel.add(register_list, "cell 1 1 2 1,growx");
+		register_list.addActionListener(this);
+		
+		JLabel lblTo = new JLabel("- to -");
+		panel.add(lblTo, "cell 2 1");
+		
+		JLabel lblTo_1 = new JLabel("- to -");
+		panel.add(lblTo_1, "cell 3 1");
+		
+		bit_value = new JSpinner();
+		panel.add(bit_value, "cell 4 1,growx");
+		
+		set_reg_mem = new JButton("Set");
+		panel.add(set_reg_mem, "cell 5 1");
+		set_reg_mem.addActionListener(this);
+		
+		JLabel lblAt = new JLabel("At -");
+		panel.add(lblAt, "cell 0 2,alignx center");
+		
+		SpinnerModel model = new SpinnerNumberModel(0, 0, 2048, 1);
+		memory_address = new JSpinner(model);
+		memory_address.setSize(10,50);
+		panel.add(memory_address, "cell 1 2,growx");
+		
+		get_reg_mem = new JButton("Get");
+		panel.add(get_reg_mem, "cell 5 2");
+		get_reg_mem.addActionListener(this);
 
 		/*
 		 * Create a map of all registers used on GUI - Registers are stored as
@@ -279,10 +349,18 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		} else if (e.getSource() == macrostep) {
 			cpu.executeInstruction("macro step");
 		} else if (e.getSource() == load) {
-			String filepath = textField.getText();
 			try {
-				fileloader.Load_File(filepath);
-				fileloader.load();
+			    JFileChooser chooser = new JFileChooser();
+			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+			        "TXT files", "txt");
+			    chooser.setFileFilter(filter);
+			    int returnVal = chooser.showOpenDialog(this);
+			    if(returnVal == JFileChooser.APPROVE_OPTION) {
+			    	fileloader.Load_File(chooser.getSelectedFile().getName());
+			    	fileloader.load();
+			    } else {
+			    	logger.debug("File failed to load or could not be found.");
+			    }
 			} catch (Exception ex) { //Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
@@ -306,6 +384,25 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
 			System.out.println(cpu.input_buffer);
 			textField.setText("");
+		} else if (e.getSource() == register_list) {
+			
+		} else if (e.getSource() == set_reg_mem) {
+			if ((String) register_list.getSelectedItem() == "Memory") {
+				BitSet bitset = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
+				Word word = Utils.registerToWord(bitset, 18);
+				Memory.getInstance().write(word, (Integer) memory_address.getValue());
+			} else {
+				BitSet reg_val = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
+				cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
+			}
+		} else if (e.getSource() == get_reg_mem) {
+			if ((String) register_list.getSelectedItem() == "Memory") {
+				Word word = Memory.getInstance().read((Integer) memory_address.getValue());
+				Computer_GUI.append_to_terminal(Utils.WordToString(word, 18) + "\n");
+			} else {
+				Register reg = cpu.getReg((String) register_list.getSelectedItem());
+				Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18));
+			}
 		}
 	}
 
