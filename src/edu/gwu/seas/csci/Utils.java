@@ -136,6 +136,23 @@ public class Utils {
 			System.out.print(set.get(i) == false ? "0" : "1");
 		System.out.println();
 	}
+	
+	/**
+	 * Prints the binary representation of a BitSet.
+	 * 
+	 * @param name
+	 *            The name of the BitSet (i.e. "OPCODE", "ADDR", etc.)
+	 * @param set
+	 *            The BitSet to print.
+	 * @param numBits
+	 *            The number of bits in the BitSet.
+	 */
+	public static String WordToString(final BitSet set, final int numBits) {
+		String result = "";
+		for (int i = 0; i < numBits; i++)
+			result += (set.get(i) == false ? "0" : "1");
+		return result;
+	}
 
 	/**
 	 * TODO: Comment Me.
