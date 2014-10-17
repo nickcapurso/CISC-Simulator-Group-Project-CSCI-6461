@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +49,8 @@ public class FileLoader implements Loader {
 	 * Contains the contents of ROM.
 	 */
 	private BufferedReader reader = null;
+	
+	private static ArrayList<LabelEntry> LabelTable = new ArrayList<LabelEntry>();
 
 	/**
 	 * FileLoader is constructed with a default reader.
@@ -77,6 +81,18 @@ public class FileLoader implements Loader {
 					logger.debug("Ignoring line: blank or a comment");
 					continue;
 				}
+				
+				//Checking for jump labels
+				if(temp.indexOf(':') != -1){
+					String label = temp.substring(0, temp.indexOf(':')).trim();
+					if(searchLabelTable(label) == -1){
+						LabelTable.add(new LabelEntry(label, memory_location));
+						logger.debug("Found new label: " + label);
+					}else{
+						throw new ParseException("Error: Duplicate Label",0);
+					}
+					continue;
+				}
 
 				Word word = Utils.StringToWord(temp);
 				
@@ -94,5 +110,23 @@ public class FileLoader implements Loader {
 	public void load() throws NullPointerException, ParseException,
 			IllegalArgumentException {
 		this.load(reader);
+	}
+	
+	public int searchLabelTable(String searchString){
+		for(int i = 0; i < LabelTable.size(); i++)
+			if(LabelTable.get(i).label.equals(searchString))
+				return i;
+		return -1;
+	}
+	
+	class LabelEntry{
+		public String label;
+		public short address;
+		public Stack<Short> forwardReferences; 
+		public LabelEntry(String label, short address){
+			this.label = label;
+			this.address = address;
+			forwardReferences = new Stack<Short>();
+		}
 	}
 }

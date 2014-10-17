@@ -249,6 +249,7 @@ public class Utils {
 		String temp = input;
 		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 		Word word = new Word();
+		int numElements = 0;
 		try {
 			// Read the opcode from the reader line.
 			String opcodeKeyString = temp.substring(0, 3).trim();
@@ -261,7 +262,18 @@ public class Utils {
 			if (instruction_format == null)
 				return null;
 
+			
 			String instruction_elements[] = temp.split(",");
+			numElements = instruction_elements.length;
+			
+			//Checking for end-of-line comments
+			if(instruction_elements[numElements-1].indexOf('/') != -1){
+				logger.debug("End-of-line comment found, ignoring");
+				String temp2 = instruction_elements[numElements-1];
+				temp2 = temp2.substring(0, temp2.indexOf('/'));
+				instruction_elements[numElements-1] = temp2;
+			}
+			
 			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
 
