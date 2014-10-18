@@ -927,9 +927,10 @@ public class CPU implements CPUConstants {
 		// Direct Execution - Does not advance PC
 		default:
 			logger.debug("Running user input");
+			
 			try {
 				System.out.println(step_type);
-				Word word_command = Utils.StringToWord(step_type);
+				Word word_command = (new InstructionLoader()).StringToWord(step_type);
 				Utils.bitsetToString("input", word_command, 18);
 				setReg(MDR, word_command);
 				cycle_count++;

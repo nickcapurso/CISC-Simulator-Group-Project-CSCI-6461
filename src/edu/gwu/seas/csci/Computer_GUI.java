@@ -49,7 +49,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JComboBox register_list;
 	private JSpinner bit_value, memory_address, memory_address2;
 	private JButton reset;
-	private FileLoader fileloader = new FileLoader();
+	private InstructionLoader fileloader = new InstructionLoader();
 	private CPU cpu;
 	private JLabel opcode_name;
 	private static HashMap<String, JRadioButton[]> Registers; // map of
