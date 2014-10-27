@@ -1199,19 +1199,27 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.JCC:
-			// If RESULT == 1
-			// EA -> PC
-			if (getReg(CC).get(
-					Utils.convertToUnsignedByte(getReg(R), getReg(R)
-							.getNumBits()))) {
-				setReg(EA, getReg(PC), getReg(PC).getNumBits());
-				jumpTaken = true;
+			switch (prog_step) {
+			case 4:
+				calculateEA(false);
+				cycle_count++;
+				prog_step++;
+				break;
+			case 5:
+				// If CC(R) == true
+				// EA -> PC
+				if (getReg(CC).get(
+						Utils.convertToUnsignedByte(getReg(R), getReg(R)
+								.getNumBits()))) {
+					setReg(PC, getReg(EA), getReg(EA).getNumBits());
+					jumpTaken = true;
+				}
+
+				cycle_count++;
+				prog_step = 0;
+				break;
 			}
-
-			cycle_count++;
-			prog_step = 0;
 			break;
-
 		case OpCodesList.JMP:
 			System.out.println("JUMP");
 			switch (prog_step) {
