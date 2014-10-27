@@ -160,7 +160,7 @@ public class InstructionLoader implements Loader {
 			if(instruction_elements[numElements-1].indexOf('/') != -1){
 				logger.debug("End-of-line comment found, ignoring");
 				String temp2 = instruction_elements[numElements-1];
-				temp2 = temp2.substring(0, temp2.indexOf('/'));
+				temp2 = temp2.substring(0, temp2.indexOf('/')).trim();
 				instruction_elements[numElements-1] = temp2;
 			}
 			
@@ -250,8 +250,14 @@ public class InstructionLoader implements Loader {
 				address = Byte.parseByte(instruction_elements[1]);
 				break;
 			case FOUR:
-				address = Byte.parseByte(temp.substring(4, temp.length())
-						);
+				//Immed portion is optional
+				try{
+					address = Byte.parseByte(temp.substring(4, 5));
+				}catch(NumberFormatException e){
+					address = 0;
+				}catch(StringIndexOutOfBoundsException e2){
+					address = 0;
+				}
 				break;
 			case FIVE:
 				register_x = Byte.parseByte(temp.substring(4, 5));
