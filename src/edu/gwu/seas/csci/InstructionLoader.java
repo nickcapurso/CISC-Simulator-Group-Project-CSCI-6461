@@ -149,20 +149,17 @@ public class InstructionLoader implements Loader {
 			if (instruction_format == null)
 				return null;
 
+			//Checking for end-of-line comments
+			if(temp.indexOf('/') != -1){
+				logger.debug("End-of-line comment found, ignoring");
+				temp = temp.substring(0, temp.indexOf('/')).trim();
+			}
 			
 			String instruction_elements[] = temp.split(",");
 			for(int i = 0; i < instruction_elements.length; i++)
 				instruction_elements[i] = instruction_elements[i].trim();
 			
 			numElements = instruction_elements.length;
-			
-			//Checking for end-of-line comments
-			if(instruction_elements[numElements-1].indexOf('/') != -1){
-				logger.debug("End-of-line comment found, ignoring");
-				String temp2 = instruction_elements[numElements-1];
-				temp2 = temp2.substring(0, temp2.indexOf('/')).trim();
-				instruction_elements[numElements-1] = temp2;
-			}
 			
 			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
