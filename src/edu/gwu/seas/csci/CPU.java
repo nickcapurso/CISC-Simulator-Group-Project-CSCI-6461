@@ -1211,7 +1211,7 @@ public class CPU implements CPUConstants {
 				if (getReg(CC).get(
 						Utils.convertToUnsignedByte(getReg(R), getReg(R)
 								.getNumBits()))) {
-					setReg(PC, getReg(EA), getReg(EA).getNumBits());
+					setReg(PC, getReg(EA));
 					jumpTaken = true;
 				}
 
@@ -1292,19 +1292,24 @@ public class CPU implements CPUConstants {
 			case 5:
 				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
+				setReg(OP2, Utils.intToBitSet(1, getReg(OP2).getNumBits()), getReg(OP2).getNumBits());
 				cycle_count++;
 				prog_step++;
 				break;
 			case 6:
 				// Perform subtract one in ALU
-				// alu.SOB();
+				alu.SIR();
 				cycle_count++;
 				prog_step++;
 				break;
 			case 7:
+				//Putting the subtraction result back in the register and OP1
+				setReg(registerFile(getReg(R)), getReg(RESULT));
+				setReg(OP1, getReg(RESULT));
+				
 				// Clearing OP2 in preparation for GTE comparison
 				getReg(OP2).clear();
-				// Perform greater than 0 comparison in ALU
+				// Checking if OP1 >= 0
 				alu.GTE();
 				cycle_count++;
 				prog_step++;
