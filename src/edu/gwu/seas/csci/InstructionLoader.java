@@ -83,6 +83,12 @@ public class InstructionLoader implements Loader {
 					continue;
 				}
 				
+				//Checking for end-of-line comments
+				if(temp.indexOf('/') != -1){
+					logger.debug("End-of-line comment found, ignoring");
+					temp = temp.substring(0, temp.indexOf('/')).trim();
+				}
+				
 				//Checking for jump labels
 				if(temp.indexOf(':') != -1){
 					String label = temp.substring(0, temp.indexOf(':')).trim();
@@ -148,12 +154,6 @@ public class InstructionLoader implements Loader {
 			// Ensure the key returned a valid InstructionClass object.
 			if (instruction_format == null)
 				return null;
-
-			//Checking for end-of-line comments
-			if(temp.indexOf('/') != -1){
-				logger.debug("End-of-line comment found, ignoring");
-				temp = temp.substring(0, temp.indexOf('/')).trim();
-			}
 			
 			String instruction_elements[] = temp.split(",");
 			for(int i = 0; i < instruction_elements.length; i++)
