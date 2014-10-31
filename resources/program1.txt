@@ -1,8 +1,8 @@
 //******************************************************************************************
 //Program 1	
 //
-//Reads 20 integers from the user and then requests a search number from the
-//user. If the search number does not exist within the array, the closest
+//Reads 20 (currently does 5 for ease of testing) integers from the user and then requests a 
+//search number from the user. If the search number does not exist within the array, the closest
 //integer is returned.
 //
 //Register designations:
@@ -18,10 +18,15 @@
 //	$10  -	Holds the search number.
 //	$11  -	Holds the running closest difference.
 //	$12  -	Holds the result, or answer.
-//	$13  -	Used to pass parameters to OUT_DIGIT. 
+//	$13  -	Used to pass parameters to OUT_DIGIT subroutine and also holds an input number. 
+//	$14  -	Used to pass parameters to INPUT_VALID subroutine.
+//	$15  -	Used to pass parameters to INPUT_VALID subroutine.
+//	$18  -	Used to save register contents
+//	$19  -  Used to save register contents
+//	$20  - 	Holds the inputted number after being built-up from left to right.
 //	$400 -	The base address of the numbers array.
 //
-//Note: all pertinent jump labels are prefixed “P1” for “Program “1
+//Note: all pertinent jump labels are prefixed “P1” for “Program 1”
 //******************************************************************************************
 AIR 1,100
 AIR 1,100
