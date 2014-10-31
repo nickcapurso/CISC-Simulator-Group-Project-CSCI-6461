@@ -1,89 +1,448 @@
+//******************************************************************************************
+//Program 1	
+//
+//Reads 20 (currently does 5 for ease of testing) integers from the user and then requests a 
+//search number from the user. If the search number does not exist within the array, the closest
+//integer is returned.
+//
+//Register designations:
+//	R0   - 	Holds inputted numbers and the current index into the array.
+//	R1   - 	Holds the search number.
+//	R2   - 	Holds the running closest difference between the search number
+//	     	and the numbers in the array.
+//	R3   - 	Holds the number of array elements left to compare.
+// 
+//Memory designations:
+//	$9   - 	Used as a temporary address for indirection, register-memory
+//	  	arithmetic, etc.
+//	$10  -	Holds the search number.
+//	$11  -	Holds the running closest difference.
+//	$12  -	Holds the result, or answer.
+//	$13  -	Used to pass parameters to OUT_DIGIT subroutine and also holds an input number. 
+//	$14  -	Used to pass parameters to INPUT_VALID subroutine.
+//	$15  -	Used to pass parameters to INPUT_VALID subroutine.
+//	$18  -	Used to save register contents
+//	$19  -  Used to save register contents
+//	$20  - 	Holds the inputted number after being built-up from left to right.
+//	$400 -	The base address of the numbers array.
+//
+//Note: all pertinent jump labels are prefixed “P1” for “Program 1”
+//******************************************************************************************
+AIR 1,100
+AIR 1,100
+AIR 1,100
+AIR 1,100              //R1 = 400 = starting address of number array
+LDA 2,0,4              //R2 will hold the number of input numbers to get from the user + 1
 
-
-
-
-
-
-
-LDA 1,0,115,0
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Outer loop of the entire input loop - prompts the user to enter a number to place
+//into the array of numbers.
+//——————————————————————————————————————————————————————————————————————————————————————————
+P1_INPUT:
 LDA 0,0,78
-OUT 0,1
+OUT 0,1                 //Print "N"
 LDA 0,0,117
-OUT 0,1
+OUT 0,1                 //Print "u"
 LDA 0,0,109
-OUT 0,1
+OUT 0,1                 //Print "m"
 LDA 0,0,63
-OUT 0,1
-LDA 0,0,10
-OUT 0,1
-IN 0,0  
-STR 1,0,100 
-STR 0,0,100,1
-AIR 1,1
-STR 1,0,100 
-LDA 2,0,120
-SMR 2,0,100
-JNE 2,0,8
-LDA 0,0,70
-OUT 0,1
-LDA 0,0,105
-OUT 0,1
-LDA 0,0,110
-OUT 0,1
-LDA 0,0,100
-OUT 0,1
+OUT 0,1                 //Print "?"
 LDA 0,0,32
-OUT 0,1
-LDA 0,0,110
-OUT 0,1
-LDA 0,0,117
-OUT 0,1
-LDA 0,0,109
-OUT 0,1
+OUT 0,1                 //Printing space
+
+STR 1,0,18		//Saving registers (to be restored after the inner loop is finished)
+STR 2,0,19		//Saving registers (to be restored after the inner loop is finished)
+LDA 2,0,1		//R2 = 1 (starting power of 10)
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Inner loop of the input loop.
+//The inner loop rebuilds the intended number digit by digit, from left to right.
+//
+//For example, if the user enters “439” then we see the “4” then the “3” then the “9” and
+//have to rebuild the integer 439. (i.e. 4 x 100 + 3 x 10 + 9 x 1)
+//
+//In general, the running formula is:
+//	Number = number*10 + next digit
+//For the previous example (“439” -> “4”, “3”, “9”)
+//	0 = 0*10 + 4
+//	4 = 4*10 + 3
+//	43 = 43*10 + 9
+//	439
+//——————————————————————————————————————————————————————————————————————————————————————————
+P1_INPUT_INNER:
+IN 0,0                  //Getting input
+
+LDA 2,0,4		//Checking if end of string has been reached (looking for EOT char)
+TRR 0,2
+JCC 3,0,P1_INPUT_CONT	//Break out of the inner loop when the EOT has been found
+
+//Prepare parameters for the input validation subroutine
+STR 0,0,13		//Store input character
+LDA 0,0,48
+STR 0,0,14		//Lower bound = ASCII 0
+LDA 0,0,57
+STR 0,0,15		//Upper bound = ASCII 9
+LDA 0,0,13		//R0 = base address of params
+
+JSR 0,INPUT_VALID	//Call input validation subroutine
+JZ 0,0,P1_BAD_INPUT	//If subroutine returns 0, bad input has been entered
+
+LDR 0,0,20		//Load the built-up number
+LDA 2,0,10		//R2 = 10
+MLT 0,2			//Multiply number by 10
+AMR 0,0,13		//Number = num*10 + input (see the formula in the block comment above)
+SIR 0,48		//Subtract ASCII 0 (conversion from ASCII, since the input is still in ASCII form)
+STR 0,0,20		//Store the built-up number back
+JMP 0,P1_INPUT_INNER	//Jump to the start of the inner loop
+
+
+//If bad input, reprompt the user
+P1_BAD_INPUT:		
+LDA 0,0,32
+OUT 0,1			//Printing space
+LDA 0,0,66
+OUT 0,1			//Print “B”
+LDA 0,0,97
+OUT 0,1			//Print “a”
+LDA 0,0,100
+OUT 0,1			//Print “d”
+
+LDA 0,0,10
+OUT 0,1                 //Print new line
 LDA 0,0,58
-IN 0,0
-LDA 2,0,121
-STR 2,0,100 
-STR 0,0,100,1 
-LDA 0,0,115          
-LDA 2,0,1           
-SRC 2,16,1,0        
-STR 2,0,122          
-LDA 3,0,120          
-STR 0,0,100         
-SMR 3,0,100         
-JZ 3,0,78      
-LDR 1,0,121          
-LDR 2,0,122          
-STR 0,0,100         
-SMR 1,0,100,1       
-JZ 1,0,76        
-JGE 1,0,65 
-STR 1,0,100         
-LDA 1,0,0           
-SMR 1,0,100         
-STR 1,0,100         
-SMR 2,0,100         
-JGE 2,0,70 
-AIR 0,1             
-JMP 0,52               
-STR 1,0,122          
-STR 0,0,100         
-LDR 3,0,100,1       
-STR 3,0,123          
-AIR 0,1             
-JMP 0,52            
-LDR 1,0,121          
-STR 1,0,123          
-LDA 0,0,65  
-OUT 0,1
-LDA 0,0,115
-OUT 0,1
+OUT 0,1                 //Print colon
+LDA 0,0,32
+OUT 0,1                 //Printing space
+
+//Need to exhaust the rest of the input string (it’s all invalid)
+P1_BAD_INPUT_2:		
+IN 0,0                  //Getting input
+
+LDA 2,0,4		//Checking if end of string has been reached
+TRR 0,2
+JCC 3,0,P1_INPUT_INNER	//If input buffer is “reset” jump back up to the start of the inner loop
+JMP 0, P1_BAD_INPUT_2	//Else, keep exhausting characters
+
+
+P1_INPUT_CONT:		//Inputted number has been built back up as an integer
+LDR 0,0,20		//Load R0 with the number
+
+LDR 1,0,18		//Restore R1 (saved prior to entering the inner input loop)
+LDR 2,0,19		//Restore R2 (saved prior to entering the inner input loop)
+
+STR 1,0,9               //Store current array index at temp address 
+STR 0,0,9,1             //Store number at c($9) = 4xx = array[arrayIndex]
+
+LDA 0,0,0	
+STR 0,0,20		//Clear built-up number memory location
+STR 0,0,13		//Clear input number memory location
+
+LDA 0,0,10
+OUT 0,1                 //Print new line
+
+AIR 1,1                 //Array index++
+SOB 2,0,P1_INPUT	//Subtract one and branch (works like a for-loop from array size -> 0)
+
+STR 1,0,18		//Saving registers (to be restored after the search number is entered)
+STR 2,0,19		//Saving registers (to be restored after the search number is entered)
+
+//Time to prompt for the search number
+LDA 0,0,70
+OUT 0,1                 //Print "F"
 LDA 0,0,105
-OUT 0,1
-LDA 0,0,63
-OUT 0,1
-LDR 1,0,123
-LDA 3,0,1
-STR 3,0,120
-OUT 1,1
+OUT 0,1                 //Print "i"
+LDA 0,0,110
+OUT 0,1                 //Print "n"
+LDA 0,0,100
+OUT 0,1                 //Print "d"
+LDA 0,0,32
+OUT 0,1                 //Printing space
+LDA 0,0,110
+OUT 0,1                 //Print "n"
+LDA 0,0,117
+OUT 0,1                 //Print "u"
+LDA 0,0,109
+OUT 0,1                 //Print "m"
+LDA 0,0,58
+OUT 0,1                 //Print colon
+LDA 0,0,32
+OUT 0,1                 //Printing space
+
+
+//Need to do the same as inputting array number - build the inputted number back up
+//as an integer
+P1_INPUT_SEARCH:
+IN 0,0                  //Getting input
+
+LDA 2,0,4		//Checking if end of string has been reached
+TRR 0,2
+JCC 3,0,P1_SEARCH_CONT	//If so, can move onto the actual main part of the program
+
+//Prepare parameters for the input validation subroutine
+STR 0,0,13		//Store input character
+LDA 0,0,48
+STR 0,0,14		//Lower bound = ASCII 0
+LDA 0,0,57
+STR 0,0,15		//Upper bound = ASCII 9
+LDA 0,0,13		//R0 = base address of params
+
+JSR 0,INPUT_VALID	//Call input validation subroutine
+JZ 0,0,P1_SEARCH_BAD	//If subroutine returns 0, bad input
+
+LDR 0,0,20		//Same as in the inner input loop - doing integer build up
+LDA 2,0,10
+MLT 0,2
+AMR 0,0,13		//Num = num*10 + input
+SIR 0,48		//Subtract ASCII 0 (conversion from ASCII)
+STR 0,0,20		
+JMP 0, P1_INPUT_SEARCH	//Get next character in buffer
+
+//If bad input, reprompt the user
+P1_SEARCH_BAD:		
+LDA 0,0,32
+OUT 0,1			//Printing space
+LDA 0,0,66
+OUT 0,1			//Print “B”
+LDA 0,0,97
+OUT 0,1			//Print “a”
+LDA 0,0,100
+OUT 0,1			//Print “d”
+
+LDA 0,0,10
+OUT 0,1                 //Print new line
+LDA 0,0,58
+OUT 0,1                 //Print colon
+LDA 0,0,32
+OUT 0,1                 //Printing space
+
+//Need to exhaust the rest of the input string (it’s all invalid)
+P1_SEARCH_BAD_2:
+IN 0,0                  //Getting input
+
+LDA 2,0,4		//Checking if end of string has been reached
+TRR 0,2
+JCC 3,0, P1_INPUT_SEARCH //If input buffer is “reset” jump back up to reprompt user
+JMP 0, P1_SEARCH_BAD_2	//Continue exhausting characters
+
+//Can now store the search number in memory
+P1_SEARCH_CONT:
+LDR 1,0,18		//Restore R1 (saved prior to prompting for the search number)
+LDR 2,0,19		//Restore R2 (saved prior to prompting for the search number)
+
+LDR 0,0,20		//Load search number
+STR 0,0,10              //Search num stored at $10
+
+LDA 0,0,10
+OUT 0,1                 //Print new line
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Begin of the actual function of Program 1
+//——————————————————————————————————————————————————————————————————————————————————————————
+SIR 1,5                //Reset R1 to the beginning of the array ($400)
+LDA 0,0,0              //Clear R0
+ORR 0,1                //Transfer R1 to R0, R0 = start of array
+
+LDA 3,0,4              //R3 holds the number of array elements left to check
+              
+LDA 2,0,1               //R2 = closestDifference (want to initialize this to max val)           
+SRC 2,16,1,0            //Make R2 a high number (preferably the highest positive number)
+STR 2,0,11              //Store running closest difference at $11           
+
+P1_MAIN_LOOP:
+LDR 1,0,10               //Load R1 with searchNumber (stored at $10)          
+LDR 2,0,11               //Load R2 with the closestDifference (stored at $11)
+
+STR 0,0,9               //Store current arrayIndex at the temp address        
+SMR 1,0,9,1             //R1 = searchNumber - c(arrayIndex) = searchNumber - array[arrayIndex]       
+JZ 1,0,P1_MATCH         //If the difference is 0, a match has been found, break out of the loop
+
+//Next - need to do absolute value if the difference is negative
+JGE 1,0,P1_POSITIVE     //Jump if the difference is positive (skipping absolute value)
+STR 1,0,9               //Store the negative difference at the temp address (held in X1)             
+LDA 1,0,0               //Clear R1
+SMR 1,0,9               //Do absolute value by performing: 0 - difference
+
+P1_POSITIVE:
+STR 1,0,9               //Store the difference at the temp address
+SMR 2,0,9               //Compare this difference to the running closestDifference (i.e. closestDifference - difference)         
+JGE 2,0,P1_NEW_CLOSEST  //If difference < closestDifference (i.e. comparison was positive), the new closest value has been found
+AIR 0,1                 //arrayIndex++            
+SOB 3,0,P1_MAIN_LOOP    //Jump back to the start of the loop if we haven't reached the end of the array 
+JMP 0,P1_OUT		//Else jump to printing the output
+
+P1_NEW_CLOSEST:
+STR 1,0,11              //Store the current difference at the closestDifference location ($11)            
+STR 0,0,9               //Store arrayIndex at the temp address        
+LDR 1,0,9,1             //R1 = array[arrayIndex] (using R1 temporarily for this)
+STR 1,0,12		//“Answer” is stored at $12.
+AIR 0,1                 //arrayIndex++             
+SOB 3,0,P1_MAIN_LOOP    //Jump back to the start of the loop if we haven't reached the end of the array
+JMP 0,P1_OUT		//Else jump to printing the output
+
+P1_MATCH:
+LDR 1,0,10              //If a match was found, the answer = the search number, load it into R1
+STR 1,0,12		//Store R1 at the result address ($12)
+
+P1_OUT:
+LDA 0,0,65  
+OUT 0,1                 //Print "A"
+LDA 0,0,110
+OUT 0,1                 //Print "n"
+LDA 0,0,115
+OUT 0,1                 //Print "s"
+LDA 0,0,58
+OUT 0,1                 //Print colon
+LDA 0,0,32
+OUT 0,1                 //Printing space
+
+LDR 1,0,12              //Load R1 with the answer (indirection through the address in X1)
+STR 1,0,13		//Store it at $13 to prepare for the subroutine call
+LDA 0,0,13		//Load R0 with the address of the parameters for OUT_DIGIT
+JSR 0,OUT_DIGIT
+
+HLT
+//******************************************************************************************
+//End Program 1	
+//******************************************************************************************
+
+
+//******************************************************************************************
+//Output Digit Subroutine (OUT_DIGIT)
+//
+//Outputs a multi-digit number. (For single digit numbers, you can just add
+//0x30 (decimal 48) followed by the OUT instruction) 
+//
+//Parameters (assuming R0 contains a point to memory with arguments):
+//  $(R0) = the number to print
+//
+//Register designations:
+//	R0   - 	Holds the current value of 10^power (i.e. 1, 10, 100, etc.) and the return value.
+//	R1   -	Used for temporary arithmetic
+//	R2   -	Holds the number to print, and the quotient/result of division/multiplication
+//	R3   -	Holds the remainder after division is performed and the return address.
+// 
+//Memory designations:
+//	$16  -	Holds the address of the number to print (passed in R0).
+//	$17  -	Holds the return address.
+//
+//Note: all pertinent jump labels are prefixed “OD” for “Output Digit”
+//******************************************************************************************
+OUT_DIGIT:
+STR 0,0,16             	//Store addr of number to print
+STR 3,0,17           	//Store return address
+
+LDA 0,0,1               //Load R0 with the current power of ten
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Loop to find the highest power of ten that divides the number.
+//For example - 900 / 100 = 9. The highest power of ten will yield a quotient between 0-9.
+//Essentially this picks off the the left-most digit of the number to print.
+//
+//This is needed since we print the number from left to right - character-by-character.
+//——————————————————————————————————————————————————————————————————————————————————————————
+OD_LOOP1:
+LDA 2,0,10
+MLT 0,2               	//currentPower *= 10
+//LDA 0,0,0             //Clear R0
+//ORR 0,1               //Transfer R1 (low order 18-bits of the MLT result) to R0
+
+LDR 2,0,16,1           //Reload R2 with number to print
+
+DVD 2,0                //Num / currentVal
+SIR 2,9                //Quotient (R0) - 9 > 0 (want to stop when we've reached the highest place value)
+JZ 2,0,OD_LOOP2
+JGE 2,0,OD_LOOP1       //Essentially loop while (num / currVal) - 9 > 0
+
+//(i.e. Break out of loop if (Num / currVal) <= 0)
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Loop while currPow != 0
+//Now that the left-most digit has been picked off, picking off the rest of the digits
+//left-to-right just involves dividing by decreasing powers of ten (the remainder
+//of the division becomes the input to the subsequent iteration of the loop). Could
+//also be done recursively if our simulator had a stack.
+//——————————————————————————————————————————————————————————————————————————————————————————
+OD_LOOP2:
+LDA 1,0,0		//Clear R1
+TRR 0,1                 //Test if currVal == 0
+JCC 3,0,OD_DONE         //Essentially loop while currVal != 0
+
+LDR 2,0,16,1
+DVD 2,0                 //Num / currVal (quotient will be the left most digit)
+AIR 2,48                //Convert quotient to ASCII
+OUT 2,1                 //Print digit
+
+STR 3,0,16,1           	//Num = remainder
+LDA 2,0,10		//Load R2 with 10
+DVD 0,2         	//currVal /= 10 (reduce by one power of 10)
+JMP 0,OD_LOOP2
+
+
+OD_DONE:
+LDR 3,0,17		//Restore return address
+RFS
+//******************************************************************************************
+//End OUT_DIGIT Subroutine
+//******************************************************************************************
+
+//******************************************************************************************
+//Input Validation Subroutine (INPUT_VALID)
+//Returns 1 in R3 if the passed character is within the range bounded by the passed bounds, 
+//else returns 0
+// 
+//Parameters (assuming R0 contains a pointer to memory with arguments):
+//  $(R0) = the character to test
+//  $(R0+1) = lower bound of the testing range
+//  $(R0+2) = upper bound of the testing range
+//R3 used as a temporary register and also holds the result of the subroutine
+//
+//Register designations:
+//	R0   - 	Holds the character to test and the return value.
+//	R1   -	Holds the lower bound.
+//	R2   -	Holds the upper bound.
+//	R3   -	Holds result of arithmetic and the return address.
+// 
+//Memory designations:
+//	$16  -	Holds the base address of the characters.
+//	$17  -	Used as a temporary memory address.
+//Note: all pertinent jump labels are prefixed "IV" for "Input Validation"
+//******************************************************************************************
+INPUT_VALID:
+STR 0,0,16     	//Store base address of parameters
+LDR 1,0,16
+AIR 1,2
+STR 1,0,17   	//R1 now holds the address of the upper bound
+
+LDR 2,0,17,1   	//R2 = c(17) == c(R0+2) = upper bound of testing range
+
+LDR 1,0,16
+AIR 1,1
+STR 1,0,17	//R1 now holds the address of the lower bound
+
+LDR 1,0,17,1   	//R1 = c(R0+1) = lower bound of testing range
+STR 3,0,17   	//Save return address
+
+LDA 3,0,0      	//Clear R3
+LDR 0,0,16,1   	//Load R0 with the test char
+ORR 3,0      	//Transfer the input char to R3
+STR 1,0,16     	//Store lower bound for SMR
+SMR 3,0,16     	//R3 = Input char - lower bound
+JGE 3,0,IV_ABVLWR  	//If R3 >= 0 the input char is above the lower bound
+JMP 0,IV_FAIL       	//Else input char is invalid
+
+IV_ABVLWR:
+STR 0,0,16     	//Store input char for SMR
+SMR 2,0,16     	//R2 = upper bound - input char
+JGE 2,0,IV_VALID    	//If R2 >= 0 the input char is below the upper bound
+JMP 0,IV_FAIL       	//Else input char is invalid
+
+IV_VALID:
+LDR 3,0,17   	//Load the return address
+RFS 1           //Return 1
+
+IV_FAIL:
+LDR 3,0,17   	//Load the return address
+RFS 0           //Return 0
+//******************************************************************************************
+//End Input Validation Subroutine
+//******************************************************************************************

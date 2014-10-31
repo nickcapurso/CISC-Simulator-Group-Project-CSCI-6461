@@ -28,6 +28,9 @@ public class InstructionLoader implements Loader {
 
 	static final Logger logger = LogManager.getLogger(InstructionLoader.class
 			.getName());
+	
+	public static final byte JUMP_INDIRECTION_ADDR = 8;
+	public static final byte DEFAULT_LOADING_ADDR = 21;
 
 	/**
 	 * Provide a reference to the Computer's memory to hold the contents of the
@@ -50,7 +53,12 @@ public class InstructionLoader implements Loader {
 	 */
 	private BufferedReader reader = null;
 	
-	private static ArrayList<LabelEntry> LabelTable = new ArrayList<LabelEntry>();
+	/**
+	 * Keeps track of jump labels.
+	 */
+	private static ArrayList<LabelEntry> labelTable;
+	
+	private short memory_location = 0;
 
 	/**
 	 * FileLoader is constructed with a default reader.
@@ -75,29 +83,80 @@ public class InstructionLoader implements Loader {
 	 */
 	@Override
 	public void load(BufferedReader reader) throws ParseException {
+		labelTable = new ArrayList<LabelEntry>();
 		try {
 			String temp = null;
-			short memory_location = 8; // Locations 0-5 are reserved.
+			memory_location = DEFAULT_LOADING_ADDR; // Locations 0-5 are reserved.
 
 			while ((temp = reader.readLine()) != null) {
+				
+				//Checking for blank lines or comments
 				if (temp.equals("") || temp.charAt(0) == '/') {
 					logger.debug("Ignoring line: blank or a comment");
 					continue;
 				}
 				
-				//Checking for jump labels
+				//Checking for end-of-line comments
+				if(temp.indexOf('/') != -1){
+					logger.debug("End-of-line comment found, ignoring");
+					temp = temp.substring(0, temp.indexOf('/')).trim();
+				}
+				
+				//Checking for jump labels by looking for the colon
 				if(temp.indexOf(':') != -1){
 					String label = temp.substring(0, temp.indexOf(':')).trim();
-					if(searchLabelTable(label) == -1){
-						LabelTable.add(new LabelEntry(label, memory_location));
-						logger.debug("Found new label: " + label);
+					int labelIndex = 0;
+					
+					//Check if the label is already in the label table
+					if((labelIndex = searchLabelTable(label)) == -1){
+						//Add a new label
+						labelTable.add(new LabelEntry(label, memory_location));
+						logger.debug("Found new label: " + label + " at address " + memory_location);
 					}else{
-						throw new ParseException("Error: Duplicate Label",0);
+						//If the label is already in the table, but has an associated
+						//address of 0, then there are forward references that need to be resolved now
+						if(labelTable.get(labelIndex).address == 0){
+							labelTable.get(labelIndex).address = memory_location;
+							
+							LabelEntry entry = labelTable.get(labelIndex);
+							Stack<Short> references = entry.forwardReferences;
+							
+							//Loop until all forward references have been resolved
+							while(!references.isEmpty()){
+								short address = references.pop();
+								Word word = memory.read(address);
+								
+								//If the address if above 127, then we need to do indirection through address 8
+								if(entry.address >= 128){
+									//Set jump indirection address
+									Utils.byteToBitSetDeepCopy((byte)JUMP_INDIRECTION_ADDR, word, 
+											(byte) InstructionBitFormats.LD_STR_ADDR_SIZE, 
+											(byte) InstructionBitFormats.LD_STR_ADDR_END);
+									//Set indirection flag
+									Utils.byteToBitSetDeepCopy((byte)1, word, 
+											(byte) InstructionBitFormats.LD_STR_I_SIZE, 
+											(byte) InstructionBitFormats.LD_STR_I_END);
+									logger.debug("Resolving forward reference at address: " + address + ", jump address = " + entry.address + ", using indirection");
+								}else{
+									//Else, just update the address field in the instruction with a forward reference
+									Utils.byteToBitSetDeepCopy((byte)entry.address, word, 
+											(byte) InstructionBitFormats.LD_STR_ADDR_SIZE, 
+											(byte) InstructionBitFormats.LD_STR_ADDR_END);
+									logger.debug("Resolving forward reference at address: " + address + ", jump address = " + entry.address);
+								}
+								
+								//Write back the instruction to memory
+								memory.write(word, address);
+							}
+						}else{
+							//Can't have duplicate labels
+							throw new ParseException("Error: Duplicate Label: " + label,0);
+						}
 					}
 					continue;
 				}
 
-				Word word = instructionToWord(temp);
+				Word word = StringToWord(temp);
 				
 				if (word != null)
 					memory.write(word, memory_location++);
@@ -109,11 +168,13 @@ public class InstructionLoader implements Loader {
 		}
 	}
 	
-	public Word instructionToWord(String instruction) {
-		String temp = instruction;
+	public Word StringToWord(String input) {
+		String temp = input;
+		String labelCheck;
 		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 		Word word = new Word();
-		int numElements = 0;
+		int labelIndex = 0;
+		
 		try {
 			// Read the opcode from the reader line.
 			String opcodeKeyString = temp.substring(0, 3).trim();
@@ -125,18 +186,10 @@ public class InstructionLoader implements Loader {
 			// Ensure the key returned a valid InstructionClass object.
 			if (instruction_format == null)
 				return null;
-
 			
 			String instruction_elements[] = temp.split(",");
-			numElements = instruction_elements.length;
-			
-			//Checking for end-of-line comments
-			if(instruction_elements[numElements-1].indexOf('/') != -1){
-				logger.debug("End-of-line comment found, ignoring");
-				String temp2 = instruction_elements[numElements-1];
-				temp2 = temp2.substring(0, temp2.indexOf('/'));
-				instruction_elements[numElements-1] = temp2;
-			}
+			for(int i = 0; i < instruction_elements.length; i++)
+				instruction_elements[i] = instruction_elements[i].trim();
 			
 			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
@@ -144,61 +197,144 @@ public class InstructionLoader implements Loader {
 			switch (instruction_format) {
 			case ONE:
 				if(opcodeKeyString.equals("JZ"))
-					general_register = Byte.parseByte(temp.substring(3, 4).trim());
+					general_register = Byte.parseByte(temp.substring(3, 4));
 				else
-					general_register = Byte.parseByte(temp.substring(4, 5).trim());
-				index_register = Byte.parseByte(instruction_elements[1].trim());
-				address = Byte.parseByte(instruction_elements[2].trim());
+					general_register = Byte.parseByte(temp.substring(4, 5));
+				index_register = Byte.parseByte(instruction_elements[1]);
+				
+				labelCheck = instruction_elements[2];
+				
+				//Check to see if the address field contains a label
+				if(Character.isAlphabetic(labelCheck.charAt(0))){
+					
+					//Check if the label is currently in the label table
+					if((labelIndex = searchLabelTable(labelCheck)) != -1){
+						//If the label's address if above 127, need to do indirection
+						if(labelTable.get(labelIndex).address >= 128){
+							address = JUMP_INDIRECTION_ADDR;
+						}else{
+							//Else, just fetch the address from the table
+							address = (byte)labelTable.get(labelIndex).address;
+						}
+						
+						//Add this instruction to the label's list of total references
+						labelTable.get(labelIndex).references.add(memory_location);
+						
+						//If this is a forward reference, push it onto the label's forward reference stack
+						if(address == 0){
+							labelTable.get(labelIndex).forwardReferences.push(memory_location);
+							logger.debug("Found another forward reference for label: " + labelCheck + " at address: " + memory_location);
+						}else{
+							logger.debug("Label: " + labelCheck + " translated to address " + address);
+						}
+					}else{
+						//Create a new label entry if this is the first time seeing the label
+						labelTable.add(new LabelEntry(labelCheck, (byte) 0, memory_location));
+						logger.debug("Creating new label: " + labelCheck + " for forward reference at address: " + memory_location);
+					}
+				}else{
+					address = Byte.parseByte(labelCheck);
+				}
+				
 				// Optional indirection check
 				if (instruction_elements.length < 4)
 					indirection = 0;
 				else
 					indirection = Byte.parseByte(instruction_elements[3]
-							.trim());
+							);
+				
+				//Set indirection bit if needed to do the label jump
+				if(address == JUMP_INDIRECTION_ADDR)
+					indirection = 1;
 				break;
 			case TWO:
 				index_register = Byte
-						.parseByte(temp.substring(4, 5).trim());
-				address = Byte.parseByte(instruction_elements[1].trim());
+						.parseByte(temp.substring(4, 5));
+				
+				labelCheck = instruction_elements[1];
+				
+				//Check to see if the address field contains a label
+				if(Character.isAlphabetic(labelCheck.charAt(0))){
+					
+					//Check if the label is currently in the label table
+					if((labelIndex = searchLabelTable(labelCheck)) != -1){
+						
+						//If the label's address if above 127, need to do indirection
+						if(labelTable.get(labelIndex).address >= 128){
+							address = JUMP_INDIRECTION_ADDR;
+						}else{
+							//Else, just fetch the address from the table
+							address = (byte)labelTable.get(labelIndex).address;
+						}
+						
+						//Add this instruction to the label's list of total references
+						labelTable.get(labelIndex).references.add(memory_location);
+						
+						//If this is a forward reference, push it onto the label's forward reference stack
+						if(address == 0){
+							labelTable.get(labelIndex).forwardReferences.push(memory_location);
+							logger.debug("Found another forward reference for label: " + labelCheck + " at address: " + memory_location);
+						}else{
+							logger.debug("Label: " + labelCheck + " translated to address " + address);
+						}
+					}else{
+						//Create a new label entry if this is the first time seeing the label
+						labelTable.add(new LabelEntry(labelCheck, (byte) 0, memory_location));
+						logger.debug("Creating new label: " + labelCheck + " for forward reference at address: " + memory_location);
+						
+					}
+				}else{
+					address = Byte.parseByte(labelCheck);
+				}
 
 				// Optional indirection check
 				if (instruction_elements.length < 3)
 					indirection = 0;
 				else
 					indirection = Byte.parseByte(instruction_elements[2]
-							.trim());
+							);
+				
+				//Set indirection bit if needed to do the label jump
+				if(address == JUMP_INDIRECTION_ADDR)
+					indirection = 1;
 				break;
 			case THREE:
 				general_register = Byte.parseByte(temp.substring(4, 5)
-						.trim());
-				address = Byte.parseByte(instruction_elements[1].trim());
+						);
+				address = Byte.parseByte(instruction_elements[1]);
 				break;
 			case FOUR:
-				address = Byte.parseByte(temp.substring(4, temp.length())
-						.trim());
+				//Immed portion is optional
+				try{
+					address = Byte.parseByte(temp.substring(4, 5));
+				}catch(NumberFormatException e){
+					address = 0;
+				}catch(StringIndexOutOfBoundsException e2){
+					address = 0;
+				}
 				break;
 			case FIVE:
-				register_x = Byte.parseByte(temp.substring(4, 5).trim());
+				register_x = Byte.parseByte(temp.substring(4, 5));
 				break;
 			case SIX:
-				register_x = Byte.parseByte(temp.substring(4, 5).trim());
-				register_y = Byte.parseByte(instruction_elements[1].trim());
+				register_x = Byte.parseByte(temp.substring(4, 5));
+				register_y = Byte.parseByte(instruction_elements[1]);
 				break;
 			case SEVEN:
 				general_register = Byte.parseByte(temp.substring(4, 5)
-						.trim());
-				count = Byte.parseByte(instruction_elements[1].trim());
-				lr = Byte.parseByte(instruction_elements[2].trim());
-				al = Byte.parseByte(instruction_elements[3].trim());
+						);
+				count = Byte.parseByte(instruction_elements[1]);
+				lr = Byte.parseByte(instruction_elements[2]);
+				al = Byte.parseByte(instruction_elements[3]);
 				break;
 			case EIGHT:
 				if (opcodeKeyString.equals("IN"))
 					general_register = Byte.parseByte(temp.substring(3, 4)
-							.trim());
+							);
 				else
 					general_register = Byte.parseByte(temp.substring(4, 5)
-							.trim());
-				devid = Byte.parseByte(instruction_elements[1].trim());
+							);
+				devid = Byte.parseByte(instruction_elements[1]);
 				break;
 			default:
 				break;
@@ -253,21 +389,69 @@ public class InstructionLoader implements Loader {
 		this.load(reader);
 	}
 	
+	/**
+	 * Searches the label table for the given string.
+	 * @param searchString
+	 * @return Index of the label within the table, or -1 if not found
+	 */
 	public int searchLabelTable(String searchString){
-		for(int i = 0; i < LabelTable.size(); i++)
-			if(LabelTable.get(i).label.equals(searchString))
+		for(int i = 0; i < labelTable.size(); i++)
+			if(labelTable.get(i).label.equals(searchString))
 				return i;
 		return -1;
 	}
 	
+	/**
+	 * Returns the jump address based on an instruction's location in memory.
+	 * Essentially searches the references for each label, and returns the address
+	 * of the label which the passed address references.
+	 * 
+	 * Ex. An instruction at memory location 50 references "LABEL". The address of 
+	 * "LABEL" will be returned.
+	 * @param instructionAddress The address of the instruction.
+	 * @return The address of the label (i.e. the jump address)
+	 */
+	public static short getJumpAddrFromReference(short instructionAddress){
+		short jumpAddr = 0;
+		
+		OuterLoop:
+		for(int i = 0; i < labelTable.size(); i++){
+			ArrayList<Short> references = labelTable.get(i).references;
+			for(int j = 0; j < references.size(); j++){
+				if(references.get(j) == instructionAddress){
+					jumpAddr = labelTable.get(i).address;
+					break OuterLoop;
+				}
+			}
+		}
+		return jumpAddr;
+	}
+	
+	/**
+	 * Entry for the label table. Holds the label and its address.
+	 * A stack is used to keep track of forward references, so they can be resolved when
+	 * the label is finally found.
+	 * An ArrayList is used to keep track of all references to the label - forward or backward.
+	 */
 	class LabelEntry{
 		public String label;
 		public short address;
 		public Stack<Short> forwardReferences; 
+		public ArrayList<Short> references;
 		public LabelEntry(String label, short address){
 			this.label = label;
 			this.address = address;
 			forwardReferences = new Stack<Short>();
+			references = new ArrayList<Short>();
+		}
+		
+		public LabelEntry(String label, short address, short forwardRefAddress){
+			this.label = label;
+			this.address = address;
+			forwardReferences = new Stack<Short>();
+			forwardReferences.push(forwardRefAddress);
+			references = new ArrayList<Short>();
+			references.add(forwardRefAddress);
 		}
 	}
 }

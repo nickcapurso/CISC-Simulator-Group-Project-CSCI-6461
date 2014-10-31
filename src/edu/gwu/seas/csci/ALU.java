@@ -201,6 +201,14 @@ public class ALU implements CPUConstants{
 		
 		long result = Integer.toUnsignedLong(op1Val) * Integer.toUnsignedLong(op2Val);
 		
+		if(result == 0){
+			BitSet high = Utils.intToBitSet((int)0, DEFAULT_BIT_SIZE);
+			BitSet low = Utils.intToBitSet((int)0, DEFAULT_BIT_SIZE);
+			
+			cpu.setReg(RESULT, high, DEFAULT_BIT_SIZE);
+			cpu.setReg(RESULT2, low, DEFAULT_BIT_SIZE);	
+			return;
+		}
 		
 		//maybe i can keep shifting left until i hit a number....
 		while (result == (result >>> 1)) {
