@@ -356,7 +356,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			    chooser.setFileFilter(filter);
 			    int returnVal = chooser.showOpenDialog(this);
 			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			    	fileloader.Load_File(chooser.getSelectedFile().getName());
+			    	fileloader.loadFile(chooser.getSelectedFile().getName());
 			    	fileloader.load();
 			    } else {
 			    	logger.debug("File failed to load or could not be found.");

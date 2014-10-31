@@ -930,7 +930,7 @@ public class CPU implements CPUConstants {
 			
 			try {
 				System.out.println(step_type);
-				Word word_command = (new InstructionLoader()).StringToWord(step_type);
+				Word word_command = (new InstructionLoader()).instructionToWord(step_type);
 				Utils.bitsetToString("input", word_command, 18);
 				setReg(MDR, word_command);
 				cycle_count++;

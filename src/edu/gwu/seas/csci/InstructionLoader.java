@@ -60,7 +60,10 @@ public class InstructionLoader implements Loader {
 		reader = new BufferedReader(new InputStreamReader(in));
 	}
 
-	public void Load_File(String file) {
+	/**
+	 * @param file
+	 */
+	public void loadFile(String file) {
 		InputStream in = getClass().getResourceAsStream("/" + file);
 		reader = new BufferedReader(new InputStreamReader(in));
 	}
@@ -94,7 +97,7 @@ public class InstructionLoader implements Loader {
 					continue;
 				}
 
-				Word word = StringToWord(temp);
+				Word word = instructionToWord(temp);
 				
 				if (word != null)
 					memory.write(word, memory_location++);
@@ -106,8 +109,8 @@ public class InstructionLoader implements Loader {
 		}
 	}
 	
-	public Word StringToWord(String input) {
-		String temp = input;
+	public Word instructionToWord(String instruction) {
+		String temp = instruction;
 		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 		Word word = new Word();
 		int numElements = 0;
