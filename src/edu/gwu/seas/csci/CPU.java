@@ -506,7 +506,7 @@ public class CPU implements CPUConstants {
 	}
 
 	static final Logger logger = LogManager.getLogger(CPU.class.getName());
-	public static final byte BOOTLOADER_START = 010;
+	public static final byte BOOTLOADER_START = InstructionLoader.DEFAULT_LOADING_ADDR;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
@@ -515,6 +515,7 @@ public class CPU implements CPUConstants {
 	private ALU alu;
 
 	public String input_buffer = "";
+	public int character_pointer = 0;
 	public int memory_stack = 2047;
 
 	/**
@@ -864,7 +865,7 @@ public class CPU implements CPUConstants {
 	public void handleInterrupt(byte interruptCode) {
 		switch (interruptCode) {
 		case INTERRUPT_IO:
-			if (!input_buffer.equals("")) {
+			if (!input_buffer.equals("") && waitForInterrupt) {
 				logger.debug("Restarting instruction");
 				waitForInterrupt = false;
 				executeInstruction(currentExecution);
@@ -1221,7 +1222,7 @@ public class CPU implements CPUConstants {
 			}
 			break;
 		case OpCodesList.JMP:
-			System.out.println("JUMP");
+			//System.out.println("JUMP");
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1363,7 +1364,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.AMR:
-			System.out.println("Prog step:" + prog_step);
+			//System.out.println("Prog step:" + prog_step);
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1413,7 +1414,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.SMR:
-			System.out.println("SMR");
+			//System.out.println("SMR");
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1746,37 +1747,39 @@ public class CPU implements CPUConstants {
 				waitForInterrupt = true;
 				return;
 			}
-
+			
+			//The character_pointer is used as an index into the
+			//string to return a single character
 			try {
-				int input = Integer.parseInt(input_buffer);
+				if(character_pointer == 0)
+					Computer_GUI.append_to_terminal(input_buffer);
+				//int input = Integer.parseInt(input_buffer);
+				
+				//Pick off a single character and put it in the register, advance the index
+				int input = input_buffer.charAt(character_pointer++);
 				BitSet input_bitset = Utils.intToBitSet(input, 18);
 				setReg(registerFile(getReg(R)), input_bitset, 18);
-				Computer_GUI.append_to_terminal(input_buffer);
 			} catch (NumberFormatException e) {
 				// Does not handle string input!!
 				// Word input_word = (Word) Utils.StringToWord(input_buffer);
 				// setReg(registerFile(getReg(R)), input_word);
 			}
-			input_buffer = "";
+			
+			//If the end of the string has been reached, reset the character pointer and
+			//clear the input buffer
+			if(character_pointer == input_buffer.length()){
+				character_pointer = 0;
+				input_buffer = "";
+			}
 			cycle_count++;
 			prog_step = 0;
 			break;
 
 		case OpCodesList.OUT:
+			//Prints a single character
 			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
-				int output = Utils.convertToInt(
-						getReg(registerFile(getReg(R))), 18);
-
-				if (Utils.convertToUnsignedByte(this.readFromMemory(120), 18) == (byte) 1)
-					Computer_GUI.append_to_terminal(""
-							+ Integer.toString(output));
-				else
-					Computer_GUI.append_to_terminal("" + (char) (output));
-				logger.info("Memory addr 120 = "
-						+ Utils.convertToUnsignedByte(this.readFromMemory(120),
-								18));
-				logger.info("OUT: " + output);
-
+				int output = Utils.convertToInt(getReg(registerFile(getReg(R))), 18);
+				Computer_GUI.append_to_terminal("" + (char) (output));
 			}
 			cycle_count++;
 			prog_step = 0;
@@ -1901,6 +1904,14 @@ public class CPU implements CPUConstants {
 
 		case 3:
 			irdecoder.parseIR(regMap.get(IR));
+			
+			if(Utils.convertToUnsignedByte(getReg(ADDR), getReg(ADDR).getNumBits()) == 8){
+				short currentPC = (short) Utils.convertToInt(getReg(PC), getReg(PC).getNumBits());
+				int jumpAddr = InstructionLoader.getJumpAddrFromReference(currentPC);
+				Word word = Utils.registerToWord(Utils.intToBitSet(jumpAddr, 18), 18);
+				this.writeToMemory(word, 8);
+			}
+			
 			cycle_count++;
 			prog_step++;
 			break;

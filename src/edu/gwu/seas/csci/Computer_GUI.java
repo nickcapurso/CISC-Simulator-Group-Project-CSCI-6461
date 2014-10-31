@@ -380,7 +380,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			runinput.setEnabled(true);
 			load.setEnabled(true);
 		} else if (e.getSource() == enter) {
-			cpu.input_buffer = textField.getText();
+			cpu.input_buffer = textField.getText() + (char)4;
 			cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
 			System.out.println(cpu.input_buffer);
 			textField.setText("");
