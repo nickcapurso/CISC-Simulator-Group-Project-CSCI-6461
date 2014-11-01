@@ -70,30 +70,23 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.setBackground(SystemColor.menu);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
-		contentPane.setLayout(null);
 		
 		//Registers for getting and setting register and memory
 		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
 				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
 				"RX", "RY", "AL", "LR", "COUNT"};
-
-		/*
-		 * Textfield and Textpane for I/O
-		 */
+		contentPane.setLayout(new MigLayout("", "[200px:n][12px][150px][12px][104px][97px][12px][19px][176px][336px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
 		textField = new JTextField();
-		textField.setBounds(10, 522, 179, 27);
-		contentPane.add(textField);
+		contentPane.add(textField, "cell 0 17,grow");
 		textField.setColumns(10);
-
 		terminal = new JTextArea();
+		contentPane.add(terminal, "cell 0 8 5 9,grow");
 		terminal.setEnabled(false);
 		terminal.setLineWrap(true);
-		JScrollPane scroll = new JScrollPane (terminal, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
+		JScrollPane scroll = new JScrollPane (JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		scroll.setBounds(12, 310, 402, 199);
-		contentPane.add(scroll);
+		contentPane.add(scroll, "cell 0 8 5 9,growy");
 
 		/*
 		 * JButtons for user interaction - Load: load a textfile through
@@ -103,107 +96,84 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 * rest of the Program
 		 */
 		start = new JButton("Start");
-		start.setBounds(426, 462, 97, 25);
-		contentPane.add(start);
+		contentPane.add(start, "cell 5 16,growx,aligny top");
 		start.addActionListener(this);
 
 		load = new JButton("Load");
-		load.setBounds(201, 523, 97, 25);
-		contentPane.add(load);
+		contentPane.add(load, "cell 2 17,growx,aligny center");
 		load.addActionListener(this);
 
 		macrostep = new JButton("Macro Step");
-		macrostep.setBounds(426, 310, 97, 25);
-		contentPane.add(macrostep);
+		contentPane.add(macrostep, "cell 5 8,alignx left,aligny top");
 		macrostep.addActionListener(this);
 
 		microstep = new JButton("Micro Step");
-		microstep.setBounds(426, 348, 97, 25);
-		contentPane.add(microstep);
+		contentPane.add(microstep, "cell 5 10,growx,aligny top");
 		microstep.addActionListener(this);
 
 		runinput = new JButton("Run Input");
-		runinput.setBounds(310, 523, 97, 25);
-		contentPane.add(runinput);
+		contentPane.add(runinput, "cell 4 17,growx,aligny center");
 		runinput.addActionListener(this);
 
 		reset = new JButton("Reset");
-		reset.setBounds(426, 424, 97, 25);
-		contentPane.add(reset);
+		contentPane.add(reset, "cell 5 14,growx,aligny top");
 		reset.addActionListener(this);
 
 		cont = new JButton("Continue");
-		cont.setBounds(426, 386, 97, 25);
-		contentPane.add(cont);
+		contentPane.add(cont, "cell 5 12,growx,aligny top");
 		cont.addActionListener(this);
 		
 		enter = new JButton("Enter");
-		enter.setBounds(426, 523, 97, 25);
-		contentPane.add(enter);
+		contentPane.add(enter, "cell 5 17,growx,aligny center");
 		enter.addActionListener(this);
 
 		/*
 		 * Register Label Creation - If there is time should create in a loop
 		 */
 		JLabel r0_lbl = new JLabel("R0:");
-		r0_lbl.setBounds(10, 10, 25, 30);
-		contentPane.add(r0_lbl);
+		contentPane.add(r0_lbl, "cell 0 0,alignx left,growy");
 
 		JLabel R1_lbl = new JLabel("R1:");
-		R1_lbl.setBounds(10, 41, 25, 30);
-		contentPane.add(R1_lbl);
+		contentPane.add(R1_lbl, "cell 0 1,alignx left,growy");
 
 		JLabel R2_lbl = new JLabel("R2:");
-		R2_lbl.setBounds(10, 72, 25, 30);
-		contentPane.add(R2_lbl);
+		contentPane.add(R2_lbl, "cell 0 2,alignx left,growy");
 
 		JLabel R3_lbl = new JLabel("R3:");
-		R3_lbl.setBounds(10, 103, 25, 30);
-		contentPane.add(R3_lbl);
+		contentPane.add(R3_lbl, "cell 0 3,alignx left,growy");
 
 		JLabel X1_lbl = new JLabel("X1:");
-		X1_lbl.setBounds(10, 134, 25, 30);
-		contentPane.add(X1_lbl);
+		contentPane.add(X1_lbl, "cell 0 4,alignx left,growy");
 
 		JLabel X2_lbl = new JLabel("X2:");
-		X2_lbl.setBounds(10, 165, 25, 30);
-		contentPane.add(X2_lbl);
+		contentPane.add(X2_lbl, "cell 0 5,alignx left,growy");
 
 		JLabel X3_lbl = new JLabel("X3:");
-		X3_lbl.setBounds(10, 196, 25, 30);
-		contentPane.add(X3_lbl);
+		contentPane.add(X3_lbl, "cell 0 6,alignx left,growy");
 
 		JLabel lblPc = new JLabel("PC:");
-		lblPc.setBounds(498, 10, 25, 30);
-		contentPane.add(lblPc);
+		contentPane.add(lblPc, "cell 5 0 3 1,alignx right,growy");
 
 		lblMar = new JLabel("MAR:");
-		lblMar.setBounds(498, 41, 41, 30);
-		contentPane.add(lblMar);
+		contentPane.add(lblMar, "cell 5 1 3 1,alignx right,growy");
 
 		lblMsr = new JLabel("MSR:");
-		lblMsr.setBounds(498, 72, 41, 30);
-		contentPane.add(lblMsr);
+		contentPane.add(lblMsr, "cell 5 2 3 1,alignx right,growy");
 
 		lblMdr = new JLabel("MDR:");
-		lblMdr.setBounds(498, 103, 41, 30);
-		contentPane.add(lblMdr);
+		contentPane.add(lblMdr, "cell 5 3 3 1,alignx right,growy");
 
 		lblMfr = new JLabel("MFR:");
-		lblMfr.setBounds(498, 134, 41, 30);
-		contentPane.add(lblMfr);
+		contentPane.add(lblMfr, "cell 5 4 3 1,alignx right,growy");
 		
 		JLabel lblCc = new JLabel("CC:");
-		lblCc.setBounds(498, 165, 41, 30);
-		contentPane.add(lblCc);
+		contentPane.add(lblCc, "cell 5 5 3 1,alignx right,growy");
 
 		JLabel lblIr = new JLabel("OPCODE:");
-		lblIr.setBounds(498, 202, 56, 16);
-		contentPane.add(lblIr);
+		contentPane.add(lblIr, "cell 5 6 3 1,alignx right,aligny center");
 
 		opcode_name = new JLabel("");
-		opcode_name.setBounds(730, 172, 56, 16);
-		contentPane.add(opcode_name);
+		contentPane.add(opcode_name, "cell 9 5,alignx left,growy");
 		
 		/*
 		 * Jpanel for Setting Registers and Memory
@@ -217,8 +187,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 */
 		panel = new JPanel();
 		panel.setBackground(Color.GRAY);
-		panel.setBounds(535, 310, 531, 101);
-		contentPane.add(panel);
+		contentPane.add(panel, "cell 7 8 3 5,grow");
 		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][150:n][][150px:n:150px,center][]", "[][][]"));
 		
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
@@ -261,8 +230,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		get_reg_mem.addActionListener(this);
 		
 		show_hide_dev = new JButton("Hide Developer Console");
-		show_hide_dev.setBounds(12, 272, 225, 25);
-		contentPane.add(show_hide_dev);
+		contentPane.add(show_hide_dev, "cell 0 7 3 1,alignx left,aligny top");
 		show_hide_dev.addActionListener(this);
 		
 
