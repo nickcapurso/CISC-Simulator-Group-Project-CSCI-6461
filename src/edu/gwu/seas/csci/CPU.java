@@ -597,6 +597,9 @@ public class CPU implements CPUConstants {
 
 		// Registers for IO instructions
 		regMap.put(DEVID, new Register(InstructionBitFormats.IO_DEVID_SIZE));
+		
+		// Registers for TRAP instructions
+		regMap.put(TRAPCODE, new Register(InstructionBitFormats.TRAP_CODE_SIZE));
 
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
@@ -1264,6 +1267,7 @@ public class CPU implements CPUConstants {
 				break;
 			}
 			break;
+			
 
 		case OpCodesList.RFS:
 			switch (prog_step) {
@@ -1784,6 +1788,24 @@ public class CPU implements CPUConstants {
 			cycle_count++;
 			prog_step = 0;
 			break;
+			
+		case OpCodesList.TRAP:
+			switch (prog_step) {
+			case 4:
+				logger.debug("TRAP");
+				//store pc in memory[2]
+				Word pc = Utils.registerToWord(getReg(PC), 12);
+				Memory.getInstance().write(pc, 2);
+				break;
+			case 5:
+				//setPC to current subroutine address
+				Word sub_table = Memory.getInstance().read(2);
+				int trap_subroutine = Utils.convertToInt(sub_table, 18) + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
+				Word sub_location = Memory.getInstance().read(trap_subroutine);
+				setReg(PC, sub_location);
+				break;
+			}
+			break;
 
 		case OpCodesList.HLT:
 			logger.info("End of the program");
@@ -1833,6 +1855,7 @@ public class CPU implements CPUConstants {
 				.getNumBits());
 		Utils.bitsetToString(DEVID, getReg(DEVID), getReg(DEVID).getNumBits());
 		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
+		Utils.bitsetToString(TRAPCODE, getReg(TRAPCODE), getReg(TRAPCODE).getNumBits());
 	}
 
 	/**

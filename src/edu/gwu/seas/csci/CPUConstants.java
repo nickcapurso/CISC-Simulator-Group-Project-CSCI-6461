@@ -69,6 +69,11 @@ public interface CPUConstants {
 	 * IO Constants
 	 */
 	public static final String DEVID = "DEVID";
+	
+	/*
+	 * TRAP Constants
+	 */
+	public static final String TRAPCODE = "TRAPCODE";
 
 	
 	
