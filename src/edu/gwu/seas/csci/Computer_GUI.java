@@ -364,8 +364,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 					System.err.println("Error: " + ex.getMessage());
 				}
 				textField.setText("");
-				// Needs to run through the FileLoader Instruction Parser to work
-				// properly
+				// Needs to run through the FileLoader Instruction Parser to work properly
+				start.setEnabled(true);
+				cont.setEnabled(true);
+				macrostep.setEnabled(true);
+				microstep.setEnabled(true);
+				runinput.setEnabled(true);
+				load.setEnabled(true);		
 			}
 		});
 		
