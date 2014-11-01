@@ -25,6 +25,7 @@ import javax.swing.SpinnerNumberModel;
 
 import net.miginfocom.swing.MigLayout;
 
+import java.awt.Dimension;
 import java.awt.SystemColor;
 import java.awt.Color;
 
@@ -54,10 +55,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JButton reset;
 	private InstructionLoader fileloader = new InstructionLoader();
 	private CPU cpu;
-	private JLabel opcode_name;
-	private static HashMap<String, JRadioButton[]> Registers; // map of
-																// registers on
-																// gui
+	private static HashMap<String, JRadioButton[]> Registers; // map of registers on gui
+	private HashMap<String, String> exec_command;
 
 	/**
 	 * Create the frame.
@@ -65,28 +64,30 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	public Computer_GUI(CPU cpu1, Memory memory) {
 		cpu = cpu1;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1112, 624);
 		contentPane = new JPanel();
+		setBounds(100, 100, 100, 100);
 		contentPane.setBackground(SystemColor.menu);
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
+		init_exec_command_map();
 		
 		//Registers for getting and setting register and memory
 		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
 				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
 				"RX", "RY", "AL", "LR", "COUNT"};
-		contentPane.setLayout(new MigLayout("", "[200px:n][12px][150px][12px][104px][97px][12px][19px][176px][336px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
+		contentPane.setLayout(new MigLayout("", "[200px:n:200px][125px:n][125px:n][97px][12px][19px][176px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
+	
 		textField = new JTextField();
 		contentPane.add(textField, "cell 0 17,grow");
 		textField.setColumns(10);
+		
 		terminal = new JTextArea();
-		contentPane.add(terminal, "cell 0 8 5 9,grow");
 		terminal.setEnabled(false);
 		terminal.setLineWrap(true);
 		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
 		JScrollPane scroll = new JScrollPane (JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		contentPane.add(scroll, "cell 0 8 5 9,growy");
+		contentPane.add(terminal, "cell 0 8 3 9,grow");
+		contentPane.add(scroll, "cell 0 8 3 9,growy");
 
 		/*
 		 * JButtons for user interaction - Load: load a textfile through
@@ -96,36 +97,32 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 * rest of the Program
 		 */
 		start = new JButton("Start");
-		contentPane.add(start, "cell 5 16,growx,aligny top");
+		contentPane.add(start, "cell 3 16,growx,aligny top");
 		start.addActionListener(this);
 
 		load = new JButton("Load");
-		contentPane.add(load, "cell 2 17,growx,aligny center");
-		load.addActionListener(this);
+		contentPane.add(load, "cell 1 17,grow");
 
 		macrostep = new JButton("Macro Step");
-		contentPane.add(macrostep, "cell 5 8,alignx left,aligny top");
+		contentPane.add(macrostep, "cell 3 8,alignx left,aligny top");
 		macrostep.addActionListener(this);
 
 		microstep = new JButton("Micro Step");
-		contentPane.add(microstep, "cell 5 10,growx,aligny top");
+		contentPane.add(microstep, "cell 3 10,growx,aligny top");
 		microstep.addActionListener(this);
 
 		runinput = new JButton("Run Input");
-		contentPane.add(runinput, "cell 4 17,growx,aligny center");
-		runinput.addActionListener(this);
+		contentPane.add(runinput, "cell 2 17,grow");
 
 		reset = new JButton("Reset");
-		contentPane.add(reset, "cell 5 14,growx,aligny top");
-		reset.addActionListener(this);
+		contentPane.add(reset, "cell 3 14,growx,aligny top");
 
 		cont = new JButton("Continue");
-		contentPane.add(cont, "cell 5 12,growx,aligny top");
+		contentPane.add(cont, "cell 3 12,growx,aligny top");
 		cont.addActionListener(this);
 		
 		enter = new JButton("Enter");
-		contentPane.add(enter, "cell 5 17,growx,aligny center");
-		enter.addActionListener(this);
+		contentPane.add(enter, "cell 3 17,growx,aligny center");
 
 		/*
 		 * Register Label Creation - If there is time should create in a loop
@@ -152,28 +149,25 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.add(X3_lbl, "cell 0 6,alignx left,growy");
 
 		JLabel lblPc = new JLabel("PC:");
-		contentPane.add(lblPc, "cell 5 0 3 1,alignx right,growy");
+		contentPane.add(lblPc, "cell 3 0 3 1,alignx right,growy");
 
 		lblMar = new JLabel("MAR:");
-		contentPane.add(lblMar, "cell 5 1 3 1,alignx right,growy");
+		contentPane.add(lblMar, "cell 3 1 3 1,alignx right,growy");
 
 		lblMsr = new JLabel("MSR:");
-		contentPane.add(lblMsr, "cell 5 2 3 1,alignx right,growy");
+		contentPane.add(lblMsr, "cell 3 2 3 1,alignx right,growy");
 
 		lblMdr = new JLabel("MDR:");
-		contentPane.add(lblMdr, "cell 5 3 3 1,alignx right,growy");
+		contentPane.add(lblMdr, "cell 3 3 3 1,alignx right,growy");
 
 		lblMfr = new JLabel("MFR:");
-		contentPane.add(lblMfr, "cell 5 4 3 1,alignx right,growy");
+		contentPane.add(lblMfr, "cell 3 4 3 1,alignx right,growy");
 		
 		JLabel lblCc = new JLabel("CC:");
-		contentPane.add(lblCc, "cell 5 5 3 1,alignx right,growy");
+		contentPane.add(lblCc, "cell 3 5 3 1,alignx right,growy");
 
 		JLabel lblIr = new JLabel("OPCODE:");
-		contentPane.add(lblIr, "cell 5 6 3 1,alignx right,aligny center");
-
-		opcode_name = new JLabel("");
-		contentPane.add(opcode_name, "cell 9 5,alignx left,growy");
+		contentPane.add(lblIr, "cell 3 6 3 1,alignx right,aligny center");
 		
 		/*
 		 * Jpanel for Setting Registers and Memory
@@ -187,7 +181,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 */
 		panel = new JPanel();
 		panel.setBackground(Color.GRAY);
-		contentPane.add(panel, "cell 7 8 3 5,grow");
+		contentPane.add(panel, "cell 5 8 2 5,grow");
 		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][150:n][][150px:n:150px,center][]", "[][][]"));
 		
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
@@ -198,7 +192,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		
 		register_list = new JComboBox(registers);
 		panel.add(register_list, "cell 1 1 2 1,growx");
-		register_list.addActionListener(this);
 		
 		JLabel lblTo = new JLabel("- to -");
 		panel.add(lblTo, "cell 2 1");
@@ -214,7 +207,6 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		set_reg_mem = new JButton("Set");
 		panel.add(set_reg_mem, "cell 5 1");
 		set_reg_mem.setEnabled(false);
-		set_reg_mem.addActionListener(this);
 		
 		JLabel lblAt = new JLabel("At -");
 		panel.add(lblAt, "cell 0 2,alignx center");
@@ -227,11 +219,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		get_reg_mem = new JButton("Get");
 		get_reg_mem.setEnabled(false);
 		panel.add(get_reg_mem, "cell 5 2");
-		get_reg_mem.addActionListener(this);
 		
 		show_hide_dev = new JButton("Hide Developer Console");
-		contentPane.add(show_hide_dev, "cell 0 7 3 1,alignx left,aligny top");
-		show_hide_dev.addActionListener(this);
+		contentPane.add(show_hide_dev, "cell 0 7 2 1,alignx left,aligny top");
 		
 
 		/*
@@ -263,34 +253,34 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				if (j < GPR.length) {
 					GPR[j][i] = new JRadioButton();
 					GPR[j][i].setEnabled(false);
-					GPR[j][i].setBounds(35 + 24 * i, 15 + 31 * j, 20, 20);
-					contentPane.add(GPR[j][i]);
+					String location = "cell 0 " + j;
+					contentPane.add(GPR[j][i], location);
 				}
 				if (j < XR.length) {
 					XR[j][i] = new JRadioButton();
 					XR[j][i].setEnabled(false);
-					XR[j][i].setBounds(35 + 24 * i, 139 + 31 * j, 20, 20);
-					contentPane.add(XR[j][i]);
+					String location = "cell 0 " + (j + 4);
+					contentPane.add(XR[j][i], location);
 				}
 				if (j == MR.length - 1 || j == MR.length - 2) {
 					if (i < MFR.length || i < CC.length) {
 						MR[j][i] = new JRadioButton();
 						MR[j][i].setEnabled(false);
-						MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-						contentPane.add(MR[j][i]);
+						String location = "cell 6 " + (j);
+						contentPane.add(MR[j][i], location);
 					}
 				} else if (j == 0) {
 					if (i < PC.length) {
 						MR[j][i] = new JRadioButton();
 						MR[j][i].setEnabled(false);
-						MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-						contentPane.add(MR[j][i]);
+						String location = "cell 6 " + (j);
+						contentPane.add(MR[j][i], location);
 					}
 				} else {
 					MR[j][i] = new JRadioButton();
 					MR[j][i].setEnabled(false);
-					MR[j][i].setBounds(547 + 24 * i, 15 + 31 * j, 20, 20);
-					contentPane.add(MR[j][i]);
+					String location = "cell 6 " + (j);
+					contentPane.add(MR[j][i], location);
 				}
 			}
 		}
@@ -299,8 +289,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		for (int i = 0; i < 6; i++) {
 			IR[i] = new JRadioButton();
 			IR[i].setEnabled(false);
-			IR[i].setBounds(547 + 24 * i, 201, 20, 20);
-			contentPane.add(IR[i]);
+			String location = "cell 6 6";
+			contentPane.add(IR[i], location);
 		}
 		/*
 		 * Place registers in the map (Registers)
@@ -319,118 +309,157 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
 		Registers.put("CC",	CC);
-
+		
+		//Action Listeners for complex logic
+		
+		
+		register_list.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String value = (String) register_list.getSelectedItem();
+				if (value == "Select Register/Memory") {
+					set_reg_mem.setEnabled(false);
+					get_reg_mem.setEnabled(false);
+				} else if (value == "Memory") {
+					panel.remove(bit_value_model);
+					memory_address.setEnabled(true);
+					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2,  18), 1);
+					bit_value_model = new JSpinner(bit_value);
+					panel.add(bit_value_model, "cell 4 1,growx");
+					set_reg_mem.setEnabled(true);
+					get_reg_mem.setEnabled(true);
+					panel.revalidate();
+					panel.repaint();
+				} else {
+					panel.remove(bit_value_model);
+					memory_address.setEnabled(false);
+					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu.getReg(value).getNumBits()-1), 1);
+					bit_value_model = new JSpinner(bit_value);
+					panel.add(bit_value_model, "cell 4 1,growx");
+					set_reg_mem.setEnabled(true);
+					get_reg_mem.setEnabled(true);
+					panel.revalidate();
+					panel.repaint();
+					
+				}
+			}
+		});
+		
+		load.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+				    JFileChooser chooser = new JFileChooser();
+				    FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "TXT files", "txt");
+				    chooser.setFileFilter(filter);
+				    int returnVal = chooser.showOpenDialog(load);
+				    if(returnVal == JFileChooser.APPROVE_OPTION) {
+				    	fileloader.loadFile(chooser.getSelectedFile().getName());
+				    	fileloader.load();
+				    } else {
+				    	logger.debug("File failed to load or could not be found.");
+				    }
+				} catch (Exception ex) { //Catch exception if any
+					System.err.println("Error: " + ex.getMessage());
+				}
+				textField.setText("");
+				// Needs to run through the FileLoader Instruction Parser to work
+				// properly
+			}
+		});
+		
+		get_reg_mem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((String) register_list.getSelectedItem() == "Memory") {
+					Word word = Memory.getInstance().read((Integer) memory_address.getValue());
+					Computer_GUI.append_to_terminal(Utils.WordToString(word, 18) + "\n");
+				} else {
+					Register reg = cpu.getReg((String) register_list.getSelectedItem());
+					Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18) + "\n");
+				}
+			}
+		});
+		
+		set_reg_mem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if ((String) register_list.getSelectedItem() == "Memory") {
+					int memory_address_value = (int) memory_address.getValue();
+					int bitset_value = clean_spinner((double) bit_value.getValue());
+					BitSet bitset = Utils.intToBitSet(bitset_value, 18);
+					Word word = Utils.registerToWord(bitset, 18);
+					Memory.getInstance().write(word, memory_address_value);
+				} else {
+					int int_value = clean_spinner((double) bit_value.getValue());
+					BitSet reg_val = Utils.intToBitSet(int_value, 18);
+					cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
+				}
+			}
+		});
+		
+		show_hide_dev.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				show_hide = !show_hide;
+				for (int i=0; i<MAR.length; i++) {
+					if (i < 4) {
+						MFR[i].setVisible(show_hide);
+					}
+					MAR[i].setVisible(show_hide);
+					MDR[i].setVisible(show_hide);
+					MSR[i].setVisible(show_hide);
+				}
+				lblMar.setVisible(show_hide);
+				lblMsr.setVisible(show_hide);
+				lblMdr.setVisible(show_hide);
+				lblMfr.setVisible(show_hide);
+				panel.setVisible(show_hide);
+				String show_or_hide = show_hide ? "Hide Developers Console" : "Show Developers Console";
+				show_hide_dev.setText(show_or_hide);
+			}
+		});
+		
+		enter.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				cpu.input_buffer = textField.getText() + (char)4;
+				cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
+				System.out.println(cpu.input_buffer);
+				textField.setText("");
+			}
+		});
+		
+		reset.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				cpu.startBootloader();
+				start.setEnabled(true);
+				cont.setEnabled(true);
+				macrostep.setEnabled(true);
+				microstep.setEnabled(true);
+				runinput.setEnabled(true);
+				load.setEnabled(true);				
+			}
+		});
+		
+		runinput.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String user_input = textField.getText();
+				cpu.executeInstruction(user_input);
+				textField.setText("");
+			}
+		});
 	}
 
+	//Run execution commands
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == start || e.getSource() == cont) {
-			cpu.executeInstruction("continue");
-		} else if (e.getSource() == microstep) {
-			cpu.executeInstruction("micro step");
-		} else if (e.getSource() == macrostep) {
-			cpu.executeInstruction("macro step");
-		} else if (e.getSource() == load) {
-			try {
-			    JFileChooser chooser = new JFileChooser();
-			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-			        "TXT files", "txt");
-			    chooser.setFileFilter(filter);
-			    int returnVal = chooser.showOpenDialog(this);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			    	fileloader.loadFile(chooser.getSelectedFile().getName());
-			    	fileloader.load();
-			    } else {
-			    	logger.debug("File failed to load or could not be found.");
-			    }
-			} catch (Exception ex) { //Catch exception if any
-				System.err.println("Error: " + ex.getMessage());
-			}
-			textField.setText("");
-			// Needs to run through the FileLoader Instruction Parser to work
-			// properly
-		} else if (e.getSource() == runinput) {
-			String user_input = textField.getText();
-			cpu.executeInstruction(user_input);
-			textField.setText("");
-		} else if (e.getSource() == reset) {
-			cpu.startBootloader();
-			start.setEnabled(true);
-			cont.setEnabled(true);
-			macrostep.setEnabled(true);
-			microstep.setEnabled(true);
-			runinput.setEnabled(true);
-			load.setEnabled(true);
-		} else if (e.getSource() == enter) {
-			cpu.input_buffer = textField.getText() + (char)4;
-			cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
-			System.out.println(cpu.input_buffer);
-			textField.setText("");
-		} else if (e.getSource() == register_list) {
-			String value = (String) register_list.getSelectedItem();
-			if (value == "Select Register/Memory") {
-				set_reg_mem.setEnabled(false);
-				get_reg_mem.setEnabled(false);
-			} else if (value == "Memory") {
-				panel.remove(bit_value_model);
-				memory_address.setEnabled(true);
-				bit_value = new SpinnerNumberModel(0, 0, Math.pow(2,  18), 1);
-				bit_value_model = new JSpinner(bit_value);
-				panel.add(bit_value_model, "cell 4 1,growx");
-				set_reg_mem.setEnabled(true);
-				get_reg_mem.setEnabled(true);
-				panel.revalidate();
-				panel.repaint();
-			} else {
-				panel.remove(bit_value_model);
-				memory_address.setEnabled(false);
-				bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu.getReg(value).getNumBits()-1), 1);
-				bit_value_model = new JSpinner(bit_value);
-				panel.add(bit_value_model, "cell 4 1,growx");
-				set_reg_mem.setEnabled(true);
-				get_reg_mem.setEnabled(true);
-				panel.revalidate();
-				panel.repaint();
-				
-			}
-		} else if (e.getSource() == set_reg_mem) {
-			if ((String) register_list.getSelectedItem() == "Memory") {
-				int memory_address_value = (int) memory_address.getValue();
-				int bitset_value = clean_spinner((double) bit_value.getValue());
-				BitSet bitset = Utils.intToBitSet(bitset_value, 18);
-				Word word = Utils.registerToWord(bitset, 18);
-				Memory.getInstance().write(word, memory_address_value);
-			} else {
-				int int_value = clean_spinner((double) bit_value.getValue());
-				BitSet reg_val = Utils.intToBitSet(int_value, 18);
-				cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
-			}
-		} else if (e.getSource() == get_reg_mem) {
-			if ((String) register_list.getSelectedItem() == "Memory") {
-				Word word = Memory.getInstance().read((Integer) memory_address.getValue());
-				Computer_GUI.append_to_terminal(Utils.WordToString(word, 18) + "\n");
-			} else {
-				Register reg = cpu.getReg((String) register_list.getSelectedItem());
-				Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18));
-			}
-		} else if (e.getSource() == show_hide_dev) {
-			show_hide = !show_hide;
-			for (int i=0; i<MAR.length; i++) {
-				if (i < 4) {
-					MFR[i].setVisible(show_hide);
-				}
-				MAR[i].setVisible(show_hide);
-				MDR[i].setVisible(show_hide);
-				MSR[i].setVisible(show_hide);
-			}
-			lblMar.setVisible(show_hide);
-			lblMsr.setVisible(show_hide);
-			lblMdr.setVisible(show_hide);
-			lblMfr.setVisible(show_hide);
-			panel.setVisible(show_hide);
-			String show_or_hide = show_hide ? "Hide Developers Console" : "Show Developers Console";
-			show_hide_dev.setText(show_or_hide);
-		}
+		JButton command = (JButton) e.getSource();
+		cpu.executeInstruction(exec_command.get(command.getText()));
 	}
 	
 	private int clean_spinner(double value) {
@@ -481,5 +510,14 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 	public static void append_to_terminal(String value) {
 		terminal.append(value);
+	}
+	
+	public void init_exec_command_map() {
+		exec_command = new HashMap<String, String>();
+		exec_command.put("Start", "continue");
+		exec_command.put("Continue", "continue");
+		exec_command.put("Micro Step", "micro step");
+		exec_command.put("Macro Step", "macro step");
+		return;		
 	}
 }
