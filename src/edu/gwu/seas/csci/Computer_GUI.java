@@ -47,7 +47,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private static JTextArea terminal;
 	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem;
 	private JComboBox register_list;
-	private JSpinner bit_value, memory_address, memory_address2;
+	private SpinnerNumberModel bit_value;
+	private JPanel panel;
+	private JSpinner bit_value_model, memory_address;
 	private JButton reset;
 	private InstructionLoader fileloader = new InstructionLoader();
 	private CPU cpu;
@@ -62,7 +64,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	public Computer_GUI(CPU cpu1, Memory memory) {
 		cpu = cpu1;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 954, 608);
+		setBounds(100, 100, 1031, 608);
 		contentPane = new JPanel();
 		contentPane.setBackground(SystemColor.menu);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -211,11 +213,11 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 *  - ComboBox:
 		 *  	register_list - list of registers/memory
 		 */
-		JPanel panel = new JPanel();
+		panel = new JPanel();
 		panel.setBackground(Color.GRAY);
-		panel.setBounds(535, 310, 389, 101);
+		panel.setBounds(535, 310, 466, 101);
 		contentPane.add(panel);
-		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][100:n][][50px:n:50px,center][]", "[][][]"));
+		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][100:n][][100px:n:100px,center][]", "[][][]"));
 		
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
 		panel.add(lblSetMemoryAnd, "cell 0 0");
@@ -233,8 +235,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		JLabel lblTo_1 = new JLabel("- to -");
 		panel.add(lblTo_1, "cell 3 1");
 		
-		bit_value = new JSpinner();
-		panel.add(bit_value, "cell 4 1,growx");
+		bit_value = new SpinnerNumberModel();
+		bit_value_model = new JSpinner(bit_value);
+		panel.add(bit_value_model, "cell 4 1,growx");
+		
 		
 		set_reg_mem = new JButton("Set");
 		panel.add(set_reg_mem, "cell 5 1");
@@ -385,14 +389,36 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			System.out.println(cpu.input_buffer);
 			textField.setText("");
 		} else if (e.getSource() == register_list) {
-			
+			String value = (String) register_list.getSelectedItem();
+			if (value == "Memory") {
+				panel.remove(bit_value_model);
+				memory_address.setEnabled(true);
+				bit_value = new SpinnerNumberModel(0, 0, 5, 1);
+				bit_value_model = new JSpinner(bit_value);
+				panel.add(bit_value_model, "cell 4 1,growx");
+				panel.revalidate();
+				panel.repaint();
+			} else {
+				panel.remove(bit_value_model);
+				memory_address.setEnabled(false);
+				bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu.getReg(value).getNumBits()-1), 1);
+				bit_value_model = new JSpinner(bit_value);
+				panel.add(bit_value_model, "cell 4 1,growx");
+				panel.revalidate();
+				panel.repaint();
+				
+			}
 		} else if (e.getSource() == set_reg_mem) {
 			if ((String) register_list.getSelectedItem() == "Memory") {
+				double value = (double) bit_value.getValue();
+				int int_value = (int) value;
 				BitSet bitset = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
 				Word word = Utils.registerToWord(bitset, 18);
 				Memory.getInstance().write(word, (Integer) memory_address.getValue());
 			} else {
-				BitSet reg_val = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
+				double value = (double) bit_value.getValue();
+				int int_value = (int) value;
+				BitSet reg_val = Utils.intToBitSet(int_value, 18);
 				cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
 			}
 		} else if (e.getSource() == get_reg_mem) {

@@ -20,7 +20,7 @@ public class InstructionBitFormats {
 	public static final byte HALT_SUFFIX_SIZE = HALT_SUFFIX_END - HALT_SUFFIX_START + 1;
 
 	//Constants for the trap instruction's unique format.
-	public static final byte TRAP_CODE_START = 12;
+	public static final byte TRAP_CODE_START = 14;
 	public static final byte TRAP_CODE_END = 17;
 	public static final byte TRAP_CODE_SIZE = TRAP_CODE_END - TRAP_CODE_START + 1;
 
@@ -67,4 +67,5 @@ public class InstructionBitFormats {
 	public static final byte IO_DEVID_START = 14;
 	public static final byte IO_DEVID_END = 17;
 	public static final byte IO_DEVID_SIZE = IO_DEVID_END - IO_DEVID_START + 1;
+
 }
