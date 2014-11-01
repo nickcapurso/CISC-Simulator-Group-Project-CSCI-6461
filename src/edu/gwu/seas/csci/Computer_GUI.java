@@ -370,7 +370,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				int returnVal = chooser.showOpenDialog(this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					fileloader = new InstructionLoader(chooser
-							.getSelectedFile().getName());
+							.getSelectedFile().getAbsolutePath());
 					fileloader.load();
 				} else {
 					logger.debug("File failed to load or could not be found.");

@@ -4,6 +4,8 @@
 package edu.gwu.seas.csci;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,7 +29,8 @@ public class InstructionLoader implements Loader {
 			.getName());
 
 	public static final byte JUMP_INDIRECTION_ADDR = 8;
-	public static final byte DEFAULT_LOADING_ADDR = 21;
+	public static final byte BOOT_PROGRAM_LOADING_ADDR = 21;
+	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 96;
 
 	/**
 	 * Provide a reference to the Computer's memory to hold the contents of the
@@ -78,8 +81,13 @@ public class InstructionLoader implements Loader {
 	 *            type of instruction.
 	 */
 	public InstructionLoader(String file) {
-		InputStream in = getClass().getResourceAsStream("/" + file);
-		reader = new BufferedReader(new InputStreamReader(in));
+		FileInputStream in;
+		try {
+			in = new FileInputStream(file);
+			reader = new BufferedReader(new InputStreamReader(in));
+		} catch (FileNotFoundException e) {
+			logger.error(e);
+		}
 	}
 
 	/*
@@ -92,7 +100,8 @@ public class InstructionLoader implements Loader {
 		labelTable = new ArrayList<LabelEntry>();
 		try {
 			String temp = null;
-			memory_location = DEFAULT_LOADING_ADDR;
+			memory_location = isAddressEmpty(95, memory) ? BOOT_PROGRAM_LOADING_ADDR
+					: GENERAL_PROGRAM_LOADING_ADDR;
 			while ((temp = reader.readLine()) != null) {
 				if (temp.equals("") || temp.charAt(0) == '/') {
 					logger.debug("Ignoring line: blank or a comment");
@@ -463,6 +472,20 @@ public class InstructionLoader implements Loader {
 			}
 		}
 		return jumpAddr;
+	}
+
+	/**
+	 * Tests a memory address for contents.
+	 * 
+	 * @param address
+	 *            The memory location to test for contents.
+	 * @param memory
+	 *            The physical memory that contains the address.
+	 * @return true if the address is empty; false otherwise.
+	 */
+	public boolean isAddressEmpty(int address, Memory memory) {
+		Word word = memory.read(address);
+		return word.isEmpty();
 	}
 
 	/**

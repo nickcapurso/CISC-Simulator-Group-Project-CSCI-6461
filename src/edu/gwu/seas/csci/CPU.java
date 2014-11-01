@@ -507,7 +507,7 @@ public class CPU implements CPUConstants {
 	}
 
 	static final Logger logger = LogManager.getLogger(CPU.class.getName());
-	public static final byte BOOTLOADER_START = InstructionLoader.DEFAULT_LOADING_ADDR;
+	public static final byte BOOTLOADER_START = InstructionLoader.BOOT_PROGRAM_LOADING_ADDR;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
