@@ -28,8 +28,6 @@ import net.miginfocom.swing.MigLayout;
 import java.awt.SystemColor;
 import java.awt.Color;
 
-import javax.swing.UIManager;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,7 +43,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;
-	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem;
+	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem, show_hide_dev;
+	private JRadioButton[] MAR, MSR, MFR, MDR;
+	private JLabel lblMsr, lblMar, lblMfr, lblMdr;
+	private Boolean show_hide = true;
 	private JComboBox register_list;
 	private SpinnerNumberModel bit_value;
 	private JPanel panel;
@@ -64,7 +65,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	public Computer_GUI(CPU cpu1, Memory memory) {
 		cpu = cpu1;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 1031, 608);
+		setBounds(100, 100, 1112, 624);
 		contentPane = new JPanel();
 		contentPane.setBackground(SystemColor.menu);
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -86,6 +87,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 		terminal = new JTextArea();
 		terminal.setEnabled(false);
+		terminal.setLineWrap(true);
 		JScrollPane scroll = new JScrollPane (terminal, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
@@ -175,19 +177,19 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		lblPc.setBounds(498, 10, 25, 30);
 		contentPane.add(lblPc);
 
-		JLabel lblMar = new JLabel("MAR:");
+		lblMar = new JLabel("MAR:");
 		lblMar.setBounds(498, 41, 41, 30);
 		contentPane.add(lblMar);
 
-		JLabel lblMsr = new JLabel("MSR:");
+		lblMsr = new JLabel("MSR:");
 		lblMsr.setBounds(498, 72, 41, 30);
 		contentPane.add(lblMsr);
 
-		JLabel lblMdr = new JLabel("MDR:");
+		lblMdr = new JLabel("MDR:");
 		lblMdr.setBounds(498, 103, 41, 30);
 		contentPane.add(lblMdr);
 
-		JLabel lblMfr = new JLabel("MFR:");
+		lblMfr = new JLabel("MFR:");
 		lblMfr.setBounds(498, 134, 41, 30);
 		contentPane.add(lblMfr);
 		
@@ -215,9 +217,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		 */
 		panel = new JPanel();
 		panel.setBackground(Color.GRAY);
-		panel.setBounds(535, 310, 466, 101);
+		panel.setBounds(535, 310, 531, 101);
 		contentPane.add(panel);
-		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][100:n][][100px:n:100px,center][]", "[][][]"));
+		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][150:n][][150px:n:150px,center][]", "[][][]"));
 		
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
 		panel.add(lblSetMemoryAnd, "cell 0 0");
@@ -242,6 +244,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		
 		set_reg_mem = new JButton("Set");
 		panel.add(set_reg_mem, "cell 5 1");
+		set_reg_mem.setEnabled(false);
 		set_reg_mem.addActionListener(this);
 		
 		JLabel lblAt = new JLabel("At -");
@@ -253,8 +256,15 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		panel.add(memory_address, "cell 1 2,growx");
 		
 		get_reg_mem = new JButton("Get");
+		get_reg_mem.setEnabled(false);
 		panel.add(get_reg_mem, "cell 5 2");
 		get_reg_mem.addActionListener(this);
+		
+		show_hide_dev = new JButton("Hide Developer Console");
+		show_hide_dev.setBounds(12, 272, 225, 25);
+		contentPane.add(show_hide_dev);
+		show_hide_dev.addActionListener(this);
+		
 
 		/*
 		 * Create a map of all registers used on GUI - Registers are stored as
@@ -272,10 +282,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		JRadioButton[] X3 = new JRadioButton[18];
 		JRadioButton[][] XR = { X1, X2, X3 };
 		JRadioButton[] PC = new JRadioButton[12];
-		JRadioButton[] MAR = new JRadioButton[18];
-		JRadioButton[] MSR = new JRadioButton[18];
-		JRadioButton[] MDR = new JRadioButton[18];
-		JRadioButton[] MFR = new JRadioButton[4];
+		MAR = new JRadioButton[18];
+		MSR = new JRadioButton[18];
+		MDR = new JRadioButton[18];
+		MFR = new JRadioButton[4];
 		JRadioButton[] CC = new JRadioButton[4];
 		JRadioButton[][] MR = { PC, MAR, MSR, MDR, MFR, CC };
 
@@ -390,12 +400,17 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			textField.setText("");
 		} else if (e.getSource() == register_list) {
 			String value = (String) register_list.getSelectedItem();
-			if (value == "Memory") {
+			if (value == "Select Register/Memory") {
+				set_reg_mem.setEnabled(false);
+				get_reg_mem.setEnabled(false);
+			} else if (value == "Memory") {
 				panel.remove(bit_value_model);
 				memory_address.setEnabled(true);
-				bit_value = new SpinnerNumberModel(0, 0, 5, 1);
+				bit_value = new SpinnerNumberModel(0, 0, Math.pow(2,  18), 1);
 				bit_value_model = new JSpinner(bit_value);
 				panel.add(bit_value_model, "cell 4 1,growx");
+				set_reg_mem.setEnabled(true);
+				get_reg_mem.setEnabled(true);
 				panel.revalidate();
 				panel.repaint();
 			} else {
@@ -404,20 +419,21 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu.getReg(value).getNumBits()-1), 1);
 				bit_value_model = new JSpinner(bit_value);
 				panel.add(bit_value_model, "cell 4 1,growx");
+				set_reg_mem.setEnabled(true);
+				get_reg_mem.setEnabled(true);
 				panel.revalidate();
 				panel.repaint();
 				
 			}
 		} else if (e.getSource() == set_reg_mem) {
 			if ((String) register_list.getSelectedItem() == "Memory") {
-				double value = (double) bit_value.getValue();
-				int int_value = (int) value;
-				BitSet bitset = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
+				int memory_address_value = (int) memory_address.getValue();
+				int bitset_value = clean_spinner((double) bit_value.getValue());
+				BitSet bitset = Utils.intToBitSet(bitset_value, 18);
 				Word word = Utils.registerToWord(bitset, 18);
-				Memory.getInstance().write(word, (Integer) memory_address.getValue());
+				Memory.getInstance().write(word, memory_address_value);
 			} else {
-				double value = (double) bit_value.getValue();
-				int int_value = (int) value;
+				int int_value = clean_spinner((double) bit_value.getValue());
 				BitSet reg_val = Utils.intToBitSet(int_value, 18);
 				cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
 			}
@@ -429,7 +445,28 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				Register reg = cpu.getReg((String) register_list.getSelectedItem());
 				Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18));
 			}
+		} else if (e.getSource() == show_hide_dev) {
+			show_hide = !show_hide;
+			for (int i=0; i<MAR.length; i++) {
+				if (i < 4) {
+					MFR[i].setVisible(show_hide);
+				}
+				MAR[i].setVisible(show_hide);
+				MDR[i].setVisible(show_hide);
+				MSR[i].setVisible(show_hide);
+			}
+			lblMar.setVisible(show_hide);
+			lblMsr.setVisible(show_hide);
+			lblMdr.setVisible(show_hide);
+			lblMfr.setVisible(show_hide);
+			panel.setVisible(show_hide);
+			String show_or_hide = show_hide ? "Hide Developers Console" : "Show Developers Console";
+			show_hide_dev.setText(show_or_hide);
 		}
+	}
+	
+	private int clean_spinner(double value) {
+		return (int) value;
 	}
 
 	// By giving a string value for register, and a value, registers can be
