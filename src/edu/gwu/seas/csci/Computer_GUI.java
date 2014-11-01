@@ -2,7 +2,6 @@ package edu.gwu.seas.csci;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.DefaultCaret;
 import javax.swing.JTextField;
@@ -20,13 +19,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JComboBox;
 import javax.swing.JSpinner;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
 import net.miginfocom.swing.MigLayout;
 
-import java.awt.Dimension;
 import java.awt.SystemColor;
 import java.awt.Color;
 
