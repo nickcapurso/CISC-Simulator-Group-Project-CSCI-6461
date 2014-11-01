@@ -1,5 +1,6 @@
 package edu.gwu.seas.csci;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -513,6 +514,7 @@ public class CPU implements CPUConstants {
 	private Map<String, Register> regMap = new HashMap<String, Register>();
 	private IRDecoder irdecoder;
 	private ALU alu;
+	private InstructionLoader loader;
 
 	public String input_buffer = "";
 	public int character_pointer = 0;
@@ -544,7 +546,8 @@ public class CPU implements CPUConstants {
 	private String currentExecution = "";
 
 	// Constructor
-	public CPU(Memory memory) {
+	public CPU() throws NullPointerException, IllegalArgumentException,
+			ParseException {
 
 		memory_controller_thread.start();
 
@@ -600,13 +603,17 @@ public class CPU implements CPUConstants {
 
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
+		logger.debug("Creating default InstructionLoader for boot program.");
+		loader = new InstructionLoader();
+		loader.load();
+		initializeProgramCounter();
 	}
 
 	/**
 	 * Called from continue/start gui button
 	 *
 	 * @param cont
-	 *            Branch logic for continous processing or macro/micro step
+	 *            Branch logic for continuous processing or macro/micro step
 	 */
 
 	/**
@@ -727,16 +734,14 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Points the PC to Octal 10 where the bootloader program is loaded and
+	 * Points the PC to Octal 25 where the bootloader program is loaded and
 	 * starts execution (by default, runs until HLT)
 	 */
-	public void startBootloader() {
+	public void initializeProgramCounter() {
 		setReg(PC,
 				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()),
 				getReg(PC).getNumBits());
 		prog_step = 0;
-		// Utils.bitsetToString(PC, getReg(PC), getReg(PC).getNumBits());
-		// executeInstruction("continue");
 	}
 
 	/**
@@ -928,10 +933,11 @@ public class CPU implements CPUConstants {
 		// Direct Execution - Does not advance PC
 		default:
 			logger.debug("Running user input");
-			
+
 			try {
 				System.out.println(step_type);
-				Word word_command = (new InstructionLoader()).StringToWord(step_type);
+				Word word_command = (new InstructionLoader())
+						.stringToWord(step_type);
 				Utils.bitsetToString("input", word_command, 18);
 				setReg(MDR, word_command);
 				cycle_count++;
@@ -1222,7 +1228,7 @@ public class CPU implements CPUConstants {
 			}
 			break;
 		case OpCodesList.JMP:
-			//System.out.println("JUMP");
+			// System.out.println("JUMP");
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1293,7 +1299,8 @@ public class CPU implements CPUConstants {
 			case 5:
 				// registerFile(R) -> OP1
 				setReg(OP1, getReg(registerFile(getReg(R))));
-				setReg(OP2, Utils.intToBitSet(1, getReg(OP2).getNumBits()), getReg(OP2).getNumBits());
+				setReg(OP2, Utils.intToBitSet(1, getReg(OP2).getNumBits()),
+						getReg(OP2).getNumBits());
 				cycle_count++;
 				prog_step++;
 				break;
@@ -1304,10 +1311,10 @@ public class CPU implements CPUConstants {
 				prog_step++;
 				break;
 			case 7:
-				//Putting the subtraction result back in the register and OP1
+				// Putting the subtraction result back in the register and OP1
 				setReg(registerFile(getReg(R)), getReg(RESULT));
 				setReg(OP1, getReg(RESULT));
-				
+
 				// Clearing OP2 in preparation for GTE comparison
 				getReg(OP2).clear();
 				// Checking if OP1 >= 0
@@ -1364,7 +1371,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.AMR:
-			//System.out.println("Prog step:" + prog_step);
+			// System.out.println("Prog step:" + prog_step);
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1414,7 +1421,7 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.SMR:
-			//System.out.println("SMR");
+			// System.out.println("SMR");
 			switch (prog_step) {
 			case 4:
 				calculateEA(false);
@@ -1747,15 +1754,16 @@ public class CPU implements CPUConstants {
 				waitForInterrupt = true;
 				return;
 			}
-			
-			//The character_pointer is used as an index into the
-			//string to return a single character
+
+			// The character_pointer is used as an index into the
+			// string to return a single character
 			try {
-				if(character_pointer == 0)
+				if (character_pointer == 0)
 					Computer_GUI.append_to_terminal(input_buffer);
-				//int input = Integer.parseInt(input_buffer);
-				
-				//Pick off a single character and put it in the register, advance the index
+				// int input = Integer.parseInt(input_buffer);
+
+				// Pick off a single character and put it in the register,
+				// advance the index
 				int input = input_buffer.charAt(character_pointer++);
 				BitSet input_bitset = Utils.intToBitSet(input, 18);
 				setReg(registerFile(getReg(R)), input_bitset, 18);
@@ -1764,10 +1772,11 @@ public class CPU implements CPUConstants {
 				// Word input_word = (Word) Utils.StringToWord(input_buffer);
 				// setReg(registerFile(getReg(R)), input_word);
 			}
-			
-			//If the end of the string has been reached, reset the character pointer and
-			//clear the input buffer
-			if(character_pointer == input_buffer.length()){
+
+			// If the end of the string has been reached, reset the character
+			// pointer and
+			// clear the input buffer
+			if (character_pointer == input_buffer.length()) {
 				character_pointer = 0;
 				input_buffer = "";
 			}
@@ -1776,9 +1785,10 @@ public class CPU implements CPUConstants {
 			break;
 
 		case OpCodesList.OUT:
-			//Prints a single character
+			// Prints a single character
 			if (Utils.convertToInt(getReg(DEVID), getReg(DEVID).getNumBits()) == 1) {
-				int output = Utils.convertToInt(getReg(registerFile(getReg(R))), 18);
+				int output = Utils.convertToInt(
+						getReg(registerFile(getReg(R))), 18);
 				Computer_GUI.append_to_terminal("" + (char) (output));
 			}
 			cycle_count++;
@@ -1904,14 +1914,18 @@ public class CPU implements CPUConstants {
 
 		case 3:
 			irdecoder.parseIR(regMap.get(IR));
-			
-			if(Utils.convertToUnsignedByte(getReg(ADDR), getReg(ADDR).getNumBits()) == 8){
-				short currentPC = (short) Utils.convertToInt(getReg(PC), getReg(PC).getNumBits());
-				int jumpAddr = InstructionLoader.getJumpAddrFromReference(currentPC);
-				Word word = Utils.registerToWord(Utils.intToBitSet(jumpAddr, 18), 18);
+
+			if (Utils.convertToUnsignedByte(getReg(ADDR), getReg(ADDR)
+					.getNumBits()) == 8) {
+				short currentPC = (short) Utils.convertToInt(getReg(PC),
+						getReg(PC).getNumBits());
+				int jumpAddr = InstructionLoader
+						.getJumpAddrFromReference(currentPC);
+				Word word = Utils.registerToWord(
+						Utils.intToBitSet(jumpAddr, 18), 18);
 				this.writeToMemory(word, 8);
 			}
-			
+
 			cycle_count++;
 			prog_step++;
 			break;
@@ -1922,20 +1936,23 @@ public class CPU implements CPUConstants {
 		}
 	}
 
+	/**
+	 * Loads the ROM into memory.
+	 */
 	public void loadROM() {
 		try {
-			/* romLoader.load(); */
-			startBootloader();
+			logger.debug("Loading ROM into memory.");
+			loader.load();
 		} catch (NullPointerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} /*
-		 * catch (ParseException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); }
-		 */
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**

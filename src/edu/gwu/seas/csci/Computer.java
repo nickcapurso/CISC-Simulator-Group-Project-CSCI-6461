@@ -1,5 +1,7 @@
 package edu.gwu.seas.csci;
 
+import java.text.ParseException;
+
 import javax.swing.JFrame;
 
 /**
@@ -9,23 +11,25 @@ import javax.swing.JFrame;
 public class Computer {
 
 	private CPU cpu = null;
-	private Memory memory = Memory.getInstance();;
 	private Computer_GUI gui = null;
 
-	private Computer() {
-		cpu = new CPU(memory);
-		gui = new Computer_GUI(cpu, memory);
+	private Computer() throws NullPointerException, IllegalArgumentException,
+			ParseException {
+		cpu = new CPU();
+		gui = new Computer_GUI(cpu);
 		gui.setSize(1000, 650);
 		gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		gui.setVisible(true);
 	}
 
 	public static void main(String[] args) {
-		Computer computer = new Computer();
-		computer.start();
-	}
-
-	private void start() {
-		cpu.loadROM();
+		Computer computer;
+		try {
+			computer = new Computer();
+			computer.cpu.executeInstruction("continue");
+		} catch (NullPointerException | IllegalArgumentException
+				| ParseException e) {
+			e.printStackTrace();
+		}
 	}
 }

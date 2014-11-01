@@ -20,6 +20,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JComboBox;
 import javax.swing.JSpinner;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
@@ -27,8 +28,6 @@ import net.miginfocom.swing.MigLayout;
 
 import java.awt.SystemColor;
 import java.awt.Color;
-
-import javax.swing.UIManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,7 +44,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;
-	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem;
+	private static JButton cont, start, microstep, macrostep, runinput, enter,
+			load, set_reg_mem, get_reg_mem;
 	private JComboBox register_list;
 	private JSpinner bit_value, memory_address, memory_address2;
 	private JButton reset;
@@ -59,8 +59,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	/**
 	 * Create the frame.
 	 */
-	public Computer_GUI(CPU cpu1, Memory memory) {
-		cpu = cpu1;
+	public Computer_GUI(CPU cpu) {
+		this.cpu = cpu;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 954, 608);
 		contentPane = new JPanel();
@@ -68,11 +68,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
-		
-		//Registers for getting and setting register and memory
-		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
-				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
-				"RX", "RY", "AL", "LR", "COUNT"};
+
+		// Registers for getting and setting register and memory
+		String[] registers = { "Select Register/Memory", "Memory", "R0", "R1",
+				"R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR",
+				"MSR", "MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1",
+				"OP2", "OP3", "OP4", "RESULT", "RESULT2", "RX", "RY", "AL",
+				"LR", "COUNT" };
 
 		/*
 		 * Textfield and Textpane for I/O
@@ -84,9 +86,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 		terminal = new JTextArea();
 		terminal.setEnabled(false);
-		JScrollPane scroll = new JScrollPane (terminal, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
+		JScrollPane scroll = new JScrollPane(terminal,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		DefaultCaret caret = (DefaultCaret) terminal.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		scroll.setBounds(12, 310, 402, 199);
 		contentPane.add(scroll);
@@ -132,7 +135,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		cont.setBounds(426, 386, 97, 25);
 		contentPane.add(cont);
 		cont.addActionListener(this);
-		
+
 		enter = new JButton("Enter");
 		enter.setBounds(426, 523, 97, 25);
 		contentPane.add(enter);
@@ -188,7 +191,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		JLabel lblMfr = new JLabel("MFR:");
 		lblMfr.setBounds(498, 134, 41, 30);
 		contentPane.add(lblMfr);
-		
+
 		JLabel lblCc = new JLabel("CC:");
 		lblCc.setBounds(498, 165, 41, 30);
 		contentPane.add(lblCc);
@@ -200,54 +203,53 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		opcode_name = new JLabel("");
 		opcode_name.setBounds(730, 172, 56, 16);
 		contentPane.add(opcode_name);
-		
+
 		/*
-		 * Jpanel for Setting Registers and Memory
-		 *  - Spinner:
-		 *  	memory_address - spinner to determine memory location to update
-		 *  	bit_value - value to update register/memory
-		 *  - Buttons:
-		 *  	set_reg_mem - sets the register/memory address
-		 *  - ComboBox:
-		 *  	register_list - list of registers/memory
+		 * Jpanel for Setting Registers and Memory - Spinner: memory_address -
+		 * spinner to determine memory location to update bit_value - value to
+		 * update register/memory - Buttons: set_reg_mem - sets the
+		 * register/memory address - ComboBox: register_list - list of
+		 * registers/memory
 		 */
 		JPanel panel = new JPanel();
 		panel.setBackground(Color.GRAY);
 		panel.setBounds(535, 310, 389, 101);
 		contentPane.add(panel);
-		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][100:n][][50px:n:50px,center][]", "[][][]"));
-		
+		panel.setLayout(new MigLayout("",
+				"[50:n:50px][50px:n,center][100:n][][50px:n:50px,center][]",
+				"[][][]"));
+
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
 		panel.add(lblSetMemoryAnd, "cell 0 0");
-		
+
 		JLabel lblSet = new JLabel("Set - ");
 		panel.add(lblSet, "cell 0 1,alignx center");
-		
+
 		register_list = new JComboBox(registers);
 		panel.add(register_list, "cell 1 1 2 1,growx");
 		register_list.addActionListener(this);
-		
+
 		JLabel lblTo = new JLabel("- to -");
 		panel.add(lblTo, "cell 2 1");
-		
+
 		JLabel lblTo_1 = new JLabel("- to -");
 		panel.add(lblTo_1, "cell 3 1");
-		
+
 		bit_value = new JSpinner();
 		panel.add(bit_value, "cell 4 1,growx");
-		
+
 		set_reg_mem = new JButton("Set");
 		panel.add(set_reg_mem, "cell 5 1");
 		set_reg_mem.addActionListener(this);
-		
+
 		JLabel lblAt = new JLabel("At -");
 		panel.add(lblAt, "cell 0 2,alignx center");
-		
+
 		SpinnerModel model = new SpinnerNumberModel(0, 0, 2048, 1);
 		memory_address = new JSpinner(model);
-		memory_address.setSize(10,50);
+		memory_address.setSize(10, 50);
 		panel.add(memory_address, "cell 1 2,growx");
-		
+
 		get_reg_mem = new JButton("Get");
 		panel.add(get_reg_mem, "cell 5 2");
 		get_reg_mem.addActionListener(this);
@@ -336,7 +338,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MFR", MFR);
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
-		Registers.put("CC",	CC);
+		Registers.put("CC", CC);
 
 	}
 
@@ -350,18 +352,19 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cpu.executeInstruction("macro step");
 		} else if (e.getSource() == load) {
 			try {
-			    JFileChooser chooser = new JFileChooser();
-			    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-			        "TXT files", "txt");
-			    chooser.setFileFilter(filter);
-			    int returnVal = chooser.showOpenDialog(this);
-			    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			    	fileloader.loadFile(chooser.getSelectedFile().getName());
-			    	fileloader.load();
-			    } else {
-			    	logger.debug("File failed to load or could not be found.");
-			    }
-			} catch (Exception ex) { //Catch exception if any
+				JFileChooser chooser = new JFileChooser();
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+						"TXT files", "txt");
+				chooser.setFileFilter(filter);
+				int returnVal = chooser.showOpenDialog(this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					fileloader = new InstructionLoader(chooser
+							.getSelectedFile().getName());
+					fileloader.load();
+				} else {
+					logger.debug("File failed to load or could not be found.");
+				}
+			} catch (Exception ex) { // Catch exception if any
 				System.err.println("Error: " + ex.getMessage());
 			}
 			textField.setText("");
@@ -372,7 +375,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			cpu.executeInstruction(user_input);
 			textField.setText("");
 		} else if (e.getSource() == reset) {
-			cpu.startBootloader();
+			cpu.initializeProgramCounter();
 			start.setEnabled(true);
 			cont.setEnabled(true);
 			macrostep.setEnabled(true);
@@ -380,27 +383,34 @@ public class Computer_GUI extends JFrame implements ActionListener {
 			runinput.setEnabled(true);
 			load.setEnabled(true);
 		} else if (e.getSource() == enter) {
-			cpu.input_buffer = textField.getText() + (char)4;
+			cpu.input_buffer = textField.getText() + (char) 4;
 			cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
 			System.out.println(cpu.input_buffer);
 			textField.setText("");
 		} else if (e.getSource() == register_list) {
-			
+
 		} else if (e.getSource() == set_reg_mem) {
 			if ((String) register_list.getSelectedItem() == "Memory") {
-				BitSet bitset = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
+				BitSet bitset = Utils.intToBitSet(
+						(Integer) bit_value.getValue(), 18);
 				Word word = Utils.registerToWord(bitset, 18);
-				Memory.getInstance().write(word, (Integer) memory_address.getValue());
+				Memory.getInstance().write(word,
+						(Integer) memory_address.getValue());
 			} else {
-				BitSet reg_val = Utils.intToBitSet((Integer) bit_value.getValue(), 18);
-				cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
+				BitSet reg_val = Utils.intToBitSet(
+						(Integer) bit_value.getValue(), 18);
+				cpu.setReg((String) register_list.getSelectedItem(), reg_val,
+						18);
 			}
 		} else if (e.getSource() == get_reg_mem) {
 			if ((String) register_list.getSelectedItem() == "Memory") {
-				Word word = Memory.getInstance().read((Integer) memory_address.getValue());
-				Computer_GUI.append_to_terminal(Utils.WordToString(word, 18) + "\n");
+				Word word = Memory.getInstance().read(
+						(Integer) memory_address.getValue());
+				Computer_GUI.append_to_terminal(Utils.WordToString(word, 18)
+						+ "\n");
 			} else {
-				Register reg = cpu.getReg((String) register_list.getSelectedItem());
+				Register reg = cpu.getReg((String) register_list
+						.getSelectedItem());
 				Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18));
 			}
 		}
@@ -435,13 +445,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		macrostep.setEnabled(false);
 		microstep.setEnabled(false);
 	}
-	
+
 	public static void toggle_button(String Button, Boolean toggle) {
-		switch(Button) {
+		switch (Button) {
 		case "runinput":
 			runinput.setEnabled(toggle);
 			break;
-			
+
 		case "load":
 			load.setEnabled(toggle);
 			break;
