@@ -1805,35 +1805,14 @@ public class CPU implements CPUConstants {
 				logger.debug("TRAP");
 				//store pc in memory[2]
 				Word pc = Utils.registerToWord(getReg(PC), 12);
-				writeToMemory(pc, 2);
+				Memory.getInstance().write(pc, 2);
 				break;
 			case 5:
-				//set PC to current subroutine address
-				Word sub_table = readFromMemory(0);
-				int sub_table_addr = Utils.convertToInt(sub_table, 18);
-				int trap_subroutine_offset = sub_table_addr + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
-				int trap_subroutine = trap_subroutine_offset + sub_table_addr;
-				Word sub_location = readFromMemory(trap_subroutine);
-				
-				//check for illegal TRAP code
-				if (sub_location.isEmpty()) {
-					
-					//PC and MSR are saved to memory
-					Word orig_PC = readFromMemory(2);
-					writeToMemory(orig_PC, 4);
-					Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
-					writeToMemory(msr, 5);
-					
-					//Change PC to fault error routine
-					Word faultRoutine = readFromMemory(1);
-					setReg(PC, faultRoutine); //Is this ok...just truncate least important?
-					
-					//Execute fault error routine
-					executeInstruction("continue");
-				} else {
-					setReg(PC, sub_location);
-				}
-				
+				//setPC to current subroutine address
+				Word sub_table = Memory.getInstance().read(2);
+				int trap_subroutine = Utils.convertToInt(sub_table, 18) + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
+				Word sub_location = Memory.getInstance().read(trap_subroutine);
+				setReg(PC, sub_location);
 				break;
 			}
 			break;
