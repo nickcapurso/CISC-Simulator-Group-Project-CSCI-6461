@@ -140,6 +140,23 @@ public class IRDecoder {
 					InstructionBitFormats.IO_DEVID_SIZE);
 			break;
 		default:
+			
+			/*
+			 * Illegal opcode has occurred
+			 */
+			//Registers PC and MSR are saved to memory
+			Word pc = Utils.registerToWord(cpu.getReg(CPU.PC), 12);
+			cpu.writeToMemory(pc, 4);
+			Word msr = Utils.registerToWord(cpu.getReg(CPU.PC), 18);
+			cpu.writeToMemory(msr, 5);
+			
+			//Change PC to fault error routine
+			Word faultRoutine = cpu.readFromMemory(1);
+			cpu.setReg(CPU.PC, faultRoutine); //Is this ok...just truncate least important?
+			
+			//Execute fault error routine
+			cpu.executeInstruction("continue");
+			
 			break;
 		}
 	}
