@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JComboBox;
 import javax.swing.JSpinner;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 
@@ -82,7 +83,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		terminal.setEnabled(false);
 		terminal.setLineWrap(true);
 		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
-		JScrollPane scroll = new JScrollPane (JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		JScrollPane scroll = new JScrollPane (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		contentPane.add(terminal, "cell 0 8 3 9,grow");
 		contentPane.add(scroll, "cell 0 8 3 9,growy");

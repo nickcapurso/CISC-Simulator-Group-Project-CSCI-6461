@@ -23,6 +23,7 @@ public interface Loader {
 	 *            The resource to load. Implementing classes should specify the
 	 *            resource type that they load, e.g., what type of Reader is
 	 *            being buffered.
+	 * @param cpu
 	 * @throws ParseException
 	 *             If the input cannot be parsed.
 	 */

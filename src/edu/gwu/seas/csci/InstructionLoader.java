@@ -17,7 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Reads input and loads it into {@link Memory}.
+ * Reads input and loads it into {@link Memory} via the CPU cache.
  * 
  * TODO: Document the InstructionFormat switching.
  * 
@@ -25,18 +25,17 @@ import org.apache.logging.log4j.Logger;
  */
 public class InstructionLoader implements Loader {
 
-	static final Logger logger = LogManager.getLogger(InstructionLoader.class
-			.getName());
+	private static final Logger logger = LogManager
+			.getLogger(InstructionLoader.class.getName());
 
 	public static final byte JUMP_INDIRECTION_ADDR = 8;
 	public static final byte BOOT_PROGRAM_LOADING_ADDR = 21;
 	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 96;
 
 	/**
-	 * Provide a reference to the Computer's memory to hold the contents of the
-	 * reader file.
+	 * Get a reference to the CPU for access to read and write methods.
 	 */
-	private Memory memory = Memory.getInstance();
+	private CPU cpu = CPU.getInstance();
 
 	/**
 	 * Provide a reference to the Computer's context.
@@ -100,7 +99,7 @@ public class InstructionLoader implements Loader {
 		labelTable = new ArrayList<LabelEntry>();
 		try {
 			String temp = null;
-			memory_location = isAddressEmpty(95, memory) ? BOOT_PROGRAM_LOADING_ADDR
+			memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR
 					: GENERAL_PROGRAM_LOADING_ADDR;
 			while ((temp = reader.readLine()) != null) {
 				if (temp.equals("") || temp.charAt(0) == '/') {
@@ -135,23 +134,23 @@ public class InstructionLoader implements Loader {
 							// resolved
 							while (!references.isEmpty()) {
 								short address = references.pop();
-								Word word = memory.read(address);
+								Word word = cpu.readFromMemory(address);// memory.read(address);
 
 								// If the address if above 127, then we need to
 								// do indirection through address 8
 								if (entry.address >= 128) {
 									// Set jump indirection address
 									Utils.byteToBitSetDeepCopy(
-											(byte) JUMP_INDIRECTION_ADDR,
+											JUMP_INDIRECTION_ADDR,
 											word,
-											(byte) InstructionBitFormats.LD_STR_ADDR_SIZE,
-											(byte) InstructionBitFormats.LD_STR_ADDR_END);
+											InstructionBitFormats.LD_STR_ADDR_SIZE,
+											InstructionBitFormats.LD_STR_ADDR_END);
 									// Set indirection flag
 									Utils.byteToBitSetDeepCopy(
 											(byte) 1,
 											word,
-											(byte) InstructionBitFormats.LD_STR_I_SIZE,
-											(byte) InstructionBitFormats.LD_STR_I_END);
+											InstructionBitFormats.LD_STR_I_SIZE,
+											InstructionBitFormats.LD_STR_I_END);
 									logger.debug("Resolving forward reference at address: "
 											+ address
 											+ ", jump address = "
@@ -163,8 +162,8 @@ public class InstructionLoader implements Loader {
 									Utils.byteToBitSetDeepCopy(
 											(byte) entry.address,
 											word,
-											(byte) InstructionBitFormats.LD_STR_ADDR_SIZE,
-											(byte) InstructionBitFormats.LD_STR_ADDR_END);
+											InstructionBitFormats.LD_STR_ADDR_SIZE,
+											InstructionBitFormats.LD_STR_ADDR_END);
 									logger.debug("Resolving forward reference at address: "
 											+ address
 											+ ", jump address = "
@@ -172,7 +171,8 @@ public class InstructionLoader implements Loader {
 								}
 
 								// Write back the instruction to memory
-								memory.write(word, address);
+								cpu.writeToMemory(word, address);// memory.write(word,
+																	// address);
 							}
 						} else {
 							// Can't have duplicate labels
@@ -186,7 +186,7 @@ public class InstructionLoader implements Loader {
 				Word word = stringToWord(temp);
 
 				if (word != null)
-					memory.write(word, memory_location++);
+					cpu.writeToMemory(word, memory_location++);
 			}
 			logger.debug("Final instruction loaded at memory location "
 					+ memory_location + ".");
@@ -479,12 +479,12 @@ public class InstructionLoader implements Loader {
 	 * 
 	 * @param address
 	 *            The memory location to test for contents.
-	 * @param memory
-	 *            The physical memory that contains the address.
+	 * @param cpu
+	 *            The CPU that reads the memory address.
 	 * @return true if the address is empty; false otherwise.
 	 */
-	public boolean isAddressEmpty(int address, Memory memory) {
-		Word word = memory.read(address);
+	public boolean isAddressEmpty(int address) {
+		Word word = Memory.getInstance().read(address);
 		return word.isEmpty();
 	}
 

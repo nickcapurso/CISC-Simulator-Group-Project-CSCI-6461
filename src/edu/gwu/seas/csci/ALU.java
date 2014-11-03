@@ -1,8 +1,6 @@
 package edu.gwu.seas.csci;
 
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.List;
 
 /**
  * The ALU class contains the implementation for the arithmetical and logical instructions.
@@ -202,8 +200,8 @@ public class ALU implements CPUConstants{
 		long result = Integer.toUnsignedLong(op1Val) * Integer.toUnsignedLong(op2Val);
 		
 		if(result == 0){
-			BitSet high = Utils.intToBitSet((int)0, DEFAULT_BIT_SIZE);
-			BitSet low = Utils.intToBitSet((int)0, DEFAULT_BIT_SIZE);
+			BitSet high = Utils.intToBitSet(0, DEFAULT_BIT_SIZE);
+			BitSet low = Utils.intToBitSet(0, DEFAULT_BIT_SIZE);
 			
 			cpu.setReg(RESULT, high, DEFAULT_BIT_SIZE);
 			cpu.setReg(RESULT2, low, DEFAULT_BIT_SIZE);	
