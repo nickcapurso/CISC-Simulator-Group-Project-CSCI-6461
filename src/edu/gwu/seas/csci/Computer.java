@@ -19,6 +19,7 @@ public class Computer {
 		gui = new Computer_GUI(cpu);
 		gui.setSize(1000, 650);
 		gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		gui.pack();
 		gui.setVisible(true);
 	}
 
