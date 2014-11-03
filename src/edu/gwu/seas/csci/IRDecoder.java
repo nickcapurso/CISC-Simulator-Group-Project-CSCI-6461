@@ -46,7 +46,7 @@ public class IRDecoder {
 
 		// All instructions formats have the opcode in the first 6 bits
 		opcode = IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END + 1);
-		cpu.setReg(CPU.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
+		cpu.setReg(CPUConstants.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
 
 		// Get the instruction class for the current opcode
 		instruction_string = context.getOpCodeStrings().get(
@@ -75,66 +75,66 @@ public class IRDecoder {
 		case LD_STR:
 		case TRANS:
 		case ARITH:
-			cpu.setReg(CPU.IX, IR.get(
+			cpu.setReg(CPUConstants.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
 					InstructionBitFormats.LD_STR_IX_SIZE);
 
-			cpu.setReg(CPU.R, IR.get(
+			cpu.setReg(CPUConstants.R, IR.get(
 					InstructionBitFormats.LD_STR_R_START,
 					InstructionBitFormats.LD_STR_R_END + 1),
 					InstructionBitFormats.LD_STR_R_SIZE);
 
-			cpu.setReg(CPU.I, IR.get(
+			cpu.setReg(CPUConstants.I, IR.get(
 					InstructionBitFormats.LD_STR_I_START,
 					InstructionBitFormats.LD_STR_I_END + 1),
 					InstructionBitFormats.LD_STR_I_SIZE);
 
-			cpu.setReg(CPU.ADDR, IR.get(
+			cpu.setReg(CPUConstants.ADDR, IR.get(
 					InstructionBitFormats.LD_STR_ADDR_START,
 					InstructionBitFormats.LD_STR_ADDR_END + 1),
 					InstructionBitFormats.LD_STR_ADDR_SIZE);
 			break;
 
 		case XY_ARITH_LOGIC:
-			cpu.setReg(CPU.RX, IR.get(
+			cpu.setReg(CPUConstants.RX, IR.get(
 					InstructionBitFormats.XY_ARITH_RX_START,
 					InstructionBitFormats.XY_ARITH_RX_END+1),
 					InstructionBitFormats.XY_ARITH_RX_SIZE);
 			
-			cpu.setReg(CPU.RY, IR.get(
+			cpu.setReg(CPUConstants.RY, IR.get(
 					InstructionBitFormats.XY_ARITH_RY_START, 
 					InstructionBitFormats.XY_ARITH_RY_END+1),
 					InstructionBitFormats.XY_ARITH_RY_SIZE);
 			break;
 			
 		case SHIFT:
-			cpu.setReg(CPU.R, IR.get(
+			cpu.setReg(CPUConstants.R, IR.get(
 					InstructionBitFormats.SHIFT_R_START, 
 					InstructionBitFormats.SHIFT_R_END+1),
 					InstructionBitFormats.SHIFT_R_SIZE);
 			
-			cpu.setReg(CPU.AL, IR.get(
+			cpu.setReg(CPUConstants.AL, IR.get(
 					InstructionBitFormats.SHIFT_AL_START, 
 					InstructionBitFormats.SHIFT_AL_END+1),
 					InstructionBitFormats.SHIFT_AL_SIZE);
 			
-			cpu.setReg(CPU.LR, IR.get(
+			cpu.setReg(CPUConstants.LR, IR.get(
 					InstructionBitFormats.SHIFT_LR_START, 
 					InstructionBitFormats.SHIFT_LR_END+1),
 					InstructionBitFormats.SHIFT_LR_SIZE);
 			
-			cpu.setReg(CPU.COUNT, IR.get(
+			cpu.setReg(CPUConstants.COUNT, IR.get(
 					InstructionBitFormats.SHIFT_COUNT_START, 
 					InstructionBitFormats.SHIFT_COUNT_END+1),
 					InstructionBitFormats.SHIFT_COUNT_SIZE);
 			break;
 		case IO:
-			cpu.setReg(CPU.R, IR.get(
+			cpu.setReg(CPUConstants.R, IR.get(
 					InstructionBitFormats.IO_R_START,
 					InstructionBitFormats.IO_R_END+1),
 					InstructionBitFormats.IO_R_SIZE);
-			cpu.setReg(CPU.DEVID, IR.get(
+			cpu.setReg(CPUConstants.DEVID, IR.get(
 					InstructionBitFormats.IO_DEVID_START,
 					InstructionBitFormats.IO_DEVID_END+1),
 					InstructionBitFormats.IO_DEVID_SIZE);

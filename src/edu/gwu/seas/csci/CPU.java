@@ -506,20 +506,23 @@ public class CPU implements CPUConstants {
 		}
 	}
 
-	static final Logger logger = LogManager.getLogger(CPU.class.getName());
+	private static final Logger logger = LogManager.getLogger(CPU.class
+			.getName());
 	public static final byte BOOTLOADER_START = InstructionLoader.BOOT_PROGRAM_LOADING_ADDR;
+	/**
+	 * Static and final reference to memory instance ensures there is only one
+	 * memory object.
+	 */
+	private static CPU INSTANCE = null;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
 	public static int cycle_count = 0;
 	private Map<String, Register> regMap = new HashMap<String, Register>();
 	private IRDecoder irdecoder;
 	private ALU alu;
-	private InstructionLoader loader;
-
 	public String input_buffer = "";
 	public int character_pointer = 0;
 	public int memory_stack = 2047;
-
 	/**
 	 * The memory write write_buffer with a fast FIFO algorithm.
 	 */
@@ -546,9 +549,7 @@ public class CPU implements CPUConstants {
 	private String currentExecution = "";
 
 	// Constructor
-	public CPU() throws NullPointerException, IllegalArgumentException,
-			ParseException {
-
+	private CPU() {
 		memory_controller_thread.start();
 
 		// 4 General Purpose Registers(GPRs)
@@ -600,16 +601,36 @@ public class CPU implements CPUConstants {
 
 		// Registers for IO instructions
 		regMap.put(DEVID, new Register(InstructionBitFormats.IO_DEVID_SIZE));
-		
+
 		// Registers for TRAP instructions
 		regMap.put(TRAPCODE, new Register(InstructionBitFormats.TRAP_CODE_SIZE));
 
 		irdecoder = new IRDecoder(this);
 		alu = new ALU(this);
+	}
+
+	/**
+	 * @return
+	 */
+	public static CPU getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = new CPU();
+		}
+		return INSTANCE;
+	}
+
+	/**
+	 * @param loader
+	 */
+	public void init(Loader loader) {
 		logger.debug("Creating default InstructionLoader for boot program.");
-		loader = new InstructionLoader();
-		loader.load();
-		initializeProgramCounter();
+		try {
+			loader.load();
+		} catch (NullPointerException | IllegalArgumentException
+				| ParseException e) {
+			logger.error(e);
+		}
+		this.initializeProgramCounter();
 	}
 
 	/**
@@ -1273,7 +1294,6 @@ public class CPU implements CPUConstants {
 				break;
 			}
 			break;
-			
 
 		case OpCodesList.RFS:
 			switch (prog_step) {
@@ -1798,19 +1818,21 @@ public class CPU implements CPUConstants {
 			cycle_count++;
 			prog_step = 0;
 			break;
-			
+
 		case OpCodesList.TRAP:
 			switch (prog_step) {
 			case 4:
 				logger.debug("TRAP");
-				//store pc in memory[2]
+				// store pc in memory[2]
 				Word pc = Utils.registerToWord(getReg(PC), 12);
 				Memory.getInstance().write(pc, 2);
 				break;
 			case 5:
-				//setPC to current subroutine address
+				// setPC to current subroutine address
 				Word sub_table = Memory.getInstance().read(2);
-				int trap_subroutine = Utils.convertToInt(sub_table, 18) + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
+				int trap_subroutine = Utils.convertToInt(sub_table, 18)
+						+ Utils.convertToInt(regMap.get(TRAPCODE),
+								regMap.get(TRAPCODE).getNumBits());
 				Word sub_location = Memory.getInstance().read(trap_subroutine);
 				setReg(PC, sub_location);
 				break;
@@ -1865,7 +1887,8 @@ public class CPU implements CPUConstants {
 				.getNumBits());
 		Utils.bitsetToString(DEVID, getReg(DEVID), getReg(DEVID).getNumBits());
 		Utils.bitsetToString(CC, getReg(CC), getReg(CC).getNumBits());
-		Utils.bitsetToString(TRAPCODE, getReg(TRAPCODE), getReg(TRAPCODE).getNumBits());
+		Utils.bitsetToString(TRAPCODE, getReg(TRAPCODE), getReg(TRAPCODE)
+				.getNumBits());
 	}
 
 	/**
@@ -1956,25 +1979,6 @@ public class CPU implements CPUConstants {
 		default:
 			opcodeInstruction(Utils.convertToUnsignedByte(getReg(OPCODE),
 					InstructionBitFormats.OPCODE_SIZE));
-		}
-	}
-
-	/**
-	 * Loads the ROM into memory.
-	 */
-	public void loadROM() {
-		try {
-			logger.debug("Loading ROM into memory.");
-			loader.load();
-		} catch (NullPointerException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 

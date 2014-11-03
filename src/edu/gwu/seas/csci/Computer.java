@@ -15,10 +15,11 @@ public class Computer {
 
 	private Computer() throws NullPointerException, IllegalArgumentException,
 			ParseException {
-		cpu = new CPU();
+		cpu = CPU.getInstance();
 		gui = new Computer_GUI(cpu);
 		gui.setSize(1000, 650);
 		gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		gui.pack();
 		gui.setVisible(true);
 	}
 
@@ -26,6 +27,7 @@ public class Computer {
 		Computer computer;
 		try {
 			computer = new Computer();
+			computer.cpu.init(new InstructionLoader());
 			computer.cpu.executeInstruction("continue");
 		} catch (NullPointerException | IllegalArgumentException
 				| ParseException e) {
