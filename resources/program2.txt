@@ -1,7 +1,7 @@
 //******************************************************************************************
 //Program 2	
 //
-//A program that reads a set of a paragraph of 6 sentences from a file into memory. 
+//A program that reads a set of a paragraph of 6 sentences from paragraph.txt into memory. 
 //It prints the sentences on the console printer. It then asks the user for a word. 
 //It searches the paragraph to see if it contains the word. If so, it prints out the word, 
 //the sentence number, and the word number in the sentence
@@ -9,17 +9,19 @@
 //Register designations:
 //	R0   - 	Holds the current index into the paragraph.
 //	R1   - 	Holds the current index into the search word.
-//	R2   - 	Holds the current
-//	R3   - 	
+//	R2   - 	Holds paragraph[R0]
+//	R3   - 	Holds searchWord[R1]
 // 
 //Memory designations:
 //	$9   - 	Used as a temporary address for indirection, register-memory
 //		arithmetic, etc.
 //	$10  -	Holds the base address of the paragraph ($1000).
-//	$11  -	Holds the sentence count
-//	$12  -	Holds the word count
-//	$13  -	Answer word count
-//	$14  -	Answer sentence count
+//	$11  -	Holds the current sentence count
+//	$12  -	Holds the current word count
+//	$900 -  Base address of the search word (can be of variable-length)
+//	$1000-  Base address of the paragraph (loaded in by InstructionLoader when
+//		program 2 is chosen). Paragraph is in paragraph.txt.
+//
 //
 //Note: all pertinent jump labels are prefixed “P2” for “Program 2”
 //******************************************************************************************
@@ -94,7 +96,7 @@ P2_SEARCH:
 STR 0,0,9			//Store current paragraph index
 LDR 2,0,9,1			//Load paragraph[index] into R2
 STR 1,0,9			//Store current search word index
-LDR 3,0,9,1			//Load paragraph[index] into R3
+LDR 3,0,9,1			//Load searchWord[index] into R3
 
 STR 0,0,9			//Saving R0
 
