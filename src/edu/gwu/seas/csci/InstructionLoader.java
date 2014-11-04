@@ -81,6 +81,27 @@ public class InstructionLoader implements Loader {
 	 */
 	public InstructionLoader(String file) {
 		FileInputStream in;
+
+		if (file.contains("program2.txt")) {
+			System.out.println("Loading paragraph into memory");
+			InputStream in2 = getClass().getResourceAsStream("/paragraph.txt");
+			BufferedReader paragraphReader = new BufferedReader(
+					new InputStreamReader(in2));
+			int c = 0;
+			int memoryLoc = 1000;
+
+			try {
+				while ((c = paragraphReader.read()) != -1) {
+					Word word = Utils.registerToWord(Utils.intToBitSet(c, 18),
+							18);
+					cpu.writeToMemory(word, memoryLoc++);
+				}
+				Word word = Utils.registerToWord(Utils.intToBitSet(4, 18), 18);
+				cpu.writeToMemory(word, memoryLoc);
+			} catch (IOException e) {
+
+			}
+		}
 		try {
 			in = new FileInputStream(file);
 			reader = new BufferedReader(new InputStreamReader(in));
