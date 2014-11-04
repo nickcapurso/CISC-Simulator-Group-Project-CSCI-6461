@@ -1,7 +1,7 @@
 //******************************************************************************************
 //Program 2	
 //
-//A program that reads a set of a paragraph of 6 sentences from paragraph.txt into memory. 
+//A program that reads a set of a paragraph of 6 sentences from a file into memory. 
 //It prints the sentences on the console printer. It then asks the user for a word. 
 //It searches the paragraph to see if it contains the word. If so, it prints out the word, 
 //the sentence number, and the word number in the sentence
@@ -18,9 +18,10 @@
 //	$10  -	Holds the base address of the paragraph ($1000).
 //	$11  -	Holds the current sentence count
 //	$12  -	Holds the current word count
+//	$13  -	Hold the parameter for OUT_DIGIT
 //	$900 -  Base address of the search word (can be of variable-length)
 //	$1000-  Base address of the paragraph (loaded in by InstructionLoader when
-//		program 2 is chosen). Paragraph is in paragraph.txt.
+//		program 2 is chosen)
 //
 //
 //Note: all pertinent jump labels are prefixed “P2” for “Program 2”
@@ -221,8 +222,8 @@ LDA 0,0,32
 OUT 0,1				//Print space
 
 LDR 0,0,11
-AIR 0,48
-OUT 0,1				//Print sentence number
+AIR 0,48			
+OUT 0,1				//Print sentence number (only one-digit, max of 6 sentences)
 
 LDA 0,0,44
 OUT 0,1				//Print comma
@@ -241,8 +242,90 @@ OUT 0,1				//Print “d”
 LDA 0,0,32
 OUT 0,1				//Print space
 
-LDR 0,0,12
-AIR 0,48
-OUT 0,1				//Print sentence number
+LDA 0,0,12
+JSR 0,OUT_DIGIT			//Call subroutine to print word count (can be multiple digits)
 
 HLT
+//******************************************************************************************
+//End Program 2	
+//******************************************************************************************
+
+
+//******************************************************************************************
+//Output Digit Subroutine (OUT_DIGIT)
+//
+//Outputs a multi-digit number. (For single digit numbers, you can just add
+//0x30 (decimal 48) followed by the OUT instruction) 
+//
+//Parameters (assuming R0 contains a point to memory with arguments):
+//  $(R0) = the number to print
+//
+//Register designations:
+//	R0   - 	Holds the current value of 10^power (i.e. 1, 10, 100, etc.) and the return value.
+//	R1   -	Used for temporary arithmetic
+//	R2   -	Holds the number to print, and the quotient/result of division/multiplication
+//	R3   -	Holds the remainder after division is performed and the return address.
+// 
+//Memory designations:
+//	$16  -	Holds the address of the number to print (passed in R0).
+//	$17  -	Holds the return address.
+//
+//Note: all pertinent jump labels are prefixed “OD” for “Output Digit”
+//******************************************************************************************
+OUT_DIGIT:
+STR 0,0,16             	//Store addr of number to print
+STR 3,0,17           	//Store return address
+
+LDA 0,0,1               //Load R0 with the current power of ten
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Loop to find the highest power of ten that divides the number.
+//For example - 900 / 100 = 9. The highest power of ten will yield a quotient between 0-9.
+//Essentially this picks off the the left-most digit of the number to print.
+//
+//This is needed since we print the number from left to right - character-by-character.
+//——————————————————————————————————————————————————————————————————————————————————————————
+OD_LOOP1:
+LDA 2,0,10
+MLT 0,2               	//currentPower *= 10
+//LDA 0,0,0             //Clear R0
+//ORR 0,1               //Transfer R1 (low order 18-bits of the MLT result) to R0
+
+LDR 2,0,16,1           //Reload R2 with number to print
+
+DVD 2,0                //Num / currentVal
+SIR 2,9                //Quotient (R0) - 9 > 0 (want to stop when we've reached the highest place value)
+JZ 2,0,OD_LOOP2
+JGE 2,0,OD_LOOP1       //Essentially loop while (num / currVal) - 9 > 0
+
+//(i.e. Break out of loop if (Num / currVal) <= 0)
+
+//——————————————————————————————————————————————————————————————————————————————————————————
+//Loop while currPow != 0
+//Now that the left-most digit has been picked off, picking off the rest of the digits
+//left-to-right just involves dividing by decreasing powers of ten (the remainder
+//of the division becomes the input to the subsequent iteration of the loop). Could
+//also be done recursively if our simulator had a stack.
+//——————————————————————————————————————————————————————————————————————————————————————————
+OD_LOOP2:
+LDA 1,0,0		//Clear R1
+TRR 0,1                 //Test if currVal == 0
+JCC 3,0,OD_DONE         //Essentially loop while currVal != 0
+
+LDR 2,0,16,1
+DVD 2,0                 //Num / currVal (quotient will be the left most digit)
+AIR 2,48                //Convert quotient to ASCII
+OUT 2,1                 //Print digit
+
+STR 3,0,16,1           	//Num = remainder
+LDA 2,0,10		//Load R2 with 10
+DVD 0,2         	//currVal /= 10 (reduce by one power of 10)
+JMP 0,OD_LOOP2
+
+
+OD_DONE:
+LDR 3,0,17		//Restore return address
+RFS
+//******************************************************************************************
+//End OUT_DIGIT Subroutine
+//******************************************************************************************
