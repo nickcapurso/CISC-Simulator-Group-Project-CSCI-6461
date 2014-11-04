@@ -546,6 +546,7 @@ public class CPU implements CPUConstants {
 
 	private boolean waitForInterrupt;
 	private boolean jumpTaken;
+	private boolean bootloaderRunning;
 	private String currentExecution = "";
 
 	// Constructor
@@ -765,6 +766,7 @@ public class CPU implements CPUConstants {
 		setReg(PC,
 				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()),
 				getReg(PC).getNumBits());
+		bootloaderRunning = true;
 		prog_step = 0;
 	}
 
@@ -1845,8 +1847,32 @@ public class CPU implements CPUConstants {
 			prog_step = 0;
 			Computer_GUI.disable_btns();
 			Computer_GUI.toggle_button("load", true);
+			
+			if(bootloaderRunning){
+				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+				clearMainRegisters();
+				bootloaderRunning = false;
+			}else{
+				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+				clearMainRegisters();
+				bootloaderRunning = true;
+				jumpTaken = true;
+				initializeProgramCounter();
+				executeInstruction("continue");
+			}
 			break;
 		}
+	}
+	
+	private void clearMainRegisters(){
+		setReg(R0, Utils.intToBitSet(0, 18),18);
+		setReg(R1, Utils.intToBitSet(0, 18),18);
+		setReg(R2, Utils.intToBitSet(0, 18),18);
+		setReg(R3, Utils.intToBitSet(0, 18),18);
+		
+		setReg(X1, Utils.intToBitSet(0, 18),18);
+		setReg(X2, Utils.intToBitSet(0, 18),18);
+		setReg(X3, Utils.intToBitSet(0, 18),18);
 	}
 
 	/**

@@ -44,6 +44,8 @@ JMP 0,P2_PRINT_PARA		//Jump back to loop start
 P2_PRINT_DONE:
 LDA 0,0,10			
 OUT 0,1				//Print new line
+LDA 0,0,10			
+OUT 0,1				//Print new line
 LDA 0,0,83
 OUT 0,1				//Print “S”
 LDA 0,0,101
