@@ -30,7 +30,7 @@ public class InstructionLoader implements Loader {
 
 	public static final byte JUMP_INDIRECTION_ADDR = 8;
 	public static final byte BOOT_PROGRAM_LOADING_ADDR = 21;
-	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 96;
+	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 97;
 
 	/**
 	 * Get a reference to the CPU for access to read and write methods.
