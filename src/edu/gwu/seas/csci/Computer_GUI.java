@@ -360,8 +360,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 					chooser.setFileFilter(filter);
 					int returnVal = chooser.showOpenDialog(load);
 					if (returnVal == JFileChooser.APPROVE_OPTION) {
-						fileloader = new InstructionLoader(chooser
-								.getSelectedFile().getAbsolutePath());
+						String fully_qualified_file_name = chooser
+								.getSelectedFile().getAbsolutePath();
+						fileloader = new InstructionLoader(
+								fully_qualified_file_name, true);
 						fileloader.load();
 					} else {
 						logger.debug("File failed to load or could not be found.");

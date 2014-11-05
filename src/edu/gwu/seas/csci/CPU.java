@@ -643,7 +643,7 @@ public class CPU implements CPUConstants {
 			writeToMemory(trapTableAddr, 0);
 			
 			//writeToMemory(word, address)
-			InstructionLoader faultLoader = new InstructionLoader(FAULT_INSTR_FILENAME, FAULT_AND_TRAP_START_ADDR);
+			InstructionLoader faultLoader = new InstructionLoader(FAULT_INSTR_FILENAME, false);
 			faultLoader.load(FAULT_AND_TRAP_START_ADDR);
 			
 		} catch (NullPointerException | IllegalArgumentException

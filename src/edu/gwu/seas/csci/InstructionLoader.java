@@ -69,8 +69,8 @@ public class InstructionLoader implements Loader {
 	}
 
 	/**
-	 * InstructionLoader is constructed with the file parameter as the target of
-	 * the reader.
+	 * InstructionLoader is constructed with the fully qualified file name as
+	 * the target of the reader.
 	 * 
 	 * @param file
 	 *            A file with program instructions to load into memory. The file
@@ -79,9 +79,29 @@ public class InstructionLoader implements Loader {
 	 *            separated by a comma. The expected line format varies with the
 	 *            type of instruction.
 	 */
-	public InstructionLoader(String file) {
-		FileInputStream in;
-
+	/**
+	 * InstructionLoader is instantiated using a file that contains elements to
+	 * be written into memory. If you provide a fully qualified file path as the
+	 * first argument, such as that returned from a JFileChooser, then set the
+	 * second argument to true. If you only provide a file name without the full
+	 * path, set the second argument to false name and the method will check the
+	 * bin directory of the running program for the name of the file you
+	 * provided in argument one.
+	 * 
+	 * @param file
+	 *            The file name (fully-qualified or not) of the file with the
+	 *            elements to be written into memory. If fully-qualified, set
+	 *            the fully-qualified argument to "true". If you are providing
+	 *            only the file name without a file path, then set the
+	 *            fully-qualified argument to "false" and the method will check
+	 *            the bin directory of the running program.
+	 * @param fully_qualified
+	 *            true of the file parameter represents a fully-qualified file
+	 *            name; false if the file is packed in the bin directory of the
+	 *            program jar file.
+	 */
+	public InstructionLoader(String file, boolean fully_qualified) {
+		InputStream in;
 		if (file.contains("program2.txt")) {
 			System.out.println("Loading paragraph into memory");
 			InputStream in2 = getClass().getResourceAsStream("/paragraph.txt");
@@ -102,40 +122,18 @@ public class InstructionLoader implements Loader {
 
 			}
 		}
-		try {
-			in = new FileInputStream(file);
+		if (fully_qualified) {
+			try {
+				in = new FileInputStream(file);
+				reader = new BufferedReader(new InputStreamReader(in));
+			} catch (FileNotFoundException e) {
+				logger.error(e);
+			}
+		} else {
+			in = getClass().getResourceAsStream("/" + file);
 			reader = new BufferedReader(new InputStreamReader(in));
-		} catch (FileNotFoundException e) {
-			logger.error(e);
 		}
 	}
-	
-	/**
-	 * InstructionLoader is constructed with the file parameter and starting memAddr 
-	 * parameter as the target of the reader.
-	 * 
-	 * @param file
-	 *            A file with program instructions to load into memory. The file
-	 *            is expected to contain instructions that constitute a program,
-	 *            with one instruction per line, and elements of the instruction
-	 *            separated by a comma. The expected line format varies with the
-	 *            type of instruction.
-	 *            
-	 * @param startingMemAddr
-	 * 			  The starting memory address to which instructions should be loaded.
-	 */
-	public InstructionLoader(String file, int startingMemAddr) {
-		FileInputStream in;
-		try {
-			in = new FileInputStream(file);
-			reader = new BufferedReader(new InputStreamReader(in));
-		} catch (FileNotFoundException e) {
-			logger.error(e);
-		}
-	}
-	
-	//new instructionloader constructor that takes string for starting mem addr.
-	
 
 	/*
 	 * (non-Javadoc)
@@ -245,17 +243,16 @@ public class InstructionLoader implements Loader {
 	@Override
 	public void load() throws NullPointerException, ParseException,
 			IllegalArgumentException {
-		memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR : GENERAL_PROGRAM_LOADING_ADDR;
+		memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR
+				: GENERAL_PROGRAM_LOADING_ADDR;
 		this.load(reader);
 	}
-	
+
 	public void load(int memAddr) throws NullPointerException, ParseException,
 			IllegalArgumentException {
 		memory_location = (short) memAddr;
 		this.load(reader);
 	}
-	
-	
 
 	public Word stringToWord(String input) {
 		String temp = input;
