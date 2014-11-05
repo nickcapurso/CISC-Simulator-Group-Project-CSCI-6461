@@ -27,7 +27,7 @@ public class Computer {
 		Computer computer;
 		try {
 			computer = new Computer();
-			computer.cpu.init(new InstructionLoader());
+			computer.cpu.loadROM(new InstructionLoader());
 			computer.cpu.executeInstruction("continue");
 		} catch (NullPointerException | IllegalArgumentException
 				| ParseException e) {

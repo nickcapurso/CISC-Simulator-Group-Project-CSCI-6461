@@ -12,7 +12,7 @@ import edu.gwu.seas.csci.Utils;
 /**
  * The CPU class is modeled after the Von Neumann architecture, where the CPU
  * contains various types of registers and controls the logic between them. The
- * registers include four general purpose registers, three index registers,
+ * registers include four general purpose registers, three line_tag registers,
  * memory-access registers, and various special-purpose registers (for example,
  * a register to hold the opcode of an instruction). In addition, the CPU class
  * executes a program's instructions from the micro-operation level and
@@ -81,13 +81,13 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * Locates the index of the cache line containing a given address.
+		 * Locates the line_tag of the cache line containing a given address.
 		 * 
 		 * @param address
 		 *            The address for which to find the corresponding cache
 		 *            line.
-		 * @return the index of the cache line, or null if the address is not in
-		 *         the cache.
+		 * @return the line_tag of the cache line, or null if the address is not
+		 *         in the cache.
 		 */
 		private L1CacheLine getCacheLine(int address) {
 			L1CacheLine line = null;
@@ -131,24 +131,22 @@ public class CPU implements CPUConstants {
 		}
 
 		/**
-		 * Updates the flags bitmask on the cache line that contains the
+		 * Updates the writes bitmask on the cache line that contains the
 		 * specified address. If the value of the add parameter is true, this
-		 * method adds the value of the flag parameter to the cache line flags
-		 * bitmask, otherwise it subtracts the value of the flag parameter from
-		 * the cache line flags bitmask.
+		 * method adds the value of the line_tag parameter to the cache line
+		 * writes bitmask, otherwise it subtracts the value of the line_tag
+		 * parameter from the cache line writes bitmask.
 		 * 
 		 * @param address
-		 *            The address whose cache line flags bitmask to update.
-		 * @param flag
-		 *            The value to add or subtract from the cache line flags
-		 *            bitmask.
+		 *            The address whose cache line writes bitmask to update.
 		 * @param add
-		 *            Whether to add or subtract the value of flag from the
-		 *            cache line flags bitmask.
+		 *            Whether to add or subtract the value of line_tag from the
+		 *            cache line writes bitmask.
+		 * @param line_tag
 		 */
-		private void updateFlags(int address, byte flag, boolean add) {
+		private void updateWrites(int address, boolean add) {
 			L1CacheLine line = l1_cache.getCacheLine(address);
-			line.updateFlags(flag, add);
+			line.updateWrites(add);
 		}
 
 		/**
@@ -159,8 +157,8 @@ public class CPU implements CPUConstants {
 		 * <li>Cache Miss.</li>
 		 * </ol>
 		 * For a cache hit, this method updates the value in the cache with the
-		 * value of the word parameter, sets the appropriate dirty flag on the
-		 * cache line, and adds the value of the word parameter to the write
+		 * value of the word parameter, sets the appropriate dirty line_tag on
+		 * the cache line, and adds the value of the word parameter to the write
 		 * buffer. For a cache miss, this method returns false.
 		 * 
 		 * @param word
@@ -179,11 +177,12 @@ public class CPU implements CPUConstants {
 						logger.debug("Cache write hit.  Found address "
 								+ address + " in cache line with tag "
 								+ line.getTag() + ".");
-						int index = address - line.getTag();
-						byte flag = Utils.l1IndexToFlag(index);
-						this.updateFlags(address, flag, true);
+						int tag = line.getTag();
+						byte index = (byte) (address - tag);
+						// this.updateFlags(address, index, true);
 						line.setWord(word, index);
-						return write_buffer.addToBuffer(word, address, flag);
+						line.writes++;
+						return write_buffer.addToBuffer(word, address, tag);
 					}
 				}
 			}
@@ -202,7 +201,7 @@ public class CPU implements CPUConstants {
 	/**
 	 * Represents the structure of each line in the L1 cache. We have not been
 	 * directed to use a specific cache line structure, so for our case each
-	 * line contains 1 address tag, 6 Words, and 1 flags bitmask. This puts our
+	 * line contains 1 address tag, 6 Words, and 1 writes bitmask. This puts our
 	 * total L1 cache contents at 96 Words (16 lines x 6 words per line).
 	 */
 	static class L1CacheLine {
@@ -226,26 +225,26 @@ public class CPU implements CPUConstants {
 		/**
 		 * A bitmask for cache operations.
 		 */
-		private byte flags;
+		private byte writes;
 
 		/**
 		 * Creates a new cache line from the given parameters.
 		 * 
 		 * @param address
 		 * @param block
-		 * @param flags
+		 * @param writes
 		 */
-		private L1CacheLine(int address, Word[] block, byte flags) {
+		private L1CacheLine(int address, Word[] block, byte writes) {
 			this.tag = address;
 			this.words = block;
-			this.flags = flags;
+			this.writes = writes;
 		}
 
 		/**
-		 * @return the flags
+		 * @return the writes
 		 */
 		byte getFlags() {
-			return flags;
+			return writes;
 		}
 
 		/**
@@ -272,12 +271,12 @@ public class CPU implements CPUConstants {
 		 *         corresponding address location in main memory.
 		 */
 		private boolean isDirty() {
-			return flags > 0;
+			return writes > 0;
 		}
 
 		/**
 		 * @param word
-		 * @param index
+		 * @param line_tag
 		 */
 		private void setWord(Word word, int index) {
 			words[index] = word;
@@ -291,31 +290,28 @@ public class CPU implements CPUConstants {
 		@Override
 		public String toString() {
 			return "L1CacheLine [tag=" + tag + ", words="
-					+ Arrays.toString(words) + ", flags=" + flags + "]";
+					+ Arrays.toString(words) + ", writes=" + writes + "]";
 		}
 
 		/**
-		 * Updates the flags bitmask. If the value of the add parameter is true,
-		 * this method adds the value of the flag parameter to the cache line
-		 * flags bitmask, otherwise it subtracts the value of the flag parameter
-		 * from the cache line flags bitmask.
-		 * 
-		 * @param flag
-		 *            The value to add or subtract from the cache line flags
-		 *            bitmask.
+		 * Updates the writes bitmask. If the value of the add parameter is
+		 * true, this method adds the value of the line_tag parameter to the
+		 * cache line writes bitmask, otherwise it subtracts the value of the
+		 * line_tag parameter from the cache line writes bitmask.
 		 * @param add
-		 *            Whether to add or subtract the value of flag from the
-		 *            cache line flags bitmask.
+		 *            Whether to add or subtract the value of line_tag from the
+		 *            cache line writes bitmask.
+		 * @param line_tag
+		 *            The value to add or subtract from the cache line writes
+		 *            bitmask.
 		 */
-		private void updateFlags(byte flag, boolean add) {
-			int index = Utils.l1FlagToIndex(flag);
-			if ((this.flags & 1 << index) != 0) {
-				if (!add)
-					this.flags = (byte) (flags - flag);
-			} else if (add)
-				this.flags = (byte) (flags + flag);
-			logger.debug("The value of line tag " + this.tag
-					+ " flags bitmask is " + this.flags + ".");
+		private void updateWrites(boolean add) {
+			if (add)
+				this.writes++;
+			else
+				this.writes--;
+			logger.debug("Updated the value of line tag " + this.tag
+					+ " writes counter to " + this.writes + ".");
 		}
 	}
 
@@ -381,22 +377,22 @@ public class CPU implements CPUConstants {
 		/**
 		 * Represents the structure of each element in the write buffer queue.
 		 * Each element contains the main memory address, the contents of that
-		 * address, and a flag value that indicates the index of the address on
-		 * its cache line in the L1 cache.
+		 * address, and a line_tag value that indicates the line_tag of the
+		 * address on its cache line in the L1 cache.
 		 */
-		private class WriteBufferContents {
+		private class WriteBufferElement {
 			private int address;
 			private Word word;
-			private byte flag;
+			private int line_tag;
 
 			/**
 			 * @param address
 			 * @param word
 			 */
-			private WriteBufferContents(int address, Word word, byte flag) {
+			private WriteBufferElement(int address, Word word, int line_tag) {
 				this.address = address;
 				this.word = word;
-				this.flag = flag;
+				this.line_tag = line_tag;
 			}
 
 			/**
@@ -406,11 +402,15 @@ public class CPU implements CPUConstants {
 				return address;
 			}
 
+			public byte getIndex() {
+				return (byte) (address - line_tag);
+			}
+
 			/**
-			 * @return the flag
+			 * @return the line_tag
 			 */
-			public byte getFlag() {
-				return flag;
+			public int getLineTag() {
+				return line_tag;
 			}
 
 			/**
@@ -427,18 +427,18 @@ public class CPU implements CPUConstants {
 			 */
 			@Override
 			public String toString() {
-				return "WriteBufferContents [address=" + address + ", word="
-						+ word + ", flag=" + flag + "]";
+				return "WriteBufferElement [address=" + address + ", word="
+						+ word + ", line_tag=" + line_tag + "]";
 			}
 		}
 
 		/**
 		 * FIFO queue of size 4 serves as a write write_buffer. Holds the dirty
-		 * L1CacheLines as elements in the queue. L1CacheLines flag bits are
+		 * L1CacheLines as elements in the queue. L1CacheLines line_tag bits are
 		 * ignored, and the L1CacheLine word is written to the main memory
 		 * address specified by the L1CacheLine tag value.
 		 */
-		private final Queue<WriteBufferContents> buffer = new ArrayBlockingQueue<WriteBufferContents>(
+		private final Queue<WriteBufferElement> buffer = new ArrayBlockingQueue<WriteBufferElement>(
 				4);
 
 		/**
@@ -448,12 +448,12 @@ public class CPU implements CPUConstants {
 		 * 
 		 * @param word
 		 * @param address
-		 * @param flag
+		 * @param line_tag
 		 * @return
 		 */
-		private boolean addToBuffer(Word word, int address, byte flag) {
-			WriteBufferContents contents = new WriteBufferContents(address,
-					word, flag);
+		private boolean addToBuffer(Word word, int address, int line_tag) {
+			WriteBufferElement contents = new WriteBufferElement(address, word,
+					line_tag);
 			boolean success = false;
 			while (buffer.size() == 4) {
 				synchronized (memory_controller) {
@@ -484,7 +484,7 @@ public class CPU implements CPUConstants {
 
 		/**
 		 * Retrieves and writes the head of this FIFO queue to main memory.
-		 * Updates the flag on the cache line to reflect the synchronization
+		 * Updates the line_tag on the cache line to reflect the synchronization
 		 * between the cache and main memory of the address that was written to.
 		 * 
 		 * @return true if successful, otherwise false;
@@ -492,13 +492,13 @@ public class CPU implements CPUConstants {
 		private boolean writeToMainMemory() {
 			boolean success = true;
 			try {
-				WriteBufferContents line = buffer.remove();
-				logger.debug("Removing line " + line + " From write_buffer.");
-				Word word = line.getWord();
-				int address = line.getAddress();
-				byte flag = line.getFlag();
+				WriteBufferElement buffer_element = buffer.remove();
+				logger.debug("Removing line " + buffer_element
+						+ " From write_buffer.");
+				Word word = buffer_element.getWord();
+				int address = buffer_element.getAddress();
 				Memory.getInstance().write(word, address);
-				l1_cache.updateFlags(address, flag, false);
+				l1_cache.updateWrites(address, false);
 			} catch (NoSuchElementException | IndexOutOfBoundsException e) {
 				success = false;
 			}
@@ -509,10 +509,6 @@ public class CPU implements CPUConstants {
 	private static final Logger logger = LogManager.getLogger(CPU.class
 			.getName());
 	public static final byte BOOTLOADER_START = InstructionLoader.BOOT_PROGRAM_LOADING_ADDR;
-	/**
-	 * Static and final reference to memory instance ensures there is only one
-	 * memory object.
-	 */
 	private static CPU INSTANCE = null;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
@@ -622,7 +618,7 @@ public class CPU implements CPUConstants {
 	/**
 	 * @param loader
 	 */
-	public void init(Loader loader) {
+	public void loadROM(Loader loader) {
 		logger.debug("Creating default InstructionLoader for boot program.");
 		try {
 			loader.load();
@@ -747,11 +743,8 @@ public class CPU implements CPUConstants {
 	public void setReg(String destName, Word sourceMemory) {
 		if (regMap.containsKey(destName)) {
 			Register destination = regMap.get(destName);
-			// System.out.println("Source: " + destName + " size: "
-			// + destination.getNumBits());
 			Utils.bitsetDeepCopy(sourceMemory, DEFAULT_BIT_SIZE, destination,
 					destination.getNumBits());
-
 			// update the GUI
 			Computer_GUI.update_register(destName, getReg(destName));
 		}
@@ -777,11 +770,11 @@ public class CPU implements CPUConstants {
 	 * <li>Cache Miss.</li>
 	 * </ol>
 	 * For a cache hit, this method updates the value in the cache with the
-	 * value of the word parameter, sets the appropriate dirty flag on the cache
-	 * line, and adds the value of the word parameter to the write buffer. For a
-	 * cache miss, this method first fetches the appropriate block from memory,
-	 * loads it into the cache, evicting an existing cache line if necessary,
-	 * and then executes the logic for a cache hit.
+	 * value of the word parameter, sets the appropriate dirty line_tag on the
+	 * cache line, and adds the value of the word parameter to the write buffer.
+	 * For a cache miss, this method first fetches the appropriate block from
+	 * memory, loads it into the cache, evicting an existing cache line if
+	 * necessary, and then executes the logic for a cache hit.
 	 * 
 	 * @param word
 	 *            The contents to write.
@@ -823,8 +816,8 @@ public class CPU implements CPUConstants {
 
 	/**
 	 * Calculates the EA (effective address). Boolean parameter is used for LDX
-	 * or STX instructions where IX specifies the index register to load/store
-	 * and NOT to be used when calculating the EA.
+	 * or STX instructions where IX specifies the line_tag register to
+	 * load/store and NOT to be used when calculating the EA.
 	 * 
 	 * @param loadStoreIndex
 	 *            Set to true if doing a LDX or STX instruction.
@@ -987,7 +980,7 @@ public class CPU implements CPUConstants {
 
 	/**
 	 * Returns a String key into the register map according to the contents of
-	 * IX (the index register index)
+	 * IX (the line_tag register line_tag)
 	 * 
 	 * @param R
 	 *            The R register.
@@ -1779,7 +1772,7 @@ public class CPU implements CPUConstants {
 				return;
 			}
 
-			// The character_pointer is used as an index into the
+			// The character_pointer is used as an line_tag into the
 			// string to return a single character
 			try {
 				if (character_pointer == 0)
@@ -1787,7 +1780,7 @@ public class CPU implements CPUConstants {
 				// int input = Integer.parseInt(input_buffer);
 
 				// Pick off a single character and put it in the register,
-				// advance the index
+				// advance the line_tag
 				int input = input_buffer.charAt(character_pointer++);
 				BitSet input_bitset = Utils.intToBitSet(input, 18);
 				setReg(registerFile(getReg(R)), input_bitset, 18);
@@ -1911,7 +1904,7 @@ public class CPU implements CPUConstants {
 
 	/**
 	 * Returns a String key into the register map according to the contents of R
-	 * (the register index register)
+	 * (the register line_tag register)
 	 * 
 	 * @param R
 	 *            The R register.
