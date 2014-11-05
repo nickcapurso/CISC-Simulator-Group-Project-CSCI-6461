@@ -153,7 +153,7 @@ public class IRDecoder {
 			cpu.writeToMemory(msr, 5);
 			
 			//Change PC to fault error routine
-			Word faultRoutine = Memory.getInstance().read(1);
+			Word faultRoutine = cpu.readFromMemory(1);
 			cpu.setReg(CPU.PC, faultRoutine); //Is this ok...just truncate least important?
 			
 			//Execute fault error routine

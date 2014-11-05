@@ -74,6 +74,18 @@ public interface CPUConstants {
 	 * TRAP Constants
 	 */
 	public static final String TRAPCODE = "TRAPCODE";
+	public static final int TRAP_TABLE_ADDR = 2032;
+	
+	/*
+	 * Machine Fault
+	 */
+	public static final int FAULT_AND_TRAP_START_ADDR = 1990;
+	public static final String FAULT_INSTR_FILENAME = "fault_instructions.txt";
+	
+	/*
+	 * Memory Constants 
+	 */
+	public static final int MAX_ADDR = 2048;
 
 	
 	

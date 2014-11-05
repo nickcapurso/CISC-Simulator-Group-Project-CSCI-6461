@@ -88,6 +88,33 @@ public class InstructionLoader implements Loader {
 			logger.error(e);
 		}
 	}
+	
+	/**
+	 * InstructionLoader is constructed with the file parameter and starting memAddr 
+	 * parameter as the target of the reader.
+	 * 
+	 * @param file
+	 *            A file with program instructions to load into memory. The file
+	 *            is expected to contain instructions that constitute a program,
+	 *            with one instruction per line, and elements of the instruction
+	 *            separated by a comma. The expected line format varies with the
+	 *            type of instruction.
+	 *            
+	 * @param startingMemAddr
+	 * 			  The starting memory address to which instructions should be loaded.
+	 */
+	public InstructionLoader(String file, int startingMemAddr) {
+		FileInputStream in;
+		try {
+			in = new FileInputStream(file);
+			reader = new BufferedReader(new InputStreamReader(in));
+		} catch (FileNotFoundException e) {
+			logger.error(e);
+		}
+	}
+	
+	//new instructionloader constructor that takes string for starting mem addr.
+	
 
 	/*
 	 * (non-Javadoc)
@@ -99,8 +126,8 @@ public class InstructionLoader implements Loader {
 		labelTable = new ArrayList<LabelEntry>();
 		try {
 			String temp = null;
-			memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR
-					: GENERAL_PROGRAM_LOADING_ADDR;
+			//check if mem addr is passed
+			//memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR : GENERAL_PROGRAM_LOADING_ADDR;
 			while ((temp = reader.readLine()) != null) {
 				if (temp.equals("") || temp.charAt(0) == '/') {
 					logger.debug("Ignoring line: blank or a comment");
@@ -199,8 +226,17 @@ public class InstructionLoader implements Loader {
 	@Override
 	public void load() throws NullPointerException, ParseException,
 			IllegalArgumentException {
+		memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR : GENERAL_PROGRAM_LOADING_ADDR;
 		this.load(reader);
 	}
+	
+	public void load(int memAddr) throws NullPointerException, ParseException,
+			IllegalArgumentException {
+		memory_location = (short) memAddr;
+		this.load(reader);
+	}
+	
+	
 
 	public Word stringToWord(String input) {
 		String temp = input;
