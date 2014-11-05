@@ -79,7 +79,7 @@ public interface CPUConstants {
 	/*
 	 * Machine Fault
 	 */
-	public static final int FAULT_AND_TRAP_START_ADDR = 1990;
+	public static final int FAULT_AND_TRAP_START_ADDR = 1984;
 	public static final String FAULT_INSTR_FILENAME = "fault_instructions.txt";
 	
 	/*

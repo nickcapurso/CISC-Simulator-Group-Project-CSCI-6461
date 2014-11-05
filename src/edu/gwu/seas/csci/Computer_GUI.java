@@ -457,7 +457,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		reset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				cpu.initializeProgramCounter();
+				cpu.initializeProgramCounter(InstructionLoader.BOOT_PROGRAM_LOADING_ADDR);
 				start.setEnabled(true);
 				cont.setEnabled(true);
 				macrostep.setEnabled(true);

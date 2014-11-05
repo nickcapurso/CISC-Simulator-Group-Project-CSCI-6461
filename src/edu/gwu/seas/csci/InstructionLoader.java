@@ -29,8 +29,8 @@ public class InstructionLoader implements Loader {
 			.getLogger(InstructionLoader.class.getName());
 
 	public static final byte JUMP_INDIRECTION_ADDR = 8;
-	public static final byte BOOT_PROGRAM_LOADING_ADDR = 21;
-	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 97;
+	public static final byte BOOT_PROGRAM_LOADING_ADDR = 24;
+	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 98;
 
 	/**
 	 * Get a reference to the CPU for access to read and write methods.
@@ -243,7 +243,7 @@ public class InstructionLoader implements Loader {
 	@Override
 	public void load() throws NullPointerException, ParseException,
 			IllegalArgumentException {
-		memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR
+		memory_location = isAddressEmpty(BOOT_PROGRAM_LOADING_ADDR) ? BOOT_PROGRAM_LOADING_ADDR
 				: GENERAL_PROGRAM_LOADING_ADDR;
 		this.load(reader);
 	}

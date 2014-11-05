@@ -67,7 +67,8 @@ public class CPU implements CPUConstants {
 		private void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
 				logger.debug("Adding cache line with tag " + line.getTag()
-						+ " to cache at empty position " + cache_adds_counter + ".");
+						+ " to cache at empty position " + cache_adds_counter
+						+ ".");
 				cache[cache_adds_counter++] = line;
 			} else {
 				int cache_position = 0;
@@ -75,7 +76,8 @@ public class CPU implements CPUConstants {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
 				logger.debug("Adding cache line with tag " + line.getTag()
-						+ " to cache at occupied position " + cache_position + ".");
+						+ " to cache at occupied position " + cache_position
+						+ ".");
 				cache[cache_position] = line;
 			}
 		}
@@ -179,7 +181,6 @@ public class CPU implements CPUConstants {
 								+ line.getTag() + ".");
 						int tag = line.getTag();
 						byte index = (byte) (address - tag);
-						// this.updateFlags(address, index, true);
 						line.setWord(word, index);
 						line.writes++;
 						return write_buffer.addToBuffer(word, address, tag);
@@ -209,7 +210,7 @@ public class CPU implements CPUConstants {
 		/**
 		 * The number of words in each cache line.
 		 */
-		public static final int WORDS_PER_LINE = 6;
+		public static final int WORDS_PER_LINE = 8;
 
 		/**
 		 * The main memory address of this cache line.
@@ -298,6 +299,7 @@ public class CPU implements CPUConstants {
 		 * true, this method adds the value of the line_tag parameter to the
 		 * cache line writes bitmask, otherwise it subtracts the value of the
 		 * line_tag parameter from the cache line writes bitmask.
+		 * 
 		 * @param add
 		 *            Whether to add or subtract the value of line_tag from the
 		 *            cache line writes bitmask.
@@ -508,7 +510,6 @@ public class CPU implements CPUConstants {
 
 	private static final Logger logger = LogManager.getLogger(CPU.class
 			.getName());
-	public static final byte BOOTLOADER_START = InstructionLoader.BOOT_PROGRAM_LOADING_ADDR;
 	private static CPU INSTANCE = null;
 	public static Boolean cont_execution = true;
 	public static int prog_step = 0;
@@ -621,38 +622,40 @@ public class CPU implements CPUConstants {
 	 */
 	public void loadROM(Loader loader) {
 		logger.debug("Creating default InstructionLoader for boot program.");
-				
+
 		try {
 			loader.load();
 		} catch (NullPointerException | IllegalArgumentException
 				| ParseException e) {
 			logger.error(e);
 		}
-		
-		
-		//Load trap and fault addresses and instructions into memory
-		try {
-			
-			//Machine fault routine address at 1
 
-			Word errorRoutineAddr = Utils.registerToWord((Utils.intToBitSet(FAULT_AND_TRAP_START_ADDR, DEFAULT_BIT_SIZE)), DEFAULT_BIT_SIZE);
+		// Load trap and fault addresses and instructions into memory
+		try {
+
+			// Machine fault routine address at 1
+
+			Word errorRoutineAddr = Utils.registerToWord((Utils.intToBitSet(
+					FAULT_AND_TRAP_START_ADDR, DEFAULT_BIT_SIZE)),
+					DEFAULT_BIT_SIZE);
 			writeToMemory(errorRoutineAddr, 1);
-			
-			//Trap table at address 0
-			Word trapTableAddr = Utils.registerToWord((Utils.intToBitSet(TRAP_TABLE_ADDR, DEFAULT_BIT_SIZE)), DEFAULT_BIT_SIZE);
+
+			// Trap table at address 0
+			Word trapTableAddr = Utils.registerToWord(
+					(Utils.intToBitSet(TRAP_TABLE_ADDR, DEFAULT_BIT_SIZE)),
+					DEFAULT_BIT_SIZE);
 			writeToMemory(trapTableAddr, 0);
-			
-			//writeToMemory(word, address)
-			InstructionLoader faultLoader = new InstructionLoader(FAULT_INSTR_FILENAME, false);
+
+			// writeToMemory(word, address)
+			InstructionLoader faultLoader = new InstructionLoader(
+					FAULT_INSTR_FILENAME, false);
 			faultLoader.load(FAULT_AND_TRAP_START_ADDR);
-			
+
 		} catch (NullPointerException | IllegalArgumentException
 				| ParseException e) {
 			logger.error(e);
 		}
-		
-		
-		this.initializeProgramCounter();
+		this.initializeProgramCounter(InstructionLoader.BOOT_PROGRAM_LOADING_ADDR);
 	}
 
 	/**
@@ -682,23 +685,21 @@ public class CPU implements CPUConstants {
 	 * @return the contents of the specified address.
 	 */
 	private Word readFromMemory(int address, boolean override) {
-		//Check for illegal address
+		// Check for illegal address
 		if ((address < 0) || (address > MAX_ADDR)) {
-            
-			//PC and MSR are saved to memory
-            Word orig_PC = readFromMemory(2);
-            writeToMemory(orig_PC, 4);
-            Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
-            writeToMemory(msr, 5);
-            
-            //Change PC to fault error routine
-            Word faultRoutine = readFromMemory(1);
-            setReg(PC, faultRoutine); //Is this ok...just truncate least important?
-            
-            //Execute fault error routine
-            executeInstruction("continue");
+			// PC and MSR are saved to memory
+			Word orig_PC = readFromMemory(2);
+			writeToMemory(orig_PC, 4);
+			Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+			writeToMemory(msr, 5);
+			// Change PC to fault error routine
+			Word faultRoutine = readFromMemory(1);
+			setReg(PC, faultRoutine); // Is this ok...just truncate least
+										// important?
+			// Execute fault error routine
+			executeInstruction("continue");
 		}
-		
+
 		Word word = null;
 		if (override)
 			word = readFromMainMemory(address);
@@ -787,12 +788,14 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Points the PC to Octal 25 where the bootloader program is loaded and
+	 * Points the PC to Octal 30 where the bootloader program is loaded and
 	 * starts execution (by default, runs until HLT)
+	 * 
+	 * @param address
+	 *            TODO
 	 */
-	public void initializeProgramCounter() {
-		setReg(PC,
-				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()),
+	public void initializeProgramCounter(int address) {
+		setReg(PC, Utils.intToBitSet(address, getReg(PC).getNumBits()),
 				getReg(PC).getNumBits());
 		bootloaderRunning = true;
 		prog_step = 0;
@@ -821,23 +824,24 @@ public class CPU implements CPUConstants {
 	 * @return true if successful, false otherwise.
 	 */
 	public boolean writeToMemory(Word word, int address) {
-		//Check for illegal address
+		// Check for illegal address
 		if ((address < 0) || (address > MAX_ADDR)) {
-            
-			//PC and MSR are saved to memory
-            Word orig_PC = readFromMemory(2);
-            writeToMemory(orig_PC, 4);
-            Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
-            writeToMemory(msr, 5);
-            
-            //Change PC to fault error routine
-            Word faultRoutine = readFromMemory(1);
-            setReg(PC, faultRoutine); //Is this ok...just truncate least important?
-            
-            //Execute fault error routine
-            executeInstruction("continue");
+
+			// PC and MSR are saved to memory
+			Word orig_PC = readFromMemory(2);
+			writeToMemory(orig_PC, 4);
+			Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+			writeToMemory(msr, 5);
+
+			// Change PC to fault error routine
+			Word faultRoutine = readFromMemory(1);
+			setReg(PC, faultRoutine); // Is this ok...just truncate least
+										// important?
+
+			// Execute fault error routine
+			executeInstruction("continue");
 		}
-		
+
 		if (l1_cache.write(word, address)) {
 			// Cache Hit.
 			return true;
@@ -1875,35 +1879,39 @@ public class CPU implements CPUConstants {
 				logger.debug("TRAP");
 				// store pc in memory[2]
 				Word pc = Utils.registerToWord(getReg(PC), 12);
-				//convert pc to int, add 1, and then write to 2 (look at PC method)
+				// convert pc to int, add 1, and then write to 2 (look at PC
+				// method)
 				Memory.getInstance().write(pc, 2);
 				break;
 			case 5:
-                //set PC to current subroutine address
-                Word sub_table = readFromMemory(0);
-                int sub_table_addr = Utils.convertToInt(sub_table, 18);
-                int trap_subroutine_offset = sub_table_addr + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
-                int trap_subroutine = trap_subroutine_offset + sub_table_addr;
-                Word sub_location = readFromMemory(trap_subroutine);
-                
-                //check for illegal TRAP code
-                if (sub_location.isEmpty()) {
-                    
-                    //PC and MSR are saved to memory
-                    Word orig_PC = readFromMemory(2);
-                    writeToMemory(orig_PC, 4);
-                    Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
-                    writeToMemory(msr, 5);
-                    
-                    //Change PC to fault error routine
-                    Word faultRoutine = readFromMemory(1);
-                    setReg(PC, faultRoutine); //Is this ok...just truncate least important?
-                    
-                    //Execute fault error routine
-                    executeInstruction("continue");
-                } else {
-                    setReg(PC, sub_location);
-                }
+				// set PC to current subroutine address
+				Word sub_table = readFromMemory(0);
+				int sub_table_addr = Utils.convertToInt(sub_table, 18);
+				int trap_subroutine_offset = sub_table_addr
+						+ Utils.convertToInt(regMap.get(TRAPCODE),
+								regMap.get(TRAPCODE).getNumBits());
+				int trap_subroutine = trap_subroutine_offset + sub_table_addr;
+				Word sub_location = readFromMemory(trap_subroutine);
+
+				// check for illegal TRAP code
+				if (sub_location.isEmpty()) {
+
+					// PC and MSR are saved to memory
+					Word orig_PC = readFromMemory(2);
+					writeToMemory(orig_PC, 4);
+					Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+					writeToMemory(msr, 5);
+
+					// Change PC to fault error routine
+					Word faultRoutine = readFromMemory(1);
+					setReg(PC, faultRoutine); // Is this ok...just truncate
+												// least important?
+
+					// Execute fault error routine
+					executeInstruction("continue");
+				} else {
+					setReg(PC, sub_location);
+				}
 			}
 			break;
 
@@ -1913,32 +1921,34 @@ public class CPU implements CPUConstants {
 			prog_step = 0;
 			Computer_GUI.disable_btns();
 			Computer_GUI.toggle_button("load", true);
-			
-			if(bootloaderRunning){
-				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+
+			if (bootloaderRunning) {
+				Computer_GUI
+						.append_to_terminal("\n__________________________________________________\n");
 				clearMainRegisters();
 				bootloaderRunning = false;
-			}else{
-				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+			} else {
+				Computer_GUI
+						.append_to_terminal("\n__________________________________________________\n");
 				clearMainRegisters();
 				bootloaderRunning = true;
 				jumpTaken = true;
-				initializeProgramCounter();
+				initializeProgramCounter(InstructionLoader.BOOT_PROGRAM_LOADING_ADDR);
 				executeInstruction("continue");
 			}
 			break;
 		}
 	}
-	
-	private void clearMainRegisters(){
-		setReg(R0, Utils.intToBitSet(0, 18),18);
-		setReg(R1, Utils.intToBitSet(0, 18),18);
-		setReg(R2, Utils.intToBitSet(0, 18),18);
-		setReg(R3, Utils.intToBitSet(0, 18),18);
-		
-		setReg(X1, Utils.intToBitSet(0, 18),18);
-		setReg(X2, Utils.intToBitSet(0, 18),18);
-		setReg(X3, Utils.intToBitSet(0, 18),18);
+
+	private void clearMainRegisters() {
+		setReg(R0, Utils.intToBitSet(0, 18), 18);
+		setReg(R1, Utils.intToBitSet(0, 18), 18);
+		setReg(R2, Utils.intToBitSet(0, 18), 18);
+		setReg(R3, Utils.intToBitSet(0, 18), 18);
+
+		setReg(X1, Utils.intToBitSet(0, 18), 18);
+		setReg(X2, Utils.intToBitSet(0, 18), 18);
+		setReg(X3, Utils.intToBitSet(0, 18), 18);
 	}
 
 	/**
@@ -1995,8 +2005,10 @@ public class CPU implements CPUConstants {
 	 */
 	private Word readFromMainMemory(int address) {
 		Word[] block = Memory.getInstance().getMemoryBlock(address);
-		Word word = block[0];
-		L1CacheLine line = new L1CacheLine(address, block, (byte) 0);
+		int tag = (address / 8) * 8;
+		int index = address % 8;
+		Word word = block[index];
+		L1CacheLine line = new L1CacheLine(tag, block, (byte) 0);
 		l1_cache.add(line);
 		return word;
 	}
