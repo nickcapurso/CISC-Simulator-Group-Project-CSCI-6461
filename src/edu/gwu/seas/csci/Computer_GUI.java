@@ -39,7 +39,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	 * input
 	 */
 	private static final long serialVersionUID = 1L;
-	static final Logger logger = LogManager.getLogger(CPU.class.getName());
+	static final Logger logger = LogManager.getLogger(Computer_GUI.class.getName());
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;

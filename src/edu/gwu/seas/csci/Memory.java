@@ -57,7 +57,7 @@ public class Memory {
 	 * @return
 	 */
 	public Word[] getMemoryBlock(int address) {
-		int tag = address / 8;
+		int tag = (address / 8) * 8;
 		Word[] words = Arrays.copyOfRange(memory, tag, tag
 				+ L1CacheLine.WORDS_PER_LINE);
 		return words;
