@@ -1,0 +1,42 @@
+//Error Routine
+LDA 0,0,69
+OUT 0,1			//Print "E"
+LDA 0,0,114
+OUT 0,1			//Print "r"
+LDA 0,0,114
+OUT 0,1			//Print	"r"
+LDA 0,0,111
+OUT 0,1			//Print	"o"
+LDA 0,0,114
+OUT 0,1			//Print	"r"
+LDA 0,0,58
+OUT 0,1			//Print	":"
+LDA 0,0,32
+OUT 0,1			//Print	space
+LDA 0,0,77
+OUT 0,1			//Print	"M"
+LDA 0,0,65
+OUT 0,1                 //Print "A"
+LDA 0,0,67
+OUT 0,1                 //Print "C"
+LDA 0,0,72
+OUT 0,1                 //Print "H"
+LDA 0,0,73
+OUT 0,1                 //Print "I"
+LDA 0,0,78
+OUT 0,1                 //Print "N"
+LDA 0,0,69
+OUT 0,1                 //Print "E"
+LDA 0,0,32
+OUT 0,1                 //Print	space
+LDA 0,0,70
+OUT 0,1                 //Print	"F"
+LDA 0,0,65
+OUT 0,1                 //Print	"A"
+LDA 0,0,85
+OUT 0,1                 //Print	"U"
+LDA 0,0,76
+OUT 0,1                 //Print	"L"
+LDA 0,0,84
+OUT 0,1                 //Print	"T"
+//Trap table starts at TRAP_TABLE_ADDR (2032)
