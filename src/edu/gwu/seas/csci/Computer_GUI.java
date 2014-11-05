@@ -64,7 +64,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		this.cpu = cpu;
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contentPane = new JPanel();
-		setBounds(100, 100, 100, 100);
+		setBounds(100, 100, 1049, 547);
 		contentPane.setBackground(SystemColor.menu);
 		setContentPane(contentPane);
 		init_exec_command_map();
@@ -73,7 +73,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
 				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
 				"RX", "RY", "AL", "LR", "COUNT"};
-		contentPane.setLayout(new MigLayout("", "[200px:n:200px][125px:n][125px:n][97px][12px][19px][176px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
+		contentPane.setLayout(new MigLayout("", "[250px:n:250px][125px:n][125px:n][97px][12px][19px][176px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
 	
 		textField = new JTextField();
 		contentPane.add(textField, "cell 0 17,grow");
@@ -83,10 +83,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		terminal.setEnabled(false);
 		terminal.setLineWrap(true);
 		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
-		JScrollPane scroll = new JScrollPane (ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		JScrollPane scroll = new JScrollPane (terminal, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		contentPane.add(terminal, "cell 0 8 3 9,grow");
-		contentPane.add(scroll, "cell 0 8 3 9,growy");
+		contentPane.add(scroll, "cell 0 8 3 9, grow");
 
 		/*
 		 * JButtons for user interaction - Load: load a textfile through

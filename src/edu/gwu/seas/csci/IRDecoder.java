@@ -46,7 +46,7 @@ public class IRDecoder {
 
 		// All instructions formats have the opcode in the first 6 bits
 		opcode = IR.get(InstructionBitFormats.OPCODE_START, InstructionBitFormats.OPCODE_END + 1);
-		cpu.setReg(CPUConstants.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
+		cpu.setReg(CPU.OPCODE, opcode, InstructionBitFormats.OPCODE_SIZE);
 
 		// Get the instruction class for the current opcode
 		instruction_string = context.getOpCodeStrings().get(
@@ -75,71 +75,90 @@ public class IRDecoder {
 		case LD_STR:
 		case TRANS:
 		case ARITH:
-			cpu.setReg(CPUConstants.IX, IR.get(
+			cpu.setReg(CPU.IX, IR.get(
 					InstructionBitFormats.LD_STR_IX_START,
 					InstructionBitFormats.LD_STR_IX_END + 1),
 					InstructionBitFormats.LD_STR_IX_SIZE);
 
-			cpu.setReg(CPUConstants.R, IR.get(
+			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.LD_STR_R_START,
 					InstructionBitFormats.LD_STR_R_END + 1),
 					InstructionBitFormats.LD_STR_R_SIZE);
 
-			cpu.setReg(CPUConstants.I, IR.get(
+			cpu.setReg(CPU.I, IR.get(
 					InstructionBitFormats.LD_STR_I_START,
 					InstructionBitFormats.LD_STR_I_END + 1),
 					InstructionBitFormats.LD_STR_I_SIZE);
 
-			cpu.setReg(CPUConstants.ADDR, IR.get(
+			cpu.setReg(CPU.ADDR, IR.get(
 					InstructionBitFormats.LD_STR_ADDR_START,
 					InstructionBitFormats.LD_STR_ADDR_END + 1),
 					InstructionBitFormats.LD_STR_ADDR_SIZE);
 			break;
 
 		case XY_ARITH_LOGIC:
-			cpu.setReg(CPUConstants.RX, IR.get(
+			cpu.setReg(CPU.RX, IR.get(
 					InstructionBitFormats.XY_ARITH_RX_START,
 					InstructionBitFormats.XY_ARITH_RX_END+1),
 					InstructionBitFormats.XY_ARITH_RX_SIZE);
 			
-			cpu.setReg(CPUConstants.RY, IR.get(
+			cpu.setReg(CPU.RY, IR.get(
 					InstructionBitFormats.XY_ARITH_RY_START, 
 					InstructionBitFormats.XY_ARITH_RY_END+1),
 					InstructionBitFormats.XY_ARITH_RY_SIZE);
 			break;
 			
 		case SHIFT:
-			cpu.setReg(CPUConstants.R, IR.get(
+			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.SHIFT_R_START, 
 					InstructionBitFormats.SHIFT_R_END+1),
 					InstructionBitFormats.SHIFT_R_SIZE);
 			
-			cpu.setReg(CPUConstants.AL, IR.get(
+			cpu.setReg(CPU.AL, IR.get(
 					InstructionBitFormats.SHIFT_AL_START, 
 					InstructionBitFormats.SHIFT_AL_END+1),
 					InstructionBitFormats.SHIFT_AL_SIZE);
 			
-			cpu.setReg(CPUConstants.LR, IR.get(
+			cpu.setReg(CPU.LR, IR.get(
 					InstructionBitFormats.SHIFT_LR_START, 
 					InstructionBitFormats.SHIFT_LR_END+1),
 					InstructionBitFormats.SHIFT_LR_SIZE);
 			
-			cpu.setReg(CPUConstants.COUNT, IR.get(
+			cpu.setReg(CPU.COUNT, IR.get(
 					InstructionBitFormats.SHIFT_COUNT_START, 
 					InstructionBitFormats.SHIFT_COUNT_END+1),
 					InstructionBitFormats.SHIFT_COUNT_SIZE);
 			break;
 		case IO:
-			cpu.setReg(CPUConstants.R, IR.get(
+			cpu.setReg(CPU.R, IR.get(
 					InstructionBitFormats.IO_R_START,
 					InstructionBitFormats.IO_R_END+1),
 					InstructionBitFormats.IO_R_SIZE);
-			cpu.setReg(CPUConstants.DEVID, IR.get(
+			cpu.setReg(CPU.DEVID, IR.get(
 					InstructionBitFormats.IO_DEVID_START,
 					InstructionBitFormats.IO_DEVID_END+1),
 					InstructionBitFormats.IO_DEVID_SIZE);
 			break;
 		default:
+			
+			/*
+			 * Illegal opcode has occurred
+			 * 
+			 * Registers PC and MSR are saved to memory. Next, the fault error routine.
+			 */
+			
+			Word pc = Utils.registerToWord(cpu.getReg(CPU.PC), 12);
+			cpu.writeToMemory(pc, 4);
+			Word msr = Utils.registerToWord(cpu.getReg(CPU.PC), 18);
+			cpu.writeToMemory(msr, 5);
+			
+			//Change PC to fault error routine
+			Word faultRoutine = cpu.readFromMemory(1);
+			cpu.setReg(CPU.PC, faultRoutine); //Is this ok...just truncate least important?
+			
+			//Execute fault error routine
+			cpu.executeInstruction("continue");
+			
 			break;
 		}
 	}

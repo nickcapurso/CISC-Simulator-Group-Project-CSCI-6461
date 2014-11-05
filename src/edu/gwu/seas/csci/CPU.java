@@ -542,6 +542,7 @@ public class CPU implements CPUConstants {
 
 	private boolean waitForInterrupt;
 	private boolean jumpTaken;
+	private boolean bootloaderRunning;
 	private String currentExecution = "";
 
 	// Constructor
@@ -620,12 +621,37 @@ public class CPU implements CPUConstants {
 	 */
 	public void loadROM(Loader loader) {
 		logger.debug("Creating default InstructionLoader for boot program.");
+				
 		try {
 			loader.load();
 		} catch (NullPointerException | IllegalArgumentException
 				| ParseException e) {
 			logger.error(e);
 		}
+		
+		
+		//Load trap and fault addresses and instructions into memory
+		try {
+			
+			//Machine fault routine address at 1
+
+			Word errorRoutineAddr = Utils.registerToWord((Utils.intToBitSet(FAULT_AND_TRAP_START_ADDR, DEFAULT_BIT_SIZE)), DEFAULT_BIT_SIZE);
+			writeToMemory(errorRoutineAddr, 1);
+			
+			//Trap table at address 0
+			Word trapTableAddr = Utils.registerToWord((Utils.intToBitSet(TRAP_TABLE_ADDR, DEFAULT_BIT_SIZE)), DEFAULT_BIT_SIZE);
+			writeToMemory(trapTableAddr, 0);
+			
+			//writeToMemory(word, address)
+			InstructionLoader faultLoader = new InstructionLoader(FAULT_INSTR_FILENAME, FAULT_AND_TRAP_START_ADDR);
+			faultLoader.load(FAULT_AND_TRAP_START_ADDR);
+			
+		} catch (NullPointerException | IllegalArgumentException
+				| ParseException e) {
+			logger.error(e);
+		}
+		
+		
 		this.initializeProgramCounter();
 	}
 
@@ -663,6 +689,23 @@ public class CPU implements CPUConstants {
 	 * @return the contents of the specified address.
 	 */
 	private Word readFromMemory(int address, boolean override) {
+		//Check for illegal address
+		if ((address < 0) || (address > MAX_ADDR)) {
+            
+			//PC and MSR are saved to memory
+            Word orig_PC = readFromMemory(2);
+            writeToMemory(orig_PC, 4);
+            Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+            writeToMemory(msr, 5);
+            
+            //Change PC to fault error routine
+            Word faultRoutine = readFromMemory(1);
+            setReg(PC, faultRoutine); //Is this ok...just truncate least important?
+            
+            //Execute fault error routine
+            executeInstruction("continue");
+		}
+		
 		Word word = null;
 		if (override)
 			word = readFromMainMemory(address);
@@ -758,6 +801,7 @@ public class CPU implements CPUConstants {
 		setReg(PC,
 				Utils.intToBitSet(BOOTLOADER_START, getReg(PC).getNumBits()),
 				getReg(PC).getNumBits());
+		bootloaderRunning = true;
 		prog_step = 0;
 	}
 
@@ -784,6 +828,23 @@ public class CPU implements CPUConstants {
 	 * @return true if successful, false otherwise.
 	 */
 	public boolean writeToMemory(Word word, int address) {
+		//Check for illegal address
+		if ((address < 0) || (address > MAX_ADDR)) {
+            
+			//PC and MSR are saved to memory
+            Word orig_PC = readFromMemory(2);
+            writeToMemory(orig_PC, 4);
+            Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+            writeToMemory(msr, 5);
+            
+            //Change PC to fault error routine
+            Word faultRoutine = readFromMemory(1);
+            setReg(PC, faultRoutine); //Is this ok...just truncate least important?
+            
+            //Execute fault error routine
+            executeInstruction("continue");
+		}
+		
 		if (l1_cache.write(word, address)) {
 			// Cache Hit.
 			return true;
@@ -1818,17 +1879,35 @@ public class CPU implements CPUConstants {
 				logger.debug("TRAP");
 				// store pc in memory[2]
 				Word pc = Utils.registerToWord(getReg(PC), 12);
+				//convert pc to int, add 1, and then write to 2 (look at PC method)
 				Memory.getInstance().write(pc, 2);
 				break;
 			case 5:
-				// setPC to current subroutine address
-				Word sub_table = Memory.getInstance().read(2);
-				int trap_subroutine = Utils.convertToInt(sub_table, 18)
-						+ Utils.convertToInt(regMap.get(TRAPCODE),
-								regMap.get(TRAPCODE).getNumBits());
-				Word sub_location = Memory.getInstance().read(trap_subroutine);
-				setReg(PC, sub_location);
-				break;
+                //set PC to current subroutine address
+                Word sub_table = readFromMemory(0);
+                int sub_table_addr = Utils.convertToInt(sub_table, 18);
+                int trap_subroutine_offset = sub_table_addr + Utils.convertToInt(regMap.get(TRAPCODE), regMap.get(TRAPCODE).getNumBits());
+                int trap_subroutine = trap_subroutine_offset + sub_table_addr;
+                Word sub_location = readFromMemory(trap_subroutine);
+                
+                //check for illegal TRAP code
+                if (sub_location.isEmpty()) {
+                    
+                    //PC and MSR are saved to memory
+                    Word orig_PC = readFromMemory(2);
+                    writeToMemory(orig_PC, 4);
+                    Word msr = Utils.registerToWord(getReg(CPU.PC), 18);
+                    writeToMemory(msr, 5);
+                    
+                    //Change PC to fault error routine
+                    Word faultRoutine = readFromMemory(1);
+                    setReg(PC, faultRoutine); //Is this ok...just truncate least important?
+                    
+                    //Execute fault error routine
+                    executeInstruction("continue");
+                } else {
+                    setReg(PC, sub_location);
+                }
 			}
 			break;
 
@@ -1838,8 +1917,32 @@ public class CPU implements CPUConstants {
 			prog_step = 0;
 			Computer_GUI.disable_btns();
 			Computer_GUI.toggle_button("load", true);
+			
+			if(bootloaderRunning){
+				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+				clearMainRegisters();
+				bootloaderRunning = false;
+			}else{
+				Computer_GUI.append_to_terminal("\n__________________________________________________\n");
+				clearMainRegisters();
+				bootloaderRunning = true;
+				jumpTaken = true;
+				initializeProgramCounter();
+				executeInstruction("continue");
+			}
 			break;
 		}
+	}
+	
+	private void clearMainRegisters(){
+		setReg(R0, Utils.intToBitSet(0, 18),18);
+		setReg(R1, Utils.intToBitSet(0, 18),18);
+		setReg(R2, Utils.intToBitSet(0, 18),18);
+		setReg(R3, Utils.intToBitSet(0, 18),18);
+		
+		setReg(X1, Utils.intToBitSet(0, 18),18);
+		setReg(X2, Utils.intToBitSet(0, 18),18);
+		setReg(X3, Utils.intToBitSet(0, 18),18);
 	}
 
 	/**
