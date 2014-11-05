@@ -75,7 +75,7 @@ public class Memory {
 		if (address > length)
 			throw new IndexOutOfBoundsException();
 		Word[] words = getMemoryBlock(address);
-		return words[0];
+		return words[address%8];
 	}
 
 	/**

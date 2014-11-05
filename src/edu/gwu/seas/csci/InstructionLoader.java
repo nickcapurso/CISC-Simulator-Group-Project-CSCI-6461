@@ -30,7 +30,7 @@ public class InstructionLoader implements Loader {
 
 	public static final byte JUMP_INDIRECTION_ADDR = 8;
 	public static final byte BOOT_PROGRAM_LOADING_ADDR = 24;
-	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 99;
+	public static final byte GENERAL_PROGRAM_LOADING_ADDR = 100;
 
 	/**
 	 * Get a reference to the CPU for access to read and write methods.
@@ -119,7 +119,7 @@ public class InstructionLoader implements Loader {
 				Word word = Utils.registerToWord(Utils.intToBitSet(4, 18), 18);
 				cpu.writeToMemory(word, memoryLoc);
 			} catch (IOException e) {
-
+				
 			}
 		}
 		if (fully_qualified) {
@@ -238,8 +238,6 @@ public class InstructionLoader implements Loader {
 		} catch (IOException e) {
 			throw new ParseException(e.getMessage(), 0);
 		}
-		logger.debug("Resetting program counter to general program start point.");
-		cpu.initializeProgramCounter(GENERAL_PROGRAM_LOADING_ADDR);
 	}
 
 	@Override

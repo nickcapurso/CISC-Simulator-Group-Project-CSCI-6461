@@ -631,10 +631,10 @@ public class CPU implements CPUConstants {
 		}
 
 		// Load trap and fault addresses and instructions into memory
-//		try {
+		try {
 
 			// Machine fault routine address at 1
-/*
+
 			Word errorRoutineAddr = Utils.registerToWord((Utils.intToBitSet(
 					FAULT_AND_TRAP_START_ADDR, DEFAULT_BIT_SIZE)),
 					DEFAULT_BIT_SIZE);
@@ -650,12 +650,12 @@ public class CPU implements CPUConstants {
 			InstructionLoader faultLoader = new InstructionLoader(
 					FAULT_INSTR_FILENAME, false);
 			faultLoader.load(FAULT_AND_TRAP_START_ADDR);
-			*/
+			
 
-//		} catch (NullPointerException | IllegalArgumentException
-	//			| ParseException e) {
-		//	logger.error(e);
-		//}
+		} catch (NullPointerException | IllegalArgumentException
+				| ParseException e) {
+			logger.error(e);
+		}
 		this.initializeProgramCounter(InstructionLoader.BOOT_PROGRAM_LOADING_ADDR);
 	}
 
