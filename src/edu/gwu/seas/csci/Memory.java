@@ -5,6 +5,8 @@ package edu.gwu.seas.csci;
 
 import java.util.Arrays;
 
+import edu.gwu.seas.csci.CPU.L1CacheLine;
+
 /**
  * Provides the memory for the {@link Computer} class. Leverages the Singleton
  * pattern to initialize and maintain exactly one set of system memory per
@@ -55,7 +57,9 @@ public class Memory {
 	 * @return
 	 */
 	public Word[] getMemoryBlock(int address) {
-		Word[] words = Arrays.copyOfRange(memory, address, address + 6);
+		int tag = address / 8;
+		Word[] words = Arrays.copyOfRange(memory, tag, tag
+				+ L1CacheLine.WORDS_PER_LINE);
 		return words;
 	}
 
