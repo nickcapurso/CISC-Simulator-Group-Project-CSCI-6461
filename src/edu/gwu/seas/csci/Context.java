@@ -8,8 +8,6 @@ import java.util.Map;
 
 /**
  * Holds the application context.
- * 
- * @author Alex Remily
  */
 public class Context {
 
@@ -17,8 +15,6 @@ public class Context {
 
 	/**
 	 * Enumerates the classes of OPCODE supported by the Computer.
-	 * 
-	 * @author Alex Remily
 	 */
 	public enum InstructionClass {
 		LD_STR, TRANS, HALT, TRAP, ARITH, XY_ARITH_LOGIC, SHIFT, IO
@@ -27,31 +23,15 @@ public class Context {
 	/**
 	 * Just make these generic category containers for instructions of common
 	 * format for purposes of parsing.
-	 * 
-	 * @author Alex Remily
 	 */
 	public enum InstructionFormat {
 		ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT
 	}
 
-	/**
-	 * The dirty flag bitmask for the cache line. Indicates that the value
-	 * differs from it's corresponding value in memory.
-	 */
-	public static final byte ONE = 1;
-	public static final byte TWO = 2;
-	public static final byte THREE = 4;
-	public static final byte FOUR = 8;
-	public static final byte FIVE = 16;
-	public static final byte SIX = 32;
-	public static final byte SEVEN = 64;
-
 	private Map<String, InstructionClass> opcodeClasses = new HashMap<String, InstructionClass>();
 	private Map<String, InstructionFormat> instructionFormats = new HashMap<String, InstructionFormat>();
 	private Map<String, Byte> opCodeBytes = new HashMap<String, Byte>();
 	private Map<Byte, String> opCodeStrings = new HashMap<Byte, String>();
-	private Map<Integer, Byte> indexToFlags = new HashMap<Integer, Byte>();
-	private Map<Byte, Integer> flagsToIndex = new HashMap<Byte, Integer>();
 
 	/**
 	 * 
@@ -241,23 +221,8 @@ public class Context {
 		// Shift/rotate instructions
 		opCodeStrings.put(OpCodesList.SRC, "SRC");
 		opCodeStrings.put(OpCodesList.RRC, "RRC");
-
 		opCodeStrings.put(OpCodesList.IN, "IN");
 		opCodeStrings.put(OpCodesList.OUT, "OUT");
-
-		indexToFlags.put(0, ONE);
-		indexToFlags.put(1, TWO);
-		indexToFlags.put(2, THREE);
-		indexToFlags.put(3, FOUR);
-		indexToFlags.put(4, FIVE);
-		indexToFlags.put(5, SIX);
-
-		flagsToIndex.put(ONE, 0);
-		flagsToIndex.put(TWO, 1);
-		flagsToIndex.put(THREE, 2);
-		flagsToIndex.put(FOUR, 3);
-		flagsToIndex.put(FIVE, 4);
-		flagsToIndex.put(SIX, 5);
 	}
 
 	public static Context getInstance() {
@@ -290,19 +255,5 @@ public class Context {
 	 */
 	public Map<String, Byte> getOpCodeBytes() {
 		return opCodeBytes;
-	}
-
-	/**
-	 * @return the indexToFlags
-	 */
-	public Map<Integer, Byte> getIndexToFlags() {
-		return indexToFlags;
-	}
-
-	/**
-	 * @return the flagsToIndex
-	 */
-	Map<Byte, Integer> getFlagsToIndex() {
-		return flagsToIndex;
 	}
 }

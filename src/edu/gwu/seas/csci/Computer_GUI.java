@@ -43,7 +43,8 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JPanel contentPane;
 	private JTextField textField;
 	private static JTextArea terminal;
-	private static JButton cont, start, microstep, macrostep, runinput, enter, load, set_reg_mem, get_reg_mem, show_hide_dev;
+	private static JButton cont, start, microstep, macrostep, runinput, enter,
+			load, set_reg_mem, get_reg_mem, show_hide_dev;
 	private JRadioButton[] MAR, MSR, MFR, MDR;
 	private JLabel lblMsr, lblMar, lblMfr, lblMdr;
 	private Boolean show_hide = true;
@@ -54,7 +55,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	private JButton reset;
 	private InstructionLoader fileloader = new InstructionLoader();
 	private CPU cpu;
-	private static HashMap<String, JRadioButton[]> Registers; // map of registers on gui
+	private static HashMap<String, JRadioButton[]> Registers; // map of
+																// registers on
+																// gui
 	private HashMap<String, String> exec_command;
 
 	/**
@@ -68,22 +71,30 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		contentPane.setBackground(SystemColor.menu);
 		setContentPane(contentPane);
 		init_exec_command_map();
-		
-		//Registers for getting and setting register and memory
-		String[] registers = {"Select Register/Memory", "Memory", "R0", "R1", "R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR", "MSR",
-				"MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1", "OP2", "OP3", "OP4", "RESULT", "RESULT2",
-				"RX", "RY", "AL", "LR", "COUNT"};
-		contentPane.setLayout(new MigLayout("", "[250px:n:250px][125px:n][125px:n][97px][12px][19px][176px]", "[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
-	
+
+		// Registers for getting and setting register and memory
+		String[] registers = { "Select Register/Memory", "Memory", "R0", "R1",
+				"R2", "R3", "X1", "X2", "X3", "PC", "IR", "CC", "MAR", "MDR",
+				"MSR", "MFR", "OPCODE", "I", "R", "IX", "ADDR", "EA", "OP1",
+				"OP2", "OP3", "OP4", "RESULT", "RESULT2", "RX", "RY", "AL",
+				"LR", "COUNT" };
+		contentPane
+				.setLayout(new MigLayout(
+						"",
+						"[250px:n:250px][125px:n][125px:n][97px][12px][19px][176px]",
+						"[30px][30px][30px][30px][30px][30px][30px][25px][25px][13px][25px][13px][25px][13px][25px][13px][47px][27px]"));
+
 		textField = new JTextField();
 		contentPane.add(textField, "cell 0 17,grow");
 		textField.setColumns(10);
-		
+
 		terminal = new JTextArea();
 		terminal.setEnabled(false);
 		terminal.setLineWrap(true);
-		DefaultCaret caret = (DefaultCaret)terminal.getCaret();
-		JScrollPane scroll = new JScrollPane (terminal, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		DefaultCaret caret = (DefaultCaret) terminal.getCaret();
+		JScrollPane scroll = new JScrollPane(terminal,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		contentPane.add(scroll, "cell 0 8 3 9, grow");
 
@@ -166,7 +177,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 		JLabel lblIr = new JLabel("OPCODE:");
 		contentPane.add(lblIr, "cell 3 6 3 1,alignx right,aligny center");
-		
+
 		/*
 		 * Jpanel for Setting Registers and Memory - Spinner: memory_address -
 		 * spinner to determine memory location to update bit_value - value to
@@ -177,8 +188,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		panel = new JPanel();
 		panel.setBackground(Color.GRAY);
 		contentPane.add(panel, "cell 5 8 2 5,grow");
-		panel.setLayout(new MigLayout("", "[50:n:50px][50px:n,center][150:n][][150px:n:150px,center][]", "[][][]"));
-		
+		panel.setLayout(new MigLayout("",
+				"[50:n:50px][50px:n,center][150:n][][150px:n:150px,center][]",
+				"[][][]"));
+
 		JLabel lblSetMemoryAnd = new JLabel("Set/Get Memory and Registers");
 		panel.add(lblSetMemoryAnd, "cell 0 0");
 
@@ -193,15 +206,15 @@ public class Computer_GUI extends JFrame implements ActionListener {
 
 		JLabel lblTo_1 = new JLabel("- to -");
 		panel.add(lblTo_1, "cell 3 1");
-		
+
 		bit_value = new SpinnerNumberModel();
 		bit_value_model = new JSpinner(bit_value);
 		panel.add(bit_value_model, "cell 4 1,growx");
-		
+
 		set_reg_mem = new JButton("Set");
 		panel.add(set_reg_mem, "cell 5 1");
 		set_reg_mem.setEnabled(false);
-		
+
 		JLabel lblAt = new JLabel("At -");
 		panel.add(lblAt, "cell 0 2,alignx center");
 
@@ -213,10 +226,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		get_reg_mem = new JButton("Get");
 		get_reg_mem.setEnabled(false);
 		panel.add(get_reg_mem, "cell 5 2");
-		
+
 		show_hide_dev = new JButton("Hide Developer Console");
 		contentPane.add(show_hide_dev, "cell 0 7 2 1,alignx left,aligny top");
-		
 
 		/*
 		 * Create a map of all registers used on GUI - Registers are stored as
@@ -302,9 +314,9 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		Registers.put("MFR", MFR);
 		Registers.put("MAR", MAR);
 		Registers.put("IR", IR);
-		Registers.put("CC",	CC);
-		
-		//Action Listeners for complex logic
+		Registers.put("CC", CC);
+
+		// Action Listeners for complex logic
 		register_list.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -315,7 +327,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				} else if (value == "Memory") {
 					panel.remove(bit_value_model);
 					memory_address.setEnabled(true);
-					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2,  18), 1);
+					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, 18), 1);
 					bit_value_model = new JSpinner(bit_value);
 					panel.add(bit_value_model, "cell 4 1,growx");
 					set_reg_mem.setEnabled(true);
@@ -325,18 +337,19 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				} else {
 					panel.remove(bit_value_model);
 					memory_address.setEnabled(false);
-					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu.getReg(value).getNumBits()-1), 1);
+					bit_value = new SpinnerNumberModel(0, 0, Math.pow(2, cpu
+							.getReg(value).getNumBits() - 1), 1);
 					bit_value_model = new JSpinner(bit_value);
 					panel.add(bit_value_model, "cell 4 1,growx");
 					set_reg_mem.setEnabled(true);
 					get_reg_mem.setEnabled(true);
 					panel.revalidate();
 					panel.repaint();
-					
+
 				}
 			}
 		});
-		
+
 		load.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -357,52 +370,59 @@ public class Computer_GUI extends JFrame implements ActionListener {
 					System.err.println("Error: " + ex.getMessage());
 				}
 				textField.setText("");
-				// Needs to run through the FileLoader Instruction Parser to work
+				// Needs to run through the FileLoader Instruction Parser to
+				// work
 				// properly
 				start.setEnabled(true);
 				cont.setEnabled(true);
 				macrostep.setEnabled(true);
 				microstep.setEnabled(true);
 				runinput.setEnabled(true);
-				load.setEnabled(true);		
+				load.setEnabled(true);
 			}
 		});
-		
+
 		get_reg_mem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if ((String) register_list.getSelectedItem() == "Memory") {
-					Word word = Memory.getInstance().read((Integer) memory_address.getValue());
-					Computer_GUI.append_to_terminal(Utils.WordToString(word, 18) + "\n");
+					Word word = Memory.getInstance().read(
+							(Integer) memory_address.getValue());
+					Computer_GUI.append_to_terminal(Utils
+							.WordToString(word, 18) + "\n");
 				} else {
-					Register reg = cpu.getReg((String) register_list.getSelectedItem());
-					Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18) + "\n");
+					Register reg = cpu.getReg((String) register_list
+							.getSelectedItem());
+					Computer_GUI.append_to_terminal(Utils.WordToString(reg, 18)
+							+ "\n");
 				}
 			}
 		});
-		
+
 		set_reg_mem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if ((String) register_list.getSelectedItem() == "Memory") {
 					int memory_address_value = (int) memory_address.getValue();
-					int bitset_value = clean_spinner((double) bit_value.getValue());
+					int bitset_value = clean_spinner((double) bit_value
+							.getValue());
 					BitSet bitset = Utils.intToBitSet(bitset_value, 18);
 					Word word = Utils.registerToWord(bitset, 18);
 					Memory.getInstance().write(word, memory_address_value);
 				} else {
 					int int_value = clean_spinner((double) bit_value.getValue());
 					BitSet reg_val = Utils.intToBitSet(int_value, 18);
-					cpu.setReg((String) register_list.getSelectedItem(), reg_val, 18);
+					cpu.setReg((String) register_list.getSelectedItem(),
+							reg_val, 18);
 				}
 			}
 		});
-		
+
 		show_hide_dev.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				show_hide = !show_hide;
-				for (int i=0; i<MAR.length; i++) {
+				for (int i = 0; i < MAR.length; i++) {
 					if (i < 4) {
 						MFR[i].setVisible(show_hide);
 					}
@@ -415,22 +435,23 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				lblMdr.setVisible(show_hide);
 				lblMfr.setVisible(show_hide);
 				panel.setVisible(show_hide);
-				String show_or_hide = show_hide ? "Hide Developers Console" : "Show Developers Console";
+				String show_or_hide = show_hide ? "Hide Developers Console"
+						: "Show Developers Console";
 				show_hide_dev.setText(show_or_hide);
 			}
 		});
-		
+
 		enter.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				cpu.input_buffer = textField.getText() + (char)4;
+				cpu.input_buffer = textField.getText() + (char) 4;
 				cpu.handleInterrupt(CPUConstants.INTERRUPT_IO);
 				System.out.println(cpu.input_buffer);
 				textField.setText("");
 			}
 		});
-		
+
 		reset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -440,10 +461,10 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				macrostep.setEnabled(true);
 				microstep.setEnabled(true);
 				runinput.setEnabled(true);
-				load.setEnabled(true);				
+				load.setEnabled(true);
 			}
 		});
-		
+
 		runinput.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -454,13 +475,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 		});
 	}
 
-	//Run execution commands
+	// Run execution commands
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JButton command = (JButton) e.getSource();
 		cpu.executeInstruction(exec_command.get(command.getText()));
 	}
-	
+
 	private int clean_spinner(double value) {
 		return (int) value;
 	}
@@ -478,13 +499,7 @@ public class Computer_GUI extends JFrame implements ActionListener {
 				}
 			}
 		} catch (Exception e) {
-			/*
-			 * StyledDocument document = (StyledDocument)
-			 * terminal.getDocument(); try {
-			 * document.insertString(document.getLength(),
-			 * "Error Updating Board\n", null); } catch (BadLocationException
-			 * e2) { }
-			 */
+
 		}
 	}
 
@@ -510,13 +525,13 @@ public class Computer_GUI extends JFrame implements ActionListener {
 	public static void append_to_terminal(String value) {
 		terminal.append(value);
 	}
-	
+
 	public void init_exec_command_map() {
 		exec_command = new HashMap<String, String>();
 		exec_command.put("Start", "continue");
 		exec_command.put("Continue", "continue");
 		exec_command.put("Micro Step", "micro step");
 		exec_command.put("Macro Step", "macro step");
-		return;		
+		return;
 	}
 }

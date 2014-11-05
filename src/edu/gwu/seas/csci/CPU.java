@@ -67,7 +67,7 @@ public class CPU implements CPUConstants {
 		private void add(L1CacheLine line) {
 			if (cache_adds_counter < CACHE_LENGTH) {
 				logger.debug("Adding cache line with tag " + line.getTag()
-						+ " to cache at position " + cache_adds_counter + ".");
+						+ " to cache at empty position " + cache_adds_counter + ".");
 				cache[cache_adds_counter++] = line;
 			} else {
 				int cache_position = 0;
@@ -75,7 +75,7 @@ public class CPU implements CPUConstants {
 					cache_position = generator.nextInt(cache.length);
 				} while (cache[cache_position].isDirty());
 				logger.debug("Adding cache line with tag " + line.getTag()
-						+ " to cache at position " + cache_position + ".");
+						+ " to cache at occupied position " + cache_position + ".");
 				cache[cache_position] = line;
 			}
 		}
@@ -656,13 +656,6 @@ public class CPU implements CPUConstants {
 	}
 
 	/**
-	 * Called from continue/start gui button
-	 *
-	 * @param cont
-	 *            Branch logic for continuous processing or macro/micro step
-	 */
-
-	/**
 	 * Gets a register from the map.
 	 * 
 	 * @param regName
@@ -957,6 +950,9 @@ public class CPU implements CPUConstants {
 		}
 	}
 
+	/**
+	 * @param step_type
+	 */
 	public void executeInstruction(String step_type) {
 		currentExecution = step_type;
 		switch (step_type) {

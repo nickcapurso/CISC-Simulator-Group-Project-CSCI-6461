@@ -23,6 +23,12 @@ public class Computer {
 		gui.setVisible(true);
 	}
 
+	/**
+	 * The entry point to the application
+	 * 
+	 * @param args
+	 *            Ignored.
+	 */
 	public static void main(String[] args) {
 		Computer computer;
 		try {

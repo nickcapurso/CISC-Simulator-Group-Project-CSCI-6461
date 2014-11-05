@@ -226,20 +226,4 @@ public class Utils {
 		}
 		return word;
 	}
-
-	/**
-	 * @param index
-	 * @return
-	 */
-	public static byte l1IndexToFlag(int index) {
-		return context.getIndexToFlags().get(index);
-	}
-
-	/**
-	 * @param flag
-	 * @return
-	 */
-	public static int l1FlagToIndex(byte flag) {
-		return context.getFlagsToIndex().get(flag);
-	}
 }

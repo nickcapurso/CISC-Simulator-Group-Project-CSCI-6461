@@ -147,8 +147,6 @@ public class InstructionLoader implements Loader {
 		labelTable = new ArrayList<LabelEntry>();
 		try {
 			String temp = null;
-			//check if mem addr is passed
-			//memory_location = isAddressEmpty(95) ? BOOT_PROGRAM_LOADING_ADDR : GENERAL_PROGRAM_LOADING_ADDR;
 			while ((temp = reader.readLine()) != null) {
 				if (temp.equals("") || temp.charAt(0) == '/') {
 					logger.debug("Ignoring line: blank or a comment");
