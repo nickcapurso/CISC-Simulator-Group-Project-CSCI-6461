@@ -57,6 +57,9 @@ public class InstructionLoader implements Loader {
 	 */
 	private static ArrayList<LabelEntry> labelTable;
 
+	/**
+	 * Used to target memory addresses for writing.
+	 */
 	private short memory_location = 0;
 
 	/**
@@ -69,24 +72,13 @@ public class InstructionLoader implements Loader {
 	}
 
 	/**
-	 * InstructionLoader is constructed with the fully qualified file name as
-	 * the target of the reader.
-	 * 
-	 * @param file
-	 *            A file with program instructions to load into memory. The file
-	 *            is expected to contain instructions that constitute a program,
-	 *            with one instruction per line, and elements of the instruction
-	 *            separated by a comma. The expected line format varies with the
-	 *            type of instruction.
-	 */
-	/**
 	 * InstructionLoader is instantiated using a file that contains elements to
 	 * be written into memory. If you provide a fully qualified file path as the
 	 * first argument, such as that returned from a JFileChooser, then set the
 	 * second argument to true. If you only provide a file name without the full
-	 * path, set the second argument to false name and the method will check the
-	 * bin directory of the running program for the name of the file you
-	 * provided in argument one.
+	 * path, set the second argument to false and the method will check the bin
+	 * directory of the running program for the name of the file you provided in
+	 * argument one.
 	 * 
 	 * @param file
 	 *            The file name (fully-qualified or not) of the file with the
@@ -102,6 +94,12 @@ public class InstructionLoader implements Loader {
 	 */
 	public InstructionLoader(String file, boolean fully_qualified) {
 		InputStream in;
+		/*
+		 * This is a hack to get the paragraph for program 2 loaded into memory
+		 * along with the program instructions themselves.
+		 * 
+		 * TODO: Find a better way to load program data.
+		 */
 		if (file.contains("program2.txt")) {
 			System.out.println("Loading paragraph into memory");
 			InputStream in2 = getClass().getResourceAsStream("/paragraph.txt");
@@ -119,9 +117,13 @@ public class InstructionLoader implements Loader {
 				Word word = Utils.registerToWord(Utils.intToBitSet(4, 18), 18);
 				cpu.writeToMemory(word, memoryLoc);
 			} catch (IOException e) {
-				
+
 			}
 		}
+		/*
+		 * The fully-qualified parameter should probably be replaced by an
+		 * overloaded one-arg constructor.
+		 */
 		if (fully_qualified) {
 			try {
 				in = new FileInputStream(file);
@@ -165,9 +167,8 @@ public class InstructionLoader implements Loader {
 								+ " at address " + memory_location);
 					} else {
 						// If the label is already in the table, but has an
-						// associated
-						// address of 0, then there are forward references that
-						// need to be resolved now
+						// associated address of 0, then there are forward
+						// references that need to be resolved now.
 						if (labelTable.get(labelIndex).address == 0) {
 							labelTable.get(labelIndex).address = memory_location;
 
@@ -214,20 +215,21 @@ public class InstructionLoader implements Loader {
 											+ entry.address);
 								}
 
-								// Write back the instruction to memory
-								cpu.writeToMemory(word, address);// memory.write(word,
-																	// address);
+								logger.debug("Writing word " + word
+										+ " to memory address " + address + ".");
+								cpu.writeToMemory(word, address);
 							}
 						} else {
-							// Can't have duplicate labels
-							throw new ParseException("Error: Duplicate Label: "
-									+ label, 0);
+							ParseException e = new ParseException(
+									"Error: Duplicate Label: " + label, 0);
+							logger.error(e);
+							throw e;
 						}
 					}
 					continue;
 				}
 
-				Word word = stringToWord(temp);
+				Word word = instructionToWord(temp);
 
 				if (word != null)
 					cpu.writeToMemory(word, memory_location++);
@@ -254,22 +256,20 @@ public class InstructionLoader implements Loader {
 		this.load(reader);
 	}
 
-	public Word stringToWord(String input) {
-		String temp = input;
+	public Word instructionToWord(String instruction) {
+		String temp = instruction;
 		String labelCheck;
 		byte opcode, general_register, index_register, address, indirection, register_x, register_y, count, lr, al, devid;
 		Word word = new Word();
 		int labelIndex = 0;
 
 		try {
-			// Read the opcode from the reader line.
+			logger.debug("Reading the opcode key string from the instruction string.");
 			String opcodeKeyString = temp.substring(0, 3).trim();
-
-			// Determine the instruction's format from the Computer's
-			// context.
+			logger.debug("Determining the instruction's format from the computer context.");
 			Context.InstructionFormat instruction_format = context
 					.getInstructionFormats().get(opcodeKeyString);
-			// Ensure the key returned a valid InstructionClass object.
+			logger.debug("Testing for a valid InstructionClass object.");
 			if (instruction_format == null)
 				return null;
 
@@ -278,39 +278,34 @@ public class InstructionLoader implements Loader {
 				instruction_elements[i] = instruction_elements[i].trim();
 
 			opcode = general_register = index_register = address = indirection = register_x = register_y = count = lr = al = devid = 0;
+			logger.debug("Translating opcode key string into binary opcode.");
 			opcode = context.getOpCodeBytes().get(opcodeKeyString);
 
+			logger.debug("Switching on instruction_format to determine parse logic.");
 			switch (instruction_format) {
 			case ONE:
+				logger.debug("Executing parse logic on for case InsructionFormat.ONE.");
 				if (opcodeKeyString.equals("JZ"))
 					general_register = Byte.parseByte(temp.substring(3, 4));
 				else
 					general_register = Byte.parseByte(temp.substring(4, 5));
+
 				index_register = Byte.parseByte(instruction_elements[1]);
-
 				labelCheck = instruction_elements[2];
-
-				// Check to see if the address field contains a label
+				logger.debug("Testing the address field of the instruction string for a label.");
 				if (Character.isAlphabetic(labelCheck.charAt(0))) {
-
-					// Check if the label is currently in the label table
+					logger.debug("Label found.  Checking the label table for the label.");
 					if ((labelIndex = searchLabelTable(labelCheck)) != -1) {
-						// If the label's address if above 127, need to do
-						// indirection
+						logger.debug("Label found on the table.  Testing the label address for indirection.");
 						if (labelTable.get(labelIndex).address >= 128) {
 							address = JUMP_INDIRECTION_ADDR;
 						} else {
-							// Else, just fetch the address from the table
 							address = (byte) labelTable.get(labelIndex).address;
 						}
-
-						// Add this instruction to the label's list of total
-						// references
+						logger.debug("Adding this instruction to the label's list of total references.");
 						labelTable.get(labelIndex).references
 								.add(memory_location);
-
-						// If this is a forward reference, push it onto the
-						// label's forward reference stack
+						logger.debug("Testing the instruction for a forward reference.");
 						if (address == 0) {
 							labelTable.get(labelIndex).forwardReferences
 									.push(memory_location);
@@ -323,8 +318,7 @@ public class InstructionLoader implements Loader {
 									+ " translated to address " + address);
 						}
 					} else {
-						// Create a new label entry if this is the first time
-						// seeing the label
+						logger.debug("Label not found on label table.");
 						labelTable.add(new LabelEntry(labelCheck, (byte) 0,
 								memory_location));
 						logger.debug("Creating new label: " + labelCheck
@@ -334,44 +328,34 @@ public class InstructionLoader implements Loader {
 				} else {
 					address = Byte.parseByte(labelCheck);
 				}
-
-				// Optional indirection check
+				logger.debug("Testing instuction string for indirection element.");
 				if (instruction_elements.length < 4)
 					indirection = 0;
 				else
 					indirection = Byte.parseByte(instruction_elements[3]);
 
-				// Set indirection bit if needed to do the label jump
+				logger.debug("Testing if indirection is necessary to do the label jump.");
 				if (address == JUMP_INDIRECTION_ADDR)
 					indirection = 1;
 				break;
 			case TWO:
+				logger.debug("Executing parse logic on for case InsructionFormat.TWO.");
 				index_register = Byte.parseByte(temp.substring(4, 5));
-
 				labelCheck = instruction_elements[1];
-
-				// Check to see if the address field contains a label
+				logger.debug("Testing the address field of the instruction string for a label.");
 				if (Character.isAlphabetic(labelCheck.charAt(0))) {
-
-					// Check if the label is currently in the label table
+					logger.debug("Label found.  Checking the label table for the label.");
 					if ((labelIndex = searchLabelTable(labelCheck)) != -1) {
-
-						// If the label's address if above 127, need to do
-						// indirection
+						logger.debug("Label found on the table.  Testing the label address for indirection.");
 						if (labelTable.get(labelIndex).address >= 128) {
 							address = JUMP_INDIRECTION_ADDR;
 						} else {
-							// Else, just fetch the address from the table
 							address = (byte) labelTable.get(labelIndex).address;
 						}
-
-						// Add this instruction to the label's list of total
-						// references
+						logger.debug("Adding this instruction to the label's list of total references.");
 						labelTable.get(labelIndex).references
 								.add(memory_location);
-
-						// If this is a forward reference, push it onto the
-						// label's forward reference stack
+						logger.debug("Testing the instruction for a forward reference.");
 						if (address == 0) {
 							labelTable.get(labelIndex).forwardReferences
 									.push(memory_location);
@@ -384,34 +368,32 @@ public class InstructionLoader implements Loader {
 									+ " translated to address " + address);
 						}
 					} else {
-						// Create a new label entry if this is the first time
-						// seeing the label
+						logger.debug("Label not found on label table.");
 						labelTable.add(new LabelEntry(labelCheck, (byte) 0,
 								memory_location));
 						logger.debug("Creating new label: " + labelCheck
 								+ " for forward reference at address: "
 								+ memory_location);
-
 					}
 				} else {
 					address = Byte.parseByte(labelCheck);
 				}
-
-				// Optional indirection check
+				logger.debug("Testing instuction string for indirection element.");
 				if (instruction_elements.length < 3)
 					indirection = 0;
 				else
 					indirection = Byte.parseByte(instruction_elements[2]);
-
-				// Set indirection bit if needed to do the label jump
+				logger.debug("Testing if indirection is necessary to do the label jump.");
 				if (address == JUMP_INDIRECTION_ADDR)
 					indirection = 1;
 				break;
 			case THREE:
+				logger.debug("Executing parse logic on for case InsructionFormat.THREE.");
 				general_register = Byte.parseByte(temp.substring(4, 5));
 				address = Byte.parseByte(instruction_elements[1]);
 				break;
 			case FOUR:
+				logger.debug("Executing parse logic on for case InsructionFormat.FOUR.");
 				// Immed portion is optional
 				try {
 					address = Byte.parseByte(temp.substring(4, 5));
@@ -422,19 +404,23 @@ public class InstructionLoader implements Loader {
 				}
 				break;
 			case FIVE:
+				logger.debug("Executing parse logic on for case InsructionFormat.FIVE.");
 				register_x = Byte.parseByte(temp.substring(4, 5));
 				break;
 			case SIX:
+				logger.debug("Executing parse logic on for case InsructionFormat.SIX.");
 				register_x = Byte.parseByte(temp.substring(4, 5));
 				register_y = Byte.parseByte(instruction_elements[1]);
 				break;
 			case SEVEN:
+				logger.debug("Executing parse logic on for case InsructionFormat.SEVEN.");
 				general_register = Byte.parseByte(temp.substring(4, 5));
 				count = Byte.parseByte(instruction_elements[1]);
 				lr = Byte.parseByte(instruction_elements[2]);
 				al = Byte.parseByte(instruction_elements[3]);
 				break;
 			case EIGHT:
+				logger.debug("Executing parse logic on for case InsructionFormat.EIGHT.");
 				if (opcodeKeyString.equals("IN"))
 					general_register = Byte.parseByte(temp.substring(3, 4));
 				else
@@ -445,6 +431,7 @@ public class InstructionLoader implements Loader {
 				break;
 			}
 
+			logger.debug("Switching on instruction_format to determine write logic.");
 			switch (instruction_format) {
 			case ONE:
 			case TWO:
@@ -480,8 +467,7 @@ public class InstructionLoader implements Loader {
 			}
 			return word;
 		} catch (Exception e) {
-			// This will be a Illegal Operation code
-			logger.error(e);
+			logger.error("Illegal Operation Code.", e);
 			return null;
 		}
 	}
